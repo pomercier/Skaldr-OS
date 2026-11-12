@@ -12,13 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install YAML parser for isolated Calamares tests
         run: python -m pip install 'PyYAML>=6,<7'
       - name: Validate Python entrypoints
-        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject archiso/airootfs/usr/local/bin/skaldr-doctor
+        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject archiso/airootfs/usr/local/bin/skaldr-doctor scripts/skaldr-version.py archiso/airootfs/usr/local/bin/skaldr-welcome archiso/airootfs/usr/local/bin/skaldr-version
       - name: Validate Bash entrypoints
         run: |
           set -euo pipefail

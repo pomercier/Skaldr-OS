@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome to Skaldr OS
+Comment=Show the release number and source revision on first login
+Exec=/usr/local/bin/skaldr-welcome
+TryExec=/usr/local/bin/skaldr-welcome
+Terminal=false
+OnlyShowIn=KDE;
+X-GNOME-Autostart-enabled=true

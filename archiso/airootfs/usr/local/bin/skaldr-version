@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""Display the exact version, build and Git revision installed on this system."""
+import json
+from pathlib import Path
+import sys
+
+meta = Path("/usr/share/skaldr/build.json")
+if not meta.is_file():
+    sys.exit("Skaldr build identity is unavailable on this system")
+data = json.loads(meta.read_text(encoding="utf-8"))
+if "--json" in sys.argv[1:]:
+    print(json.dumps(data, indent=2))
+else:
+    print("Skaldr OS " + data["version"])
+    print("Project changes: " + str(data["project_commit_count"]))
+    print("Git revision:    " + data["git_revision"])
+    print("Built (UTC):     " + data["build_date_utc"])
+    print("Source:          " + data["source"])

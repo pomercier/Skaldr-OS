@@ -12,6 +12,11 @@ import sys
 FILES = [
     "/usr/local/bin/skaldr-postinstall",
     "/usr/local/bin/skaldr-profile",
+    "/usr/local/bin/skaldr-welcome",
+    "/usr/local/bin/skaldr-version",
+    "/usr/share/skaldr/build.json",
+    "/etc/skaldr-release",
+    "/etc/xdg/autostart/skaldr-welcome.desktop",
     "/usr/local/bin/skaldr-doctor",
     "/usr/local/bin/skaldr-center",
     "/usr/share/skaldr/os-release",

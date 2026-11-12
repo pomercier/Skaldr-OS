@@ -180,6 +180,13 @@ run_build() {
     mkdir -p ${work_dir}
     cp -r archiso ${work_dir}/archiso
 
+    # Generate the build identity inside the staging tree, not the Git source.
+    local skaldr_iso_version
+    skaldr_iso_version="$(python3 "${src_dir}/scripts/skaldr-version.py" --field iso_version)"
+    python3 "${src_dir}/scripts/skaldr-version.py" --install-to "${work_dir}/archiso/airootfs"
+    sed -i "s/^iso_version=.*/iso_version=\"${skaldr_iso_version}\"/" "${work_dir}/archiso/profiledef.sh"
+    iso_file="skaldr-${skaldr_iso_version}-x86_64.iso"
+
     msg "Start [Build ISO]"
 
     # insert removal of archlinux keyrings timer on the ISO before pack
@@ -196,7 +203,7 @@ run_build() {
     local iso_name iso_version iso_arch built_iso
     iso_name="$(sed -n 's/^iso_name="\([^"]*\)"/\1/p' "${work_dir}/archiso/profiledef.sh" | head -n 1)"
     iso_arch="$(sed -n 's/^arch="\([^"]*\)"/\1/p' "${work_dir}/archiso/profiledef.sh" | head -n 1)"
-    iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
+    iso_version="$(sed -n 's/^iso_version="\([^"]*\)"/\1/p' "${work_dir}/archiso/profiledef.sh" | head -n 1)"
     [[ -n "$iso_name" && -n "$iso_arch" ]] || die "Invalid ArchISO profile identity"
     built_iso="$outFolder/$_profile/${iso_name}-${iso_version}-${iso_arch}.iso"
     if [[ ! -f "$built_iso" ]]; then

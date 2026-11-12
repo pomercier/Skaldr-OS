@@ -37,7 +37,7 @@ jobs:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+          [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ && "$RELEASE_VERSION" == "v$(cat VERSION)" ]] || {
             echo "::error::Version must use vMAJOR.MINOR.PATCH"
             exit 1
           }
@@ -101,4 +101,4 @@ jobs:
           if [[ "$RELEASE_STABLE" != true ]]; then
             options+=(--prerelease)
           fi
-          gh release create "$RELEASE_VERSION" ./*.iso SHA256SUMS "\${options[@]}"
+          gh release create "$RELEASE_VERSION" ./*.iso SHA256SUMS "${options[@]}"

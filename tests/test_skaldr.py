@@ -97,6 +97,38 @@ class SkaldrChecks(unittest.TestCase):
         self.assertNotIn('mv "$outFolder/$_profile/cachyos-', script)
         self.assertNotIn("occt", (REPO / "archiso/packages_desktop.x86_64").read_text().splitlines())
 
+    def test_versioning_and_first_login(self):
+        version_script = REPO / "scripts/skaldr-version.py"
+        self.assertEqual((REPO / "VERSION").read_text().strip(), "0.1.0")
+        self.assertIn("FORK_POINT", version_script.read_text())
+        result = subprocess.run([sys.executable, str(version_script), "--json"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        import json
+        data = json.loads(result.stdout)
+        self.assertRegex(data["version"], r"^0\.1\.0-dev\.\d+\+g[0-9a-f]{8}$")
+        self.assertGreater(data["project_commit_count"], 0)
+        self.assertEqual(len(data["git_revision"]), 40)
+        self.assertTrue((LIVE / "usr/local/bin/skaldr-welcome").is_file())
+        self.assertIn("welcome-shown", (LIVE / "usr/local/bin/skaldr-welcome").read_text())
+        self.assertIn("/usr/share/skaldr/build.json", INJECT.read_text())
+        # Verify the exact version is prepared in the staged Live image.
+        source = (REPO / "util-iso.sh").read_text()
+        self.assertIn("--install-to", source)
+        self.assertIn('iso_file="skaldr-', source)
+        with tempfile.TemporaryDirectory() as tmp:
+            template = Path(tmp) / "usr/share/skaldr/os-release"
+            template.parent.mkdir(parents=True)
+            template.write_text('NAME="Skaldr OS"\nID=arch\n')
+            check = subprocess.run([sys.executable, str(version_script),
+                                    "--install-to", tmp],
+                                   capture_output=True, text=True)
+            self.assertEqual(check.returncode, 0, check.stderr)
+            self.assertIn('VERSION_ID="0.1.0-dev.',
+                          (Path(tmp) / "etc/os-release").read_text())
+            self.assertEqual(json.loads((Path(tmp) / "usr/share/skaldr/build.json")
+                                        .read_text())["git_revision"], data["git_revision"])
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)

@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Show an accurate, once-per-user welcome with the installed build identity."""
+import json
+from pathlib import Path
+import shutil
+import subprocess
+
+
+def main():
+    if Path("/run/archiso").exists():
+        return
+    marker = Path.home() / ".config/skaldr/welcome-shown"
+    if marker.exists():
+        return
+    info = Path("/usr/share/skaldr/build.json")
+    if not info.is_file():
+        return
+    if not shutil.which("kdialog"):
+        return
+    metadata = json.loads(info.read_text(encoding="utf-8"))
+    version = metadata.get("version", "development")
+    build = metadata.get("build_date_utc", "unknown")
+    commit_sha = metadata.get("git_revision", "unknown")[:12]
+    content = (
+        f"Welcome to Skaldr OS {version}\n\n"
+        "An independent, CachyOS-based Linux project built for performance "
+        "and shared publicly to help others.\n\n"
+        f"Skaldr changes since the fork: {metadata.get('project_commit_count', '?')}\n"
+        f"Built: {build}\n"
+        f"Source revision: {commit_sha}\n\n"
+        "The graphics driver assistant can help you choose compatible "
+        "hardware drivers. You can inspect your build any time with "
+        "the 'skaldr-version' command.\n\n"
+        "Thank you for giving this project a try."
+    )
+    result = subprocess.run(["kdialog", "--title",
+                             f"Welcome to Skaldr OS {version}", "--msgbox", content],
+                            check=False)
+    if result.returncode == 0:
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.touch()
+
+
+if __name__ == "__main__":
+    main()
