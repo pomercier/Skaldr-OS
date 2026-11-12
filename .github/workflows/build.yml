@@ -25,7 +25,13 @@ jobs:
         run: |
           echo "builddate=$(date +'%y%m%d')" >> $GITHUB_OUTPUT
 
-      - name: Clone CachyOS-Live-ISO
+      - name: Install Git before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -Syu --noconfirm --needed git
+
+      - name: Checkout complete Skaldr OS repository history
         id: clone
         uses: actions/checkout@v4
         with:
@@ -50,6 +56,8 @@ jobs:
         run: |
           set -euo pipefail
           git --version
+          git rev-parse --is-inside-work-tree | grep -qx true
+          git cat-file -e 3215497d2e8c5fea90e185affcf973dfa2cf790b^{commit}
           python3 scripts/skaldr-version.py --json
           test "$(python3 scripts/skaldr-version.py --field project_commit_count)" -gt 0
 

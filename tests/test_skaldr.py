@@ -152,7 +152,12 @@ class SkaldrChecks(unittest.TestCase):
 
     def test_ci_boot_preflight(self):
         workflow = (REPO / ".github/workflows/build.yml").read_text()
-        self.assertIn("git archiso cachyos-keyring", workflow)
+        self.assertIn("Install Git before checkout", workflow)
+        self.assertIn("pacman -Syu --noconfirm --needed git", workflow)
+        self.assertLess(workflow.index("Install Git before checkout"),
+                        workflow.index("Checkout complete Skaldr OS repository history"))
+        self.assertIn("fetch-depth: 0", workflow)
+        self.assertIn("git cat-file -e 3215497d2e8c5fea90e185affcf973dfa2cf790b", workflow)
         self.assertIn("python3 scripts/skaldr-version.py --json", workflow)
         self.assertIn("bootloader: grub", workflow)
         self.assertIn("filesystem: btrfs", workflow)
