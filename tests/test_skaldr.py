@@ -211,6 +211,8 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn('qt_wait_for_text "$FUNCNAME" "Launch installer"', qt)
         vm = (REPO / "machines/cachyos-dailylive.conf").read_text()
         self.assertIn('mouse="tablet"', vm)
+        self.assertIn('disk_size="48G"', vm)
+        self.assertIn('serial="socket"', vm)
         self.assertIn("-qmp unix:", vm)
         self.assertIn('$(pwd)/cachyos-dailylive/skaldr-ci-qmp.sock', vm)
         self.assertNotIn('$(pwd)/machines/cachyos-dailylive/', vm)
