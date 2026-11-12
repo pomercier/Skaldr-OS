@@ -38,6 +38,20 @@ class SkaldrChecks(unittest.TestCase):
             self.assertNotIn(forbidden, live)
             self.assertNotIn(forbidden, installed)
 
+    def test_graphics_are_hardware_neutral(self):
+        forbidden = {"linux-cachyos-nvidia-open", "linux-cachyos-lts-nvidia-open",
+                     "nvidia-utils", "lib32-vulkan-intel", "lib32-vulkan-radeon"}
+        live = set((REPO / "archiso/packages_desktop.x86_64").read_text().splitlines())
+        installed = set(MANIFEST.read_text().splitlines())
+        for packages in (live, installed):
+            self.assertFalse(forbidden & packages)
+            for item in ("vulkan-swrast", "lib32-vulkan-swrast",
+                         "vulkan-icd-loader", "lib32-vulkan-icd-loader"):
+                self.assertIn(item, packages)
+        assistant = (LIVE / "usr/local/bin/skaldr-gpu-assistant").read_text()
+        self.assertIn("pkexec chwd -a", assistant)
+        self.assertNotIn("nvidia-dkms-580xx nvidia-dkms-470xx", assistant)
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)

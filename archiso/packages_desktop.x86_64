@@ -85,6 +85,7 @@ jq
 kate
 kcalc
 kde-gtk-config
+kdialog
 kinfocenter
 konsole
 kscreen
@@ -93,8 +94,7 @@ lact
 ldns
 less
 lftp
-lib32-vulkan-intel
-lib32-vulkan-radeon
+lib32-vulkan-icd-loader
 lib32-vulkan-swrast
 libfido2
 libreoffice-fresh
@@ -105,9 +105,7 @@ libwnck3
 linux-atm
 linux-cachyos
 linux-cachyos-lts
-linux-cachyos-lts-nvidia-open
 linux-cachyos-lts-zfs
-linux-cachyos-nvidia-open
 linux-cachyos-zfs
 linux-firmware
 linux-firmware-marvell
@@ -147,7 +145,6 @@ noto-fonts-emoji
 nss-mdns
 ntfs-3g
 ntp
-nvidia-utils
 nvme-cli
 occt
 open-iscsi
@@ -162,6 +159,7 @@ parted
 partimage
 partitionmanager
 paru
+pciutils
 pcsclite
 pipewire
 pipewire-alsa
@@ -229,6 +227,8 @@ virt-manager
 virtualbox-guest-utils
 vlc
 vpnc
+vulkan-icd-loader
+vulkan-swrast
 vulkan-tools
 vulkan-virtio
 wget
