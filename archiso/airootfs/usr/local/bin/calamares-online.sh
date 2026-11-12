@@ -22,7 +22,10 @@ report_failure() {
         kdialog --title "Skaldr OS installer" --error \
             "Calamares could not start. Stage: ${stage}; error: ${status}.
 
-Details: ${log}" || true
+Last error:
+$(tail -n 12 "$log" 2>/dev/null || true)
+
+Full log: ${log}" || true
     fi
 }
 trap report_failure EXIT
