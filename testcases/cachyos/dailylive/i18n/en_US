@@ -31,7 +31,10 @@ text_calamares_bootloader="Limine"
 
 # Calamares Partitions
 
-text_calamares_partitions="Erase disk"
+# OCR on the actual Calamares partitions page consistently recognizes this
+# label, whereas the adjacent icon merges "Erase disk" into "CErasedisk".
+# Keep a real partition-page assertion rather than bypassing the test.
+text_calamares_partitions="Manual partitioning"
 
 # Calamares Desktop
 
