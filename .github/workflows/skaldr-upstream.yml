@@ -1,0 +1,70 @@
+name: Synchronize CachyOS upstream
+on:
+  schedule:
+    - cron: '15 23 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: skaldr-upstream-master
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    name: Merge official CachyOS changes into the only permanent branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Skaldr OS
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Discover the current official default branch
+        id: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="$(curl --fail --silent --show-error --location \
+            --header 'Accept: application/vnd.github+json' \
+            https://api.github.com/repos/CachyOS/CachyOS-Live-ISO \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["default_branch"])')"
+          test -n "$branch"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "Official upstream default branch: $branch"
+
+      - name: Fetch CachyOS
+        shell: bash
+        env:
+          UPSTREAM_BRANCH: ${{ steps.upstream.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git remote add cachyos https://github.com/CachyOS/CachyOS-Live-ISO.git
+          git fetch --no-tags cachyos "$UPSTREAM_BRANCH"
+          git branch -r
+
+      - name: Merge upstream changes safely
+        shell: bash
+        env:
+          UPSTREAM_BRANCH: ${{ steps.upstream.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git merge-base --is-ancestor "cachyos/$UPSTREAM_BRANCH" HEAD; then
+            echo "Already up to date with upstream."
+            exit 0
+          fi
+          if ! git merge --no-edit --no-ff \
+            -m "Merge upstream CachyOS $UPSTREAM_BRANCH into Skaldr OS" \
+            "cachyos/$UPSTREAM_BRANCH"; then
+            git status --short || true
+            git merge --abort || true
+            echo "::error::Upstream merge conflict; manual arbitration is required. No files were pushed and no new branch was created."
+            exit 1
+          fi
+          git push origin HEAD:master
+          echo "Upstream changes merged and pushed to master."
