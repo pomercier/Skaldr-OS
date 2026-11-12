@@ -27,7 +27,9 @@ jobs:
                         archiso/airootfs/usr/local/bin/skaldr-numlock \
                         archiso/airootfs/usr/local/bin/skaldr-center \
                         archiso/airootfs/usr/local/bin/removeun \
-                        archiso/airootfs/usr/local/bin/calamares-online.sh; do
+                        archiso/airootfs/usr/local/bin/calamares-online.sh \
+                        util-iso.sh \
+                        buildiso.sh; do
             bash -n "$script"
           done
       - name: Run Skaldr integration checks

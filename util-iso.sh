@@ -57,7 +57,7 @@ trap_exit() {
 
 generate_motd() {
     cat << 'EOF' > ${src_dir}/archiso/airootfs/etc/motd
-This ISO is based on ArchLinux ISO modified to provide Installation Environment for [38;2;23;147;209mCachyOS[0m.
+Skaldr OS is an independent, CachyOS-based Linux distribution.
 https://cachyos.org
 
 CachyOS Archiso Sources:
@@ -69,11 +69,11 @@ https://gitlab.archlinux.org/archlinux/archiso
 Calamares is used as GUI installer:
 https://github.com/calamares/calamares
 
-Live environment will start now and let you install [38;2;23;147;209mCachyOS[0m to disk.
+The live environment will start now and let you install Skaldr OS.
 
 Getting help at the forum: https://discuss.cachyos.org
 
-Welcome to your [38;2;23;147;209mCachyOS[0m!
+Welcome to Skaldr OS!
 
 [41m [41m [41m [40m [44m [40m [41m [46m [45m [41m [46m [43m [41m [44m [45m [40m [44m [40m [41m [44m [41m [41m [46m [42m [41m [44m [43m [41m [45m [40m [40m [44m [40m [41m [44m [42m [41m [46m [44m [41m [46m [47m [0m
 EOF
@@ -191,7 +191,16 @@ run_build() {
     sudo chown $USER $outFolder
 
     cp ${work_dir}/iso/arch/pkglist.x86_64.txt "$outFolder/$_profile/$(gen_iso_fn).pkgs.txt"
-    mv "$outFolder/$_profile/cachyos-$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)-x86_64.iso" "$outFolder/$_profile/${iso_file}"
+    # Use the active archiso profile to locate the actual built ISO.
+    local iso_name iso_version arch built_iso
+    source "${work_dir}/archiso/profiledef.sh"
+    built_iso="$outFolder/$_profile/${iso_name}-${iso_version}-${arch}.iso"
+    if [[ ! -f "$built_iso" ]]; then
+        die "Expected ISO was not produced: %s" "$built_iso"
+    fi
+    if [[ "$built_iso" != "$outFolder/$_profile/${iso_file}" ]]; then
+        mv -- "$built_iso" "$outFolder/$_profile/${iso_file}"
+    fi
 
     msg "Done [Build ISO] ${iso_file}"
     msg "Finished building [%s]" "${_profile}"
@@ -229,7 +238,7 @@ run_build() {
 
 gen_iso_fn(){
     local vars=() name
-    vars+=("cachyos")
+    vars+=("skaldr")
     [[ -n ${profile} ]] && vars+=("${profile}")
 
     vars+=("linux")

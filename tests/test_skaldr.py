@@ -87,6 +87,13 @@ class SkaldrChecks(unittest.TestCase):
         for name in ("snapper", "snap-pac", "smartmontools"):
             self.assertIn(name, (REPO / "archiso/packages_desktop.x86_64").read_text().splitlines())
 
+    def test_iso_output_uses_skaldr_name(self):
+        script = (REPO / 'util-iso.sh').read_text()
+        self.assertIn('vars+=("skaldr")', script)
+        self.assertIn('built_iso=', script)
+        self.assertNotIn('mv "$outFolder/$_profile/cachyos-', script)
+        self.assertNotIn("occt", (REPO / "archiso/packages_desktop.x86_64").read_text().splitlines())
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)
