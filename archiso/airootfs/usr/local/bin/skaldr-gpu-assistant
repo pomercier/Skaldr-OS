@@ -9,7 +9,7 @@ choice=""
 if printf '%s' "$gpu_info" | grep -qi nvidia; then
     available="$(chwd --list || true)"
     profile=""
-    for candidate in nvidia-dkms nvidia-dkms-580xx nvidia-dkms-470xx nvidia-open-dkms; do
+    for candidate in nvidia-dkms-580xx nvidia-dkms-470xx; do
         if printf '%s' "$available" | grep -Fq "$candidate"; then profile="$candidate"; break; fi
     done
     if [[ -n "$profile" ]]; then
@@ -17,7 +17,12 @@ if printf '%s' "$gpu_info" | grep -qi nvidia; then
         if [[ "$choice" == proprietary ]]; then
             pkexec chwd -i "$profile" || exit 1
         elif [[ "$choice" == open ]]; then
-            pkexec chwd -i nouveau || exit 1
+            if printf '%s' "$available" | grep -Eq '(^|[[:space:]])nouveau([[:space:]]|$)'; then
+                pkexec chwd -i nouveau || exit 1
+            else
+                kdialog --error 'The Nouveau profile is unavailable for this GPU. Your current drivers were not changed.'
+                exit 0
+            fi
         else
             exit 0
         fi

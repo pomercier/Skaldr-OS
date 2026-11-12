@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Native launcher discovery and installation; never use Flatpak or Snap.
+# Launch an installed ArtCraft app, otherwise show the official source.
 set -euo pipefail
 if command -v artcraft-launcher >/dev/null; then exec artcraft-launcher; fi
-if ! command -v yay >/dev/null; then
-    printf 'yay is required to install ArtCraft Launcher.\n' >&2
-    exit 1
+if [[ -x "$HOME/Applications/ArtCraft/ArtCraft-Launcher.AppImage" ]]; then
+    exec "$HOME/Applications/ArtCraft/ArtCraft-Launcher.AppImage"
 fi
+printf '%s\n' "ArtCraft Launcher is not installed." \
+    "Official source: https://github.com/storytold/craft-launcher/releases"
 if command -v kdialog >/dev/null; then
-    kdialog --yesno 'ArtCraft Launcher is not installed. Install the native AUR package now?' || exit 0
+    if kdialog --yesno 'Open the official ArtCraft Launcher releases page to install a native AppImage?'; then
+        xdg-open 'https://github.com/storytold/craft-launcher/releases'
+    fi
 fi
-exec yay -S --needed artcraft-launcher

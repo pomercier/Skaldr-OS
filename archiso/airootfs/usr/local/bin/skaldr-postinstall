@@ -12,7 +12,7 @@ def main():
     if not pkg.exists():
         sys.exit("Skaldr package manifest missing in target")
     packages = [v.strip() for v in pkg.read_text().splitlines() if v.strip() and not v.startswith("#")]
-    call("pacman", "-S", "--needed", "--noconfirm", *packages)
+    call("pacman", "-Syu", "--needed", "--noconfirm", *packages)
     if subprocess.run(["pacman", "-Qq", "firefox"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
         call("pacman", "-Rns", "--noconfirm", "firefox")
     call("/usr/local/bin/skaldr-profile", "install")

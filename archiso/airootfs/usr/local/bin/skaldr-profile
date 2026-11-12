@@ -43,7 +43,7 @@ def runtime():
     run("powerprofilesctl", "set", "performance")
     
 def boot():
-    # Do not modify unknown bootloader formats.
+    # Do not modify unknown bootloader formats. Invalid parameters can prevent boot.
     limine = Path("/etc/default/limine")
     if limine.exists():
         value = limine.read_text()
