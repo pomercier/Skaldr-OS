@@ -12,13 +12,17 @@ import sys
 FILES = [
     "/usr/local/bin/skaldr-postinstall",
     "/usr/local/bin/skaldr-profile",
+    "/usr/local/bin/skaldr-numlock",
+    "/etc/systemd/system/skaldr-numlock.service",
+    "/etc/xdg/kcminputrc",
+    "/etc/skel/.config/kcminputrc",
+    "/etc/skel/.config/kscreenlockerrc",
+    "/etc/skel/.config/kwalletrc",
     "/usr/local/bin/skaldr-gpu-assistant",
-    "/usr/local/bin/skaldr-capslock",
     "/usr/local/bin/skaldr-artcraft",
     "/usr/share/skaldr/packages.txt",
     "/usr/share/applications/skaldr-artcraft.desktop",
     "/etc/xdg/autostart/skaldr-gpu-assistant.desktop",
-    "/etc/xdg/autostart/skaldr-capslock.desktop",
     "/etc/systemd/system/skaldr-performance.service",
 ]
 

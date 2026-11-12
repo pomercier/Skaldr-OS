@@ -6,7 +6,7 @@ Before=display-manager.service
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/skaldr-profile live
-ExecStartPost=-/usr/local/bin/skaldr-cal-inject
+ExecStartPost=/usr/local/bin/skaldr-numlock
 RemainAfterExit=yes
 
 [Install]

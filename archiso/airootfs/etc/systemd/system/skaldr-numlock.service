@@ -1,0 +1,12 @@
+[Unit]
+Description=Configure Skaldr OS NumLock for graphical login
+Before=display-manager.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/skaldr-numlock
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

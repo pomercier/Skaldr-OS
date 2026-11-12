@@ -38,6 +38,7 @@ def performance():
         run("systemctl", "disable", "scx.service")
         run("systemctl", "enable", "scx_loader.service")
         run("systemctl", "enable", "skaldr-performance.service")
+        run("systemctl", "enable", "skaldr-numlock.service")
 
 def runtime():
     run("powerprofilesctl", "set", "performance")

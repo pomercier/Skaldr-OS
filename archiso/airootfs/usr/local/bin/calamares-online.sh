@@ -45,7 +45,8 @@ main() {
 EOF
 
     sudo cp "/usr/share/calamares/settings_${mode}.conf" /etc/calamares/settings.conf
-    /usr/local/bin/skaldr-cal-inject || exit 1\n    exec pkexec-wrapper calamares -D6 >> $log
+    sudo /usr/local/bin/skaldr-cal-inject || exit 1
+    exec pkexec-wrapper calamares -D6 >> "$log"
 }
 
 main "$@"

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Configure NumLock for Plasma and its supported graphical login managers.
+set -euo pipefail
+source_file="/etc/xdg/kcminputrc"
+[[ -f "$source_file" ]] || exit 1
+for user in plasmalogin sddm; do
+    if getent passwd "$user" >/dev/null; then
+        home="$(getent passwd "$user" | cut -d: -f6)"
+        group="$(id -gn "$user")"
+        if [[ "$user" == "plasmalogin" ]]; then
+            target="$home/.config/kdedefaults/kcminputrc"
+        else
+            target="$home/.config/kcminputrc"
+        fi
+        install -d -m 0755 "$(dirname "$target")"
+        install -m 0644 "$source_file" "$target"
+        chown "$user:$group" "$target"
+    fi
+done

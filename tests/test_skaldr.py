@@ -52,6 +52,16 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("pkexec chwd -a", assistant)
         self.assertNotIn("nvidia-dkms-580xx nvidia-dkms-470xx", assistant)
 
+    def test_numlock_and_installer(self):
+        self.assertEqual((LIVE / "etc/xdg/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")
+        self.assertEqual((LIVE / "etc/skel/.config/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")
+        self.assertFalse((LIVE / "usr/local/bin/skaldr-capslock").exists())
+        self.assertFalse((LIVE / "etc/xdg/autostart/skaldr-capslock.desktop").exists())
+        self.assertIn("skaldr-numlock", INJECT.read_text())
+        installer = (LIVE / "usr/local/bin/calamares-online.sh").read_text()
+        self.assertIn("sudo /usr/local/bin/skaldr-cal-inject", installer)
+        self.assertNotIn("exit 1\\n", installer)
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)
