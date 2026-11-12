@@ -1,0 +1,104 @@
+name: Publish validated Skaldr OS release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release tag (for example v0.1.0)'
+        required: true
+        type: string
+      stable:
+        description: 'Publish as a stable release (otherwise prerelease)'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: skaldr-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the exact default-branch revision
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Validate version and revision
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Version must use vMAJOR.MINOR.PATCH"
+            exit 1
+          }
+          if git rev-parse -q --verify "refs/tags/$RELEASE_VERSION" >/dev/null; then
+            echo "::error::The release tag already exists."
+            exit 1
+          fi
+          echo "RELEASE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Require successful ISO build and installation tests
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_id="$(gh run list --workflow build.yml --commit "$RELEASE_SHA" \
+            --status success --json databaseId \
+            --jq '.[0].databaseId // empty')"
+          if [[ -z "$run_id" ]]; then
+            echo "::error::No fully successful Desktop ISO workflow exists for this exact source revision."
+            exit 1
+          fi
+          echo "VERIFIED_RUN_ID=$run_id" >> "$GITHUB_ENV"
+          echo "Verified ISO run: $run_id"
+
+      - name: Retrieve verified ISO and checksum
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          gh run download "$VERIFIED_RUN_ID" --dir release-assets
+          iso_count="$(find release-assets -type f -name '*.iso' | wc -l)"
+          [[ "$iso_count" -eq 1 ]] || {
+            echo "::error::Expected exactly one ISO in the successful run, got $iso_count."
+            exit 1
+          }
+          iso="$(find release-assets -type f -name '*.iso' -print -quit)"
+          manifest="$(find release-assets -type f -name SHA256SUMS -print -quit)"
+          [[ -f "$manifest" ]] || {
+            echo "::error::SHA256SUMS is missing."
+            exit 1
+          }
+          (
+            cd "$(dirname "$manifest")"
+            sha256sum --check SHA256SUMS
+          )
+          cp "$iso" "./$(basename "$iso")"
+          cp "$manifest" ./SHA256SUMS
+
+      - name: Publish the authorized release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_STABLE: ${{ inputs.stable }}
+        run: |
+          set -euo pipefail
+          options=(--target "$RELEASE_SHA" --title "Skaldr OS $RELEASE_VERSION" --generate-notes)
+          if [[ "$RELEASE_STABLE" != true ]]; then
+            options+=(--prerelease)
+          fi
+          gh release create "$RELEASE_VERSION" ./*.iso SHA256SUMS "\${options[@]}"
