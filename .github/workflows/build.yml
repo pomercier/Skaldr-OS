@@ -1,13 +1,14 @@
 name: Desktop ISO
 on:
+  workflow_dispatch:
   push:
     branches:
     - master
   pull_request:
 
 concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
+  group: desktop-iso-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -56,11 +57,18 @@ jobs:
         run: |
           sudo -H -E -u builder ./buildiso.sh
 
+      - name: Generate SHA256 checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$(find out/desktop -maxdepth 1 -name '*.iso' -print -quit)"
+          (cd out/desktop && sha256sum -- *.iso > SHA256SUMS)
+
       - name: Upload ISO to artifacts
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: cachyos-desktop-linux-${{ steps.date.outputs.builddate }}
+          name: skaldr-os-x86_64-${{ steps.date.outputs.builddate }}
           path: out/desktop/*
   quicktest:
     name: Testing (${{ matrix.bootloader }} / ${{ matrix.filesystem }})
@@ -134,5 +142,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cachyos-desktop-linux-results-${{needs.build.outputs.builddate}}-${{ matrix.bootloader }}-${{ matrix.filesystem }}
+          name: skaldr-os-test-results-${{needs.build.outputs.builddate}}-${{ matrix.bootloader }}-${{ matrix.filesystem }}
           path: results/*
