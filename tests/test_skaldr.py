@@ -63,6 +63,18 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("sudo /usr/local/bin/skaldr-cal-inject", installer)
         self.assertNotIn("exit 1\\n", installer)
 
+    def test_live_uses_executable_permissions_for_all_skaldr_scripts(self):
+        # mkarchiso overwrites Git's mode 100755 with 0644 unless the
+        # overlay executable is explicitly listed in profiledef.sh.
+        profile = (REPO / "archiso/profiledef.sh").read_text()
+        helpers = list((LIVE / "usr/local/bin").glob("skaldr-*"))
+        self.assertGreaterEqual(len(helpers), 10)
+        for helper in helpers:
+            if helper.is_file() and helper.stat().st_mode & 0o111:
+                entry = f'["/usr/local/bin/{helper.name}"]="0:0:755"'
+                self.assertIn(entry, profile, "Non-executable in the ISO: " + helper.name)
+        self.assertIn('["/usr/local/bin/pkexec-wrapper"]="0:0:755"', profile)
+
     def test_installer_starts_without_reinstalling_live_packages(self):
         installer = (LIVE / "usr/local/bin/calamares-online.sh").read_text()
         self.assertIn("set -Eeuo pipefail", installer)
