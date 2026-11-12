@@ -166,12 +166,20 @@ class SkaldrChecks(unittest.TestCase):
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS!"', qt)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"', qt)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "Launch installer"', qt)
-        self.assertIn('mouse="usb"', (REPO / "machines/cachyos-dailylive.conf").read_text())
-        self.assertIn('qt_send_command "mouse_move -80 -80"', qt)
-        self.assertIn('target_x=$((width * 45 / 100))', qt)
-        self.assertIn('target_y=$((height * 74 / 100))', qt)
-        self.assertIn('qt_send_command "mouse_button 1"', qt)
-        self.assertIn('qt_send_command "mouse_button 0"', qt)
+        vm = (REPO / "machines/cachyos-dailylive.conf").read_text()
+        self.assertIn('mouse="tablet"', vm)
+        self.assertIn("-qmp unix:", vm)
+        self.assertIn("python3 scripts/skaldr-qmp-click.py", qt)
+        self.assertNotIn('qt_send_command "mouse_move', qt)
+        qmp = subprocess.run([sys.executable, str(REPO / "scripts/skaldr-qmp-click.py"),
+                              "--x", "704", "--y", "600", "--width", "1408",
+                              "--height", "792", "--dry-run"],
+                             capture_output=True, text=True)
+        self.assertEqual(qmp.returncode, 0, qmp.stderr)
+        import json
+        point = json.loads(qmp.stdout)
+        self.assertTrue(16000 <= point["x"] <= 16800)
+        self.assertTrue(24500 <= point["y"] <= 25200)
         self.assertNotIn('qt_send_string_return "/usr/local/bin/calamares-online.sh"', qt)
         self.assertNotIn('qt_send_string_tab "CALAMARES_SKIP_GEOIP=1 sudo', qt)
         self.assertIn("qt_wait_for_seconds 90", qt)
