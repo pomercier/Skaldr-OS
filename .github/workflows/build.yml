@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         id: dependencies
         run: |
-          sudo pacman -Syu --noconfirm git archiso cachyos-keyring mkinitcpio-archiso squashfs-tools grub
+          sudo pacman -Syu --noconfirm git curl pacman-contrib archiso cachyos-keyring mkinitcpio-archiso squashfs-tools grub
 
       - name: Verify source provenance and build version
         shell: bash
@@ -68,10 +68,16 @@ jobs:
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           chmod -R a+rw .
 
+      - name: Rebuild Calamares against current Boost libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -H -E -u builder bash scripts/skaldr-build-calamares.sh
+
       - name: Build ISO (${{ steps.date.outputs.builddate }})
         id: build
         run: |
-          sudo -H -E -u builder ./buildiso.sh
+          sudo -H -E -u builder env SKALDR_CALAMARES_REPO="$GITHUB_WORKSPACE/.skaldr-local" ./buildiso.sh
 
       - name: Generate SHA256 checksums
         shell: bash

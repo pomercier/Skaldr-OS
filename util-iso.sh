@@ -180,6 +180,14 @@ run_build() {
     mkdir -p ${work_dir}
     cp -r archiso ${work_dir}/archiso
 
+    # CI-local package takes priority ONLY in staged mkarchiso pacman.conf.
+    if [[ -n "${SKALDR_CALAMARES_REPO:-}" ]]; then
+        [[ "${SKALDR_CALAMARES_REPO}" = /* ]] || die "Calamares repo path must be absolute"
+        [[ -s "${SKALDR_CALAMARES_REPO}/skaldr-local.db.tar.gz" ]] || die "Calamares repo database missing"
+        python3 "${src_dir}/scripts/skaldr-stage-calamares-repo.py" \
+            "${work_dir}/archiso/pacman.conf" "${SKALDR_CALAMARES_REPO}"
+    fi
+
     # Generate the build identity inside the staging tree, not the Git source.
     local skaldr_iso_version
     skaldr_iso_version="$(python3 "${src_dir}/scripts/skaldr-version.py" --field iso_version)"

@@ -75,6 +75,23 @@ class SkaldrChecks(unittest.TestCase):
                 self.assertIn(entry, profile, "Non-executable in the ISO: " + helper.name)
         self.assertIn('["/usr/local/bin/pkexec-wrapper"]="0:0:755"', profile)
 
+    def test_pinned_calamares_rebuild_and_local_repo(self):
+        script = (REPO / "scripts/skaldr-build-calamares.sh").read_text()
+        self.assertIn("199d71543db805fac2cc649ced72ad01dcb2c362", script)
+        self.assertIn("288a24812b36c68bf16657e8131d00351878f3e0", script)
+        self.assertIn("makepkg --syncdeps", script)
+        self.assertIn("repo-add", script)
+        self.assertIn("libboost_python314.so.1.91.0", script)
+        self.assertNotIn("ln -s", script)
+        helper = (REPO / "scripts/skaldr-stage-calamares-repo.py").read_text()
+        self.assertIn("[skaldr-local]", helper)
+        self.assertIn("config.write_text", helper)
+        self.assertNotIn("[skaldr-local]", (REPO / "archiso/pacman.conf").read_text())
+        workflow = (REPO / ".github/workflows/build.yml").read_text()
+        self.assertIn("Rebuild Calamares against current Boost libraries", workflow)
+        self.assertIn('SKALDR_CALAMARES_REPO="$GITHUB_WORKSPACE/.skaldr-local"', workflow)
+        self.assertIn("scripts/skaldr-stage-calamares-repo.py", (REPO / "util-iso.sh").read_text())
+
     def test_installer_starts_without_reinstalling_live_packages(self):
         installer = (LIVE / "usr/local/bin/calamares-online.sh").read_text()
         self.assertIn("set -Eeuo pipefail", installer)
