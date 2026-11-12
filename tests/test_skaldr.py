@@ -165,7 +165,10 @@ class SkaldrChecks(unittest.TestCase):
         qt = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS!"', qt)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"', qt)
+        self.assertIn('qt_send_string_return "/usr/local/bin/calamares-online.sh"', qt)
+        self.assertNotIn('qt_send_string_tab "CALAMARES_SKIP_GEOIP=1 sudo', qt)
         self.assertIn("qt_wait_for_seconds 90", qt)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15', qt)
 
     def test_policy(self):
         profile = PROFILE.read_text()
