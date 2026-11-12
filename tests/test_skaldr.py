@@ -52,6 +52,18 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("pkexec chwd -a", assistant)
         self.assertNotIn("nvidia-dkms-580xx nvidia-dkms-470xx", assistant)
 
+    def test_live_session_avoids_locking_during_installation(self):
+        profile = PROFILE.read_text()
+        self.assertIn('configure_live_screen_lock()', profile)
+        self.assertIn('sys.argv[1] == "live"', profile)
+        self.assertIn('config.set("Daemon", "Autolock", "false")', profile)
+        self.assertIn('config.set("Daemon", "LockOnResume", "false")', profile)
+        self.assertIn('config.set("Daemon", "LockOnStart", "false")', profile)
+        # Defaults for installed users must stay locked and password-protected.
+        installed_default = (LIVE / "etc/skel/.config/kscreenlockerrc").read_text()
+        self.assertIn("Autolock=true", installed_default)
+        self.assertIn("LockOnResume=true", installed_default)
+
     def test_numlock_and_installer(self):
         self.assertEqual((LIVE / "etc/xdg/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")
         self.assertFalse((LIVE / "etc/skel/.config/kcminputrc").exists())

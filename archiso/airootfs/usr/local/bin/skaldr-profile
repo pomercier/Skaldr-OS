@@ -114,6 +114,37 @@ def lact():
     if any(any(k in line for k in ("nvidia", "amd", "intel", "advanced micro devices")) for line in graphics):
         run("systemctl", "enable", "lactd.service")
 
+def configure_live_screen_lock():
+    """Keep long-running live installs visible; leave installed users protected."""
+    import configparser
+    import pwd
+
+    try:
+        account = pwd.getpwnam("liveuser")
+    except KeyError:
+        return
+    home = Path(account.pw_dir)
+    if not home.is_dir():
+        return
+
+    # Calamares copies /etc/skel, NOT this live user's home.
+    # Never modify installed-system defaults or authentication policy.
+    config_path = home / ".config" / "kscreenlockerrc"
+    config = configparser.ConfigParser(interpolation=None)
+    config.optionxform = str
+    if config_path.exists():
+        config.read(config_path, encoding="utf-8")
+    if not config.has_section("Daemon"):
+        config.add_section("Daemon")
+    config.set("Daemon", "Autolock", "false")
+    config.set("Daemon", "LockOnResume", "false")
+    config.set("Daemon", "LockOnStart", "false")
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    with config_path.open("w", encoding="utf-8") as file:
+        config.write(file, space_around_delimiters=False)
+    os.chown(config_path, account.pw_uid, account.pw_gid)
+
+
 def branding():
     # Write only the local override; do not modify pacman-owned /usr/lib/os-release.
     source = Path("/usr/share/skaldr/os-release")
@@ -130,6 +161,8 @@ def main():
     if sys.argv[1] == "runtime":
         runtime()
         return
+    if sys.argv[1] == "live":
+        configure_live_screen_lock()
     branding()
     memory()
     performance()
