@@ -30,7 +30,8 @@ FILES = [
     "/usr/local/bin/skaldr-numlock",
     "/etc/systemd/system/skaldr-numlock.service",
     "/etc/xdg/kcminputrc",
-    "/etc/skel/.config/kcminputrc",
+    # Do not copy /etc/skel/.config/kcminputrc into the target before pacman.
+    # cachyos-kde-settings owns that path and must install it first.
     "/etc/skel/.config/kscreenlockerrc",
     "/etc/skel/.config/kwalletrc",
     "/usr/local/bin/skaldr-gpu-assistant",

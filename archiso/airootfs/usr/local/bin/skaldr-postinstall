@@ -15,6 +15,9 @@ def main():
     call("pacman", "-Syu", "--needed", "--noconfirm", *packages)
     if subprocess.run(["pacman", "-Qq", "firefox"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
         call("pacman", "-Rns", "--noconfirm", "firefox")
+    # The official cachyos-kde-settings package owns /etc/skel/.config/kcminputrc.
+    # Apply Skaldr's NumLock preference only after Calamares has installed it.
+    call("/usr/local/bin/skaldr-numlock")
     call("/usr/local/bin/skaldr-profile", "install")
     print("Skaldr target packages and system preferences installed")
 

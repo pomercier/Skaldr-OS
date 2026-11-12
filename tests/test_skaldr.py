@@ -71,6 +71,12 @@ class SkaldrChecks(unittest.TestCase):
         self.assertFalse((LIVE / "usr/local/bin/skaldr-capslock").exists())
         self.assertFalse((LIVE / "etc/xdg/autostart/skaldr-capslock.desktop").exists())
         self.assertIn("skaldr-numlock", INJECT.read_text())
+        # This file belongs to cachyos-kde-settings: early copying breaks pacman.
+        self.assertNotIn('"/etc/skel/.config/kcminputrc",', INJECT.read_text())
+        postinstall = (LIVE / "usr/local/bin/skaldr-postinstall").read_text()
+        self.assertIn('call("/usr/local/bin/skaldr-numlock")', postinstall)
+        self.assertLess(postinstall.index('call("pacman", "-Syu"'),
+                        postinstall.index('call("/usr/local/bin/skaldr-numlock")'))
         installer = (LIVE / "usr/local/bin/calamares-online.sh").read_text()
         self.assertIn("sudo /usr/local/bin/skaldr-cal-inject", installer)
         self.assertNotIn("exit 1\\n", installer)
@@ -284,6 +290,7 @@ class SkaldrChecks(unittest.TestCase):
                     s = yaml.safe_load(process.read_text())
                     self.assertIn("/usr/local/bin/skaldr-postinstall", p["postInstallFiles"])
                     self.assertIn("/etc/systemd/system/skaldr-performance.service", p["postInstallFiles"])
+                    self.assertNotIn("/etc/skel/.config/kcminputrc", p["postInstallFiles"])
                     steps = [v.get("command") for v in s["script"] if isinstance(v, dict)]
                     self.assertEqual(steps.count("/usr/local/bin/skaldr-postinstall"), 1)
                     self.assertEqual(steps[0], "/usr/local/bin/dmcheck")
