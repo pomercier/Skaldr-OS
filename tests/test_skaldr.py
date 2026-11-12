@@ -129,6 +129,27 @@ class SkaldrChecks(unittest.TestCase):
             self.assertEqual(json.loads((Path(tmp) / "usr/share/skaldr/build.json")
                                         .read_text())["git_revision"], data["git_revision"])
 
+    def test_offline_raven_wallpaper(self):
+        import shutil
+        source_logo = REPO / "assets/skaldr-logo.png"
+        self.assertTrue(source_logo.is_file())
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            logo = root / "usr/share/pixmaps/skaldr-logo.png"
+            logo.parent.mkdir(parents=True)
+            shutil.copyfile(source_logo, logo)
+            result = subprocess.run(["bash", str(REPO / "scripts/skaldr-make-wallpaper.sh"), str(root)],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            wall = root / "usr/share/wallpapers/Skaldr/contents/images/1920x1080.svg"
+            self.assertIn("data:image/png;base64,", wall.read_text())
+            self.assertIn("Skaldr OS", wall.read_text())
+            self.assertNotIn("https://", wall.read_text())
+        t = (LIVE / "usr/local/bin/skaldr-theme").read_text()
+        self.assertIn("plasma-apply-wallpaperimage", t)
+        self.assertIn("wallpaper-applied", t)
+        self.assertIn("skaldr-theme.desktop", INJECT.read_text())
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)

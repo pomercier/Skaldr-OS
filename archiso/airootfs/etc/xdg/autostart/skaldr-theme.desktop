@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Skaldr OS desktop theme
+Comment=Apply the approved Skaldr raven wallpaper once per user
+Exec=/usr/local/bin/skaldr-theme
+TryExec=/usr/local/bin/skaldr-theme
+OnlyShowIn=KDE;
+Terminal=false
+X-GNOME-Autostart-enabled=true

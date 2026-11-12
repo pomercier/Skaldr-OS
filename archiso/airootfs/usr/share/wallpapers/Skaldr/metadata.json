@@ -1,0 +1,9 @@
+{
+  "KPlugin": {
+    "Id": "Skaldr",
+    "Name": "Skaldr OS",
+    "Description": "Skaldr OS raven wallpaper",
+    "License": "CC0-1.0"
+  },
+  "KPackageStructure": "Wallpaper/Images"
+}

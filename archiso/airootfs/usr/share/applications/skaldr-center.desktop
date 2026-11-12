@@ -5,4 +5,4 @@ Comment=System health, graphics, gaming, snapshots and virtualization
 Exec=/usr/local/bin/skaldr-center
 Terminal=false
 Categories=System;Settings;
-Icon=preferences-system
+Icon=skaldr
