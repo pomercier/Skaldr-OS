@@ -1,52 +1,49 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Start Calamares using the packages included in the Skaldr OS live image.
+# Package signing and mirror initialization occur during installation;
+# never destroy the live keyring just to launch an installer window.
+set -Eeuo pipefail
 
-main() {
-    # Remove current keyring first, to complete initiate it
-    sudo rm -rf /etc/pacman.d/gnupg
-    # We are using this, because archlinux is signing the keyring often with a newly created keyring
-    # This results into a failed installation for the user.
-    # Installing archlinux-keyring fails due not being correctly signed
-    # Mitigate this by installing the latest archlinux-keyring on the ISO, before starting the installation
-    # The issue could also happen, when the installation does rank the mirrors and then a "faulty" mirror gets used
-    sudo pacman -Sy --noconfirm archlinux-keyring cachyos-keyring
-    # Also populate the keys, before starting the Installer, to avoid above issue
-    sudo pacman-key --init
-    sudo pacman-key --populate archlinux cachyos
-    # Also use timedatectl to sync the time with the hardware clock
-    # There has been a bunch of reports, that the keyring was created in the future
-    # Syncing appears to fix it
-    timedatectl set-ntp true
+log="${HOME:-/home/liveuser}/cachy-install.log"
+stage="preflight"
+mkdir -p "$(dirname "$log")"
+exec >> "$log" 2>&1
 
-    local progname="$(basename "$0")"
-    local log="/home/liveuser/cachy-install.log"
-    local mode="online"  # TODO: keep this line for now
-
-    local SYSTEM=""
-
-    if [ -d /sys/firmware/efi ]; then
-        SYSTEM="UEFI SYSTEM"
-    else
-        SYSTEM="BIOS/MBR SYSTEM"
+report_failure() {
+    local status=$?
+    if (( status == 0 )); then
+        return
     fi
+    printf '[Skaldr installer] Failed at %s (exit %s)\n' "$stage" "$status" >&2
+    if command -v logger >/dev/null 2>&1; then
+        logger -t skaldr-installer "Failed at ${stage}; exit ${status}; log ${log}" || true
+    fi
+    if command -v kdialog >/dev/null 2>&1; then
+        kdialog --title "Skaldr OS installer" --error \
+            "Calamares could not start. Stage: ${stage}; error: ${status}.
 
-    local ISO_VERSION="$(cat /etc/version-tag)"
-    echo "USING ISO VERSION: ${ISO_VERSION}"
-
-    sudo pacman -Sy --noconfirm cachyos-calamares-next
-
-    # Get Hardware Informations
-    inxi -F > "$log"
-
-    cat <<EOF >> "$log"
-########## $log by $progname
-########## Started (UTC): $(date -u "+%x %X")
-########## ISO version: $ISO_VERSION
-########## System: $SYSTEM
-EOF
-
-    sudo cp "/usr/share/calamares/settings_${mode}.conf" /etc/calamares/settings.conf
-    sudo /usr/local/bin/skaldr-cal-inject || exit 1
-    exec pkexec-wrapper calamares -D6 >> "$log"
+Details: ${log}" || true
+    fi
 }
+trap report_failure EXIT
 
-main "$@"
+printf '\n[Skaldr installer] Started at %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+printf 'ISO version: %s\n' "$(cat /etc/version-tag 2>/dev/null || printf 'development')"
+
+stage="check shipped packages"
+command -v calamares >/dev/null
+command -v pkexec-wrapper >/dev/null
+command -v sudo >/dev/null
+[[ -r /usr/share/calamares/settings_online.conf ]]
+[[ -r /etc/calamares/modules/pacstrap.conf ]]
+[[ -r /etc/calamares/modules/shellprocess.conf ]]
+
+stage="select Calamares online configuration"
+sudo install -Dm0644 /usr/share/calamares/settings_online.conf /etc/calamares/settings.conf
+
+stage="integrate installed-system settings"
+sudo /usr/local/bin/skaldr-cal-inject
+
+stage="start Calamares GUI"
+printf '[Skaldr installer] Launching Calamares with shipped packages\n'
+pkexec-wrapper calamares -D6

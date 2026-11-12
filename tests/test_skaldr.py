@@ -63,6 +63,20 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("sudo /usr/local/bin/skaldr-cal-inject", installer)
         self.assertNotIn("exit 1\\n", installer)
 
+    def test_installer_starts_without_reinstalling_live_packages(self):
+        installer = (LIVE / "usr/local/bin/calamares-online.sh").read_text()
+        self.assertIn("set -Eeuo pipefail", installer)
+        self.assertIn('stage="start Calamares GUI"', installer)
+        self.assertIn("pkexec-wrapper calamares -D6", installer)
+        self.assertIn("sudo /usr/local/bin/skaldr-cal-inject", installer)
+        self.assertIn("kdialog --title", installer)
+        self.assertIn("logger -t skaldr-installer", installer)
+        self.assertIn("pacstrap.conf", installer)
+        self.assertIn("shellprocess.conf", installer)
+        for forbidden in ("sudo rm -rf /etc/pacman.d/gnupg",
+                          "sudo pacman -Sy", "pacman-key --init"):
+            self.assertNotIn(forbidden, installer)
+
     def test_branding_and_controls(self):
         release = (LIVE / "etc/os-release").read_text()
         self.assertIn('NAME="Skaldr OS"', release)
