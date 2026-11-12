@@ -185,6 +185,10 @@ class SkaldrChecks(unittest.TestCase):
         self.assertNotIn('qt_send_string_return "/usr/local/bin/calamares-online.sh"', qt)
         self.assertNotIn('qt_send_string_tab "CALAMARES_SKIP_GEOIP=1 sudo', qt)
         self.assertIn("qt_wait_for_seconds 90", qt)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "You are using a testing ISO" 6 4', qt)
+        self.assertIn('qt_send_key "return"', qt)
+        self.assertLess(qt.index('You are using a testing ISO'),
+                        qt.index('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"'))
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15', qt)
 
     def test_policy(self):

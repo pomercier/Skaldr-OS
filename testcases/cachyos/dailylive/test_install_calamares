@@ -62,8 +62,16 @@ function test_launch_calamares() {
     python3 scripts/skaldr-qmp-click.py --x "$target_x" --y "$target_y" --width "$width" --height "$height" || qt_test_fail "QMP click failed"
     qt_wait_for_seconds 2
     qt_screenshot_ppm "$FUNCNAME"
-    # Preserve a strict assertion that the actual installer opens.
-    qt_wait_for_seconds 12
+    # The development ISO correctly displays a warning in CachyOS Hello.
+    # We verified its exact wording from the VM screenshots and OCR output.
+    # The modal has a focused OK button; accept it before asserting that
+    # Calamares is running. Never disable the warning for real users.
+    qt_wait_for_text "$FUNCNAME" "You are using a testing ISO" 6 4
+    qt_send_key "return"
+    qt_wait_for_seconds 5
+    qt_screenshot_ppm "$FUNCNAME"
+    # The next step must still find the real Calamares welcome screen.
+    qt_wait_for_seconds 10
 }
 
 function test_calamares_welcome() {
