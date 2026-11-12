@@ -41,18 +41,36 @@ function test_post_boot_grub() {
 }
 
 function test_launch_calamares() {
-    # Quicktest currently has no mouse-click API; the graphical live session
-    # has a real installer launcher at /usr/local/bin/calamares-online.sh.
-    # Previous automation typed a raw sudo command and pressed multiple Tab
-    # keys inside KRunner. Screenshots proved this left only CachyOS Hello
-    # visible. Run the actual launcher, and press Return directly.
+    # Proven failure: KRunner does not open in this Quickemu live session.
+    # Use the visible "Launch installer" button in CachyOS Hello instead.
+    # QEMU HMP supports mouse_move and mouse_button, even though Quicktest
+    # has not implemented its own mouse-click helper yet.
     qt_wait_for_seconds 90
+    qt_wait_for_text "$FUNCNAME" "Launch installer" 8 5
     qt_screenshot_ppm "$FUNCNAME"
-    qt_send_key_combo "alt-f2"
-    qt_wait_for_seconds 2
-    qt_send_string_return "/usr/local/bin/calamares-online.sh"
-    qt_wait_for_seconds 5
+
+    # Quickemu's automated display is 1408x792 on the current CI runner.
+    # The real button is centered at roughly (width/2, height*0.76).
+    # Scale for other resolutions so the test does not depend on one size.
+    local snapshot width height target_x target_y
+    snapshot="$(find "$QT_RESULTS" -type f -name "screenshot_*.ppm" | sort | tail -n 1)"
+    [[ -f "$snapshot" ]] || qt_test_fail "Could not inspect live desktop screenshot"
+    width="$(identify -format "%w" "$snapshot")"
+    height="$(identify -format "%h" "$snapshot")"
+    [[ "$width" =~ ^[0-9]+$ && "$height" =~ ^[0-9]+$ ]] || qt_test_fail "Invalid screenshot dimensions"
+    target_x=$((width / 2))
+    target_y=$((height * 76 / 100))
+    qt_echo "Clicking the real installer button at $target_x,$target_y on $width x $height"
+    qt_send_command "mouse_move -10000 -10000"
+    qt_wait_for_seconds 1
+    qt_send_command "mouse_move $target_x $target_y"
+    qt_wait_for_seconds 1
+    qt_send_command "mouse_button 1"
+    qt_wait_for_seconds 1
+    qt_send_command "mouse_button 0"
     qt_screenshot_ppm "$FUNCNAME"
+    # Preserve a strict assertion that the actual installer opens.
+    qt_wait_for_seconds 12
 }
 
 function test_calamares_welcome() {
