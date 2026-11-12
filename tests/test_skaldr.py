@@ -54,7 +54,8 @@ class SkaldrChecks(unittest.TestCase):
 
     def test_numlock_and_installer(self):
         self.assertEqual((LIVE / "etc/xdg/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")
-        self.assertEqual((LIVE / "etc/skel/.config/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")
+        self.assertFalse((LIVE / "etc/skel/.config/kcminputrc").exists())
+        self.assertIn("install -m 0644", (LIVE / "usr/local/bin/skaldr-numlock").read_text())
         self.assertFalse((LIVE / "usr/local/bin/skaldr-capslock").exists())
         self.assertFalse((LIVE / "etc/xdg/autostart/skaldr-capslock.desktop").exists())
         self.assertIn("skaldr-numlock", INJECT.read_text())

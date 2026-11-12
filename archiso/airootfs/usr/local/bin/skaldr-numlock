@@ -3,6 +3,11 @@
 set -euo pipefail
 source_file="/etc/xdg/kcminputrc"
 [[ -f "$source_file" ]] || exit 1
+
+# Populate /etc/skel only after pacman installs cachyos-kde-settings.
+# Never overlay a path belonging to an official package during mkarchiso.
+install -d -m 0755 /etc/skel/.config
+install -m 0644 "$source_file" /etc/skel/.config/kcminputrc
 for user in plasmalogin sddm; do
     if getent passwd "$user" >/dev/null; then
         home="$(getent passwd "$user" | cut -d: -f6)"
