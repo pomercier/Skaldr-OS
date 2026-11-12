@@ -88,6 +88,24 @@ def boot():
                 new.append(line)
             write(entry, "\n".join(new) + "\n")
 
+def snapshots():
+    # Never create snapshots on live overlays or non-Btrfs installations.
+    if not shutil.which("findmnt") or not shutil.which("snapper"):
+        return
+    fs = subprocess.run(["findmnt", "-n", "-o", "FSTYPE", "/"],
+                        capture_output=True, text=True, check=False)
+    if fs.returncode != 0 or fs.stdout.strip() != "btrfs":
+        return
+    if subprocess.run(["snapper", "-c", "root", "get-config"],
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+        if run("snapper", "-c", "root", "create-config", "/") != 0:
+            print("Skaldr: Btrfs snapshot setup was skipped; configure it manually.")
+            return
+    for name in ("snapper-timeline.timer", "snapper-cleanup.timer"):
+        run("systemctl", "enable", name)
+    print("Skaldr: Btrfs snapshot configuration is available.")
+
+
 def lact():
     if not shutil.which("lspci"):
         return
@@ -115,6 +133,7 @@ def main():
     branding()
     memory()
     performance()
+    snapshots()
     lact()
     if sys.argv[1] == "install":
         boot()

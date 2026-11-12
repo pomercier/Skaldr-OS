@@ -3,6 +3,7 @@ alsa-utils
 amd-ucode
 arch-install-scripts
 archlinux-keyring
+aspell-fr
 audacity
 avahi
 b43-fwcutter
@@ -67,6 +68,7 @@ gpart
 gparted
 gptfdisk
 grub
+grub-btrfs
 haveged
 hwdetect
 hwinfo
@@ -234,8 +236,8 @@ vulkan-virtio
 wget
 wine
 winetricks
-wireless-regdb
 wireless_tools
+wireless-regdb
 wireplumber
 wpa_supplicant
 wvdial

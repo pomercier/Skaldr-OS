@@ -37,6 +37,16 @@ def get_data():
                            ("vga compatible", "3d controller", "display controller"))]
     else:
         graphics = []
+    # Read-only thermal monitoring. Sensor names vary across CPU/GPU vendors.
+    temps = []
+    for sensor in Path("/sys/class/hwmon").glob("hwmon*/temp*_input"):
+        try:
+            value = int(sensor.read_text().strip()) / 1000
+            if 0 <= value < 150:
+                temps.append(round(value, 1))
+        except (OSError, ValueError):
+            pass
+    boot_time = command("systemd-analyze", "time")
     packages = ["brave-bin", "libreoffice-fresh", "kcalc", "yay",
                 "lact", "cmake", "fakeroot", "virt-manager", "steam"]
     missing = [name for name in packages if command("pacman", "-Qq", name) is None]
@@ -46,6 +56,9 @@ def get_data():
                    if line.startswith("PRETTY_NAME=")), "unknown"),
         "kernel": command("uname", "-r") or "unknown",
         "gpu": graphics,
+        "highest_sensor_temperature_celsius": max(temps) if temps else None,
+        "boot_time_summary": boot_time or "not available",
+        "smartmontools_installed": command("pacman", "-Qq", "smartmontools") is not None,
         "cpu_scheduler_service": scheduler,
         "power_profile": command("powerprofilesctl", "get") or "unavailable",
         "lact_service": lact,

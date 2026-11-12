@@ -14,7 +14,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Vendor-neutral `chwd` driver selection, requiring consent
 - [x] Configure preferred `scx_lavd`, Gaming and power Performance policies
 - [ ] Test scheduler compatibility and automatic safe fallback on non-supporting CPUs
-- [ ] Btrfs snapshots with snapshot cleanup and optional boot restore
+- [x] Conditional Snapper root configuration and cleanup/timeline timers
+- [ ] Verify bootloader snapshot restore with supported loaders
 - [ ] LTS kernel recovery entry and bootloader verification
 - [ ] LACT validation and thermal diagnostics
 - [ ] Test memory policy and ZRAM on multiple RAM capacities

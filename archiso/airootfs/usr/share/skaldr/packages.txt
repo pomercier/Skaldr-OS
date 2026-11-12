@@ -1,3 +1,4 @@
+aspell-fr
 audacity
 brave-bin
 btrfs-assistant
@@ -10,6 +11,7 @@ fuse2
 gamemode
 gamescope
 git
+grub-btrfs
 iptables
 jq
 kcalc
@@ -35,6 +37,7 @@ rust
 scx-manager
 scx-scheds
 scx-tools
+smartmontools
 snap-pac
 snapper
 steam

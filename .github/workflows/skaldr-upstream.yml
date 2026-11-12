@@ -66,5 +66,19 @@ jobs:
             echo "::error::Upstream merge conflict; manual arbitration is required. No files were pushed and no new branch was created."
             exit 1
           fi
+          # Never publish an upstream merge that breaks Skaldr's source checks.
+          python3 -m venv /tmp/skaldr-upstream-venv
+          /tmp/skaldr-upstream-venv/bin/pip install --quiet 'PyYAML>=6,<7'
+          /tmp/skaldr-upstream-venv/bin/python -m unittest discover -s tests -p 'test_skaldr.py' -v
+          /tmp/skaldr-upstream-venv/bin/python -m py_compile \
+            archiso/airootfs/usr/local/bin/skaldr-profile \
+            archiso/airootfs/usr/local/bin/skaldr-cal-inject \
+            archiso/airootfs/usr/local/bin/skaldr-postinstall \
+            archiso/airootfs/usr/local/bin/skaldr-doctor
+          for file in archiso/airootfs/usr/local/bin/skaldr-gpu-assistant \
+                      archiso/airootfs/usr/local/bin/skaldr-numlock \
+                      archiso/airootfs/usr/local/bin/skaldr-center; do
+            bash -n "$file"
+          done
           git push origin HEAD:master
           echo "Upstream changes merged and pushed to master."

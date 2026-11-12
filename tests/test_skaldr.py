@@ -77,6 +77,16 @@ class SkaldrChecks(unittest.TestCase):
         cleanup = (LIVE / "usr/local/bin/removeun").read_text()
         self.assertNotIn("pacman -Rsnc", cleanup)
 
+    def test_snapshots_and_thermal_checks(self):
+        profile = PROFILE.read_text()
+        self.assertIn('fs.stdout.strip() != "btrfs"', profile)
+        self.assertIn('"snapper-cleanup.timer"', profile)
+        self.assertIn('"snapper-timeline.timer"', profile)
+        doctor = (LIVE / "usr/local/bin/skaldr-doctor").read_text()
+        self.assertIn('"highest_sensor_temperature_celsius"', doctor)
+        for name in ("snapper", "snap-pac", "smartmontools"):
+            self.assertIn(name, (REPO / "archiso/packages_desktop.x86_64").read_text().splitlines())
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)
