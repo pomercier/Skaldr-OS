@@ -31,7 +31,6 @@ local _packages_to_remove=(
   arch-install-scripts
   squashfs-tools
   extra-cmake-modules
-  cmake
   elinks
   yaml-cpp
   syslinux
