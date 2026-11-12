@@ -150,6 +150,18 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("wallpaper-applied", t)
         self.assertIn("skaldr-theme.desktop", INJECT.read_text())
 
+    def test_ci_boot_preflight(self):
+        workflow = (REPO / ".github/workflows/build.yml").read_text()
+        self.assertIn("git archiso cachyos-keyring", workflow)
+        self.assertIn("python3 scripts/skaldr-version.py --json", workflow)
+        self.assertIn("bootloader: grub", workflow)
+        self.assertIn("filesystem: btrfs", workflow)
+        self.assertIn("filesystem: ext4", workflow)
+        qt = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS!"', qt)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"', qt)
+        self.assertIn("qt_wait_for_seconds 90", qt)
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)

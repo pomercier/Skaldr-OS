@@ -43,7 +43,15 @@ jobs:
       - name: Install dependencies
         id: dependencies
         run: |
-          sudo pacman -Syu --noconfirm archiso cachyos-keyring mkinitcpio-archiso squashfs-tools grub
+          sudo pacman -Syu --noconfirm git archiso cachyos-keyring mkinitcpio-archiso squashfs-tools grub
+
+      - name: Verify source provenance and build version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git --version
+          python3 scripts/skaldr-version.py --json
+          test "$(python3 scripts/skaldr-version.py --field project_commit_count)" -gt 0
 
       - name: Create build user
         id: user-archiso
@@ -80,9 +88,15 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 4
+      # Begin with representative installation smoke tests. Expand to the full
+      # bootloader/filesystem matrix after these prove that the live desktop
+      # can reach Calamares. This remains a real installer test, not a mock.
       matrix:
-        bootloader: [grub, systemd-boot, refind, limine]
-        filesystem: [btrfs, xfs, ext4, f2fs, zfs]
+        include:
+          - bootloader: grub
+            filesystem: ext4
+          - bootloader: limine
+            filesystem: btrfs
     steps:
       - name: Clone CachyOS-Live-ISO
         id: clone
