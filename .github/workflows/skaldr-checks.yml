@@ -18,8 +18,17 @@ jobs:
       - name: Install YAML parser for isolated Calamares tests
         run: python -m pip install 'PyYAML>=6,<7'
       - name: Validate Python entrypoints
-        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject
+        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject archiso/airootfs/usr/local/bin/skaldr-doctor
       - name: Validate Bash entrypoints
-        run: bash -n archiso/airootfs/usr/local/bin/skaldr-gpu-assistant archiso/airootfs/usr/local/bin/skaldr-artcraft archiso/airootfs/usr/local/bin/skaldr-capslock archiso/airootfs/usr/local/bin/calamares-online.sh
+        run: |
+          set -euo pipefail
+          for script in archiso/airootfs/usr/local/bin/skaldr-gpu-assistant \
+                        archiso/airootfs/usr/local/bin/skaldr-artcraft \
+                        archiso/airootfs/usr/local/bin/skaldr-numlock \
+                        archiso/airootfs/usr/local/bin/skaldr-center \
+                        archiso/airootfs/usr/local/bin/removeun \
+                        archiso/airootfs/usr/local/bin/calamares-online.sh; do
+            bash -n "$script"
+          done
       - name: Run Skaldr integration checks
         run: python -m unittest discover -s tests -p 'test_skaldr.py' -v

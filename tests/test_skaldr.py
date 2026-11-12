@@ -90,7 +90,7 @@ class SkaldrChecks(unittest.TestCase):
         for path in BOOT:
             self.assertIn("mitigations=off", path.read_text(), str(path))
         grub = BOOT[0].read_text()
-        fallback = grub.split("menuentry \"CachyOS Legacy Hardware")[1].split("menuentry ")[0]
+        fallback = grub.split("menuentry \"Skaldr OS Legacy Hardware")[1].split("menuentry ")[0]
         self.assertNotIn("mitigations=off", fallback, "Emergency fallback must stay usable")
 
     @unittest.skipIf(yaml is None, "PyYAML is not available")
