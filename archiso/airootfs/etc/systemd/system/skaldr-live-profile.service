@@ -1,0 +1,13 @@
+[Unit]
+Description=Initialize Skaldr OS live defaults
+After=local-fs.target
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/skaldr-profile live
+ExecStartPost=-/usr/local/bin/skaldr-cal-inject
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

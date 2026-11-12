@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Integrate Skaldr with the existing Calamares package and finalization stage.
+
+The stock installer is installed on the live system at runtime; the overlay
+alone is not copied to an installed root. Ensure our files are explicitly
+copied by pacstrap and our postinstall runs in the target chroot.
+"""
+from pathlib import Path
+import sys
+
+FILES = [
+    "/usr/local/bin/skaldr-postinstall",
+    "/usr/local/bin/skaldr-profile",
+    "/usr/share/skaldr/packages.txt",
+    "/usr/local/bin/skaldr-gpu-assistant",
+    "/etc/xdg/autostart/skaldr-gpu-assistant.desktop",
+    "/usr/local/bin/skaldr-capslock",
+    "/etc/xdg/autostart/skaldr-capslock.desktop",
+    "/usr/local/bin/skaldr-artcraft",
+    "/usr/share/applications/skaldr-artcraft.desktop",
+]
+
+def main():
+    root = Path("/etc/calamares/modules")
+    pacstrap = root / "pacstrap.conf"
+    shellprocess = root / "shellprocess.conf"
+    if not pacstrap.is_file() or not shellprocess.is_file():
+        sys.exit("Calamares target integration unavailable; refusing an unconfigured installation")
+    content = pacstrap.read_text()
+    if "postInstallFiles:" not in content:
+        sys.exit("Unexpected Calamares pacstrap schema")
+    insertion = "".join('  - "' + path + '"\n' for path in FILES if ('"' + path + '"') not in content)
+    if insertion:
+        content = content.replace("postInstallFiles:\n", "postInstallFiles:\n" + insertion, 1)
+        pacstrap.write_text(content)
+    content = shellprocess.read_text()
+    if "script:" not in content:
+        sys.exit("Unexpected Calamares shellprocess schema")
+    if "/usr/local/bin/skaldr-postinstall" not in content:
+        # Append to the existing script list; do not remove upstream commands.
+        content = content.rstrip() + '\n    - command: "/usr/local/bin/skaldr-postinstall"\n      timeout: 3600\n      verbose: true\n'
+        shellprocess.write_text(content)
+    print("Calamares configured to preserve Skaldr packages and settings")
+
+if __name__ == "__main__":
+    main()

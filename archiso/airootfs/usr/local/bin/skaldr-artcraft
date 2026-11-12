@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Native launcher discovery and installation; never use Flatpak or Snap.
+set -euo pipefail
+if command -v artcraft-launcher >/dev/null; then exec artcraft-launcher; fi
+if ! command -v yay >/dev/null; then
+    printf 'yay is required to install ArtCraft Launcher.\n' >&2
+    exit 1
+fi
+if command -v kdialog >/dev/null; then
+    kdialog --yesno 'ArtCraft Launcher is not installed. Install the native AUR package now?' || exit 0
+fi
+exec yay -S --needed artcraft-launcher

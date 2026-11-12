@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# First-boot driver assistant. No driver change without user authorization.
+set -euo pipefail
+if [[ -d /run/archiso ]] || [[ -f "$HOME/.config/skaldr/gpu-choice-complete" ]]; then exit 0; fi
+if ! command -v chwd >/dev/null || ! command -v kdialog >/dev/null; then exit 0; fi
+gpu_info="$(lspci -nn | grep -Ei 'VGA compatible controller|3D controller|Display controller' || true)"
+if [[ -z "$gpu_info" ]]; then exit 0; fi
+choice=""
+if printf '%s' "$gpu_info" | grep -qi nvidia; then
+    available="$(chwd --list || true)"
+    profile=""
+    for candidate in nvidia-dkms nvidia-dkms-580xx nvidia-dkms-470xx nvidia-open-dkms; do
+        if printf '%s' "$available" | grep -Fq "$candidate"; then profile="$candidate"; break; fi
+    done
+    if [[ -n "$profile" ]]; then
+        choice="$(kdialog --title 'Skaldr OS graphics drivers' --menu 'NVIDIA graphics detected. Select the driver family. Proprietary is recommended when compatible.' proprietary 'Compatible NVIDIA driver (recommended)' open 'Nouveau open-source driver' later 'Keep current drivers' || true)"
+        if [[ "$choice" == proprietary ]]; then
+            pkexec chwd -i "$profile" || exit 1
+        elif [[ "$choice" == open ]]; then
+            pkexec chwd -i nouveau || exit 1
+        else
+            exit 0
+        fi
+    fi
+else
+    kdialog --title 'Skaldr OS graphics drivers' --msgbox 'Your GPU uses the open-source driver provided by CachyOS. No alternative proprietary profile has been verified for this hardware.' || true
+fi
+mkdir -p "$HOME/.config/skaldr"
+touch "$HOME/.config/skaldr/gpu-choice-complete"

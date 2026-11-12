@@ -1,0 +1,11 @@
+[Unit]
+Description=Skaldr OS persistent performance profile
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/skaldr-profile runtime
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

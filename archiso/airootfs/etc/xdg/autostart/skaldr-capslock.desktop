@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Skaldr OS Initial Caps Lock
+Exec=/usr/local/bin/skaldr-capslock
+TryExec=/usr/local/bin/skaldr-capslock
+Terminal=false

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Skaldr OS Graphics Driver Assistant
+Exec=/usr/local/bin/skaldr-gpu-assistant
+TryExec=/usr/local/bin/skaldr-gpu-assistant
+Terminal=false
+X-GNOME-Autostart-enabled=true

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Set initial Caps Lock state in X11 when possible; Wayland is compositor-controlled.
+if [[ "${XDG_SESSION_TYPE:-}" == x11 ]] && command -v xset >/dev/null && command -v xdotool >/dev/null; then
+    if xset q | grep -q 'Caps Lock:[[:space:]]*off'; then xdotool key Caps_Lock; fi
+fi

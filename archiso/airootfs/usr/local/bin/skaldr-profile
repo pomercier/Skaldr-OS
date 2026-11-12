@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Apply hardware-aware Skaldr defaults to live and installed systems."""
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+
+def run(*args):
+    if shutil.which(args[0]):
+        return subprocess.run(args, check=False).returncode
+    return 127
+
+def write(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists() or path.read_text() != data:
+        path.write_text(data)
+
+def memory():
+    mem = 0
+    for line in Path("/proc/meminfo").read_text().splitlines():
+        if line.startswith("MemTotal:"):
+            mem = int(line.split()[1])
+            break
+    # 32 GB installed normally yields around 30-31 GiB usable.
+    path = Path("/etc/sysctl.d/90-skaldr-memory.conf")
+    if mem >= 30 * 1024 * 1024:
+        write(path, "# Nominal 32 GB or more physical RAM\nvm.swappiness = 0\n")
+        run("sysctl", "-w", "vm.swappiness=0")
+    elif path.exists():
+        path.unlink()
+
+def performance():
+    write("/etc/scx_loader/config.toml", 'default_sched = "scx_lavd"\ndefault_mode = "Gaming"\n')
+    if shutil.which("systemctl"):
+        run("systemctl", "disable", "scx.service")
+        run("systemctl", "enable", "scx_loader.service")
+        run("systemctl", "enable", "skaldr-performance.service")
+
+def runtime():
+    run("powerprofilesctl", "set", "performance")
+    
+def boot():
+    # Do not modify unknown bootloader formats.
+    limine = Path("/etc/default/limine")
+    if limine.exists():
+        value = limine.read_text()
+        lines = value.splitlines()
+        found = False
+        for i, line in enumerate(lines):
+            if line.startswith('KERNEL_CMDLINE[default]="') and line.endswith('"'):
+                params = line[len('KERNEL_CMDLINE[default]="'):-1]
+                if "mitigations=off" not in params.split():
+                    params += " mitigations=off"
+                lines[i] = 'KERNEL_CMDLINE[default]="' + params.strip() + '"'
+                found = True
+        if not found:
+            lines.append('KERNEL_CMDLINE[default]="mitigations=off"')
+        write(limine, "\n".join(lines) + "\n")
+        run("limine-mkinitcpio")
+    grub = Path("/etc/default/grub")
+    if grub.exists():
+        value = grub.read_text()
+        pattern = r'(?m)^(GRUB_CMDLINE_LINUX_DEFAULT=")([^"]*)(")'
+        if re.search(pattern, value):
+            value = re.sub(pattern, lambda m: m[1] + (m[2] if "mitigations=off" in m[2].split() else m[2] + " mitigations=off") + m[3], value, count=1)
+        else:
+            value += '\nGRUB_CMDLINE_LINUX_DEFAULT="mitigations=off"\n'
+        write(grub, value)
+        if Path("/boot/grub/grub.cfg").exists():
+            run("grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+    cmdline = Path("/etc/kernel/cmdline")
+    if cmdline.exists():
+        params = cmdline.read_text().strip()
+        if "mitigations=off" not in params.split():
+            write(cmdline, params + " mitigations=off\n")
+    entries = Path("/boot/loader/entries")
+    if entries.is_dir():
+        for entry in entries.glob("*.conf"):
+            lines = entry.read_text().splitlines()
+            new = []
+            for line in lines:
+                if line.startswith("options ") and "mitigations=off" not in line.split():
+                    line += " mitigations=off"
+                new.append(line)
+            write(entry, "\n".join(new) + "\n")
+
+def lact():
+    if not shutil.which("lspci"):
+        return
+    out = subprocess.run(["lspci", "-nn"], capture_output=True, text=True, check=False).stdout.lower()
+    graphics = [line for line in out.splitlines() if any(k in line for k in ("vga compatible", "3d controller", "display controller"))]
+    if any(any(k in line for k in ("nvidia", "amd", "intel", "advanced micro devices")) for line in graphics):
+        run("systemctl", "enable", "lactd.service")
+
+def main():
+    if os.geteuid() != 0 or len(sys.argv) != 2 or sys.argv[1] not in ("live", "install", "runtime"):
+        sys.exit("Usage: sudo skaldr-profile live|install|runtime")
+    if sys.argv[1] == "runtime":
+        runtime()
+        return
+    memory()
+    performance()
+    lact()
+    if sys.argv[1] == "install":
+        boot()
+    print("Skaldr system policy applied:", sys.argv[1])
+
+if __name__ == "__main__":
+    main()
