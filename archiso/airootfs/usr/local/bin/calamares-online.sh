@@ -33,6 +33,14 @@ trap report_failure EXIT
 printf '\n[Skaldr installer] Started at %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 printf 'ISO version: %s\n' "$(cat /etc/version-tag 2>/dev/null || printf 'development')"
 
+# Make Calamares debug output available to CI through the existing QEMU
+# serial socket only when explicitly marked by the disposable test VM.
+# Never send installation logs from real machines or ordinary VMs.
+if [[ -c /dev/ttyS0 && "$(cat /sys/class/dmi/id/product_name 2>/dev/null || true)" == "Skaldr-CI" ]]; then
+    printf '[Skaldr CI] Starting serial diagnostics\\n'
+    (tail -n +1 -F "$log" > /dev/ttyS0 2>/dev/null) &
+fi
+
 stage="check shipped packages"
 command -v calamares >/dev/null
 command -v pkexec-wrapper >/dev/null

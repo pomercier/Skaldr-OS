@@ -25,6 +25,10 @@ function qt_wait_else() {
         if qt_search_screenshot "$test_name" "$text"; then
             return 0
         fi
+        # Stop promptly on a genuine installer error; never report success.
+        if [[ "$test_name" == "test_calamares_finished" ]] && qt_search_screenshot "$test_name" "Installation Failed"; then
+            qt_test_fail "Calamares reported Installation Failed; inspect the installer serial artifact"
+        fi
         qt_wait_for_seconds "$interval"
     done
 

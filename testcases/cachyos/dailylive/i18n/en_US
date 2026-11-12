@@ -50,7 +50,9 @@ text_calamares_users="What name do you want to use to log in?"
 
 # Calamares Summary
 
-text_calamares_summary="This is an overview"
+# The GRUB summary OCR omits the "i" in "This is"; assert a reliable
+# action listed only on the actual Calamares summary instead.
+text_calamares_summary="Creating new GPT partition table"
 
 # Calamares Install
 
