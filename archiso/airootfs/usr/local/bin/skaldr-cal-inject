@@ -6,6 +6,7 @@ alone is not copied to an installed root. Ensure our files are explicitly
 copied by pacstrap and our postinstall runs in the target chroot.
 """
 from pathlib import Path
+import os
 import sys
 
 FILES = [
@@ -22,7 +23,7 @@ FILES = [
 ]
 
 def main():
-    root = Path("/etc/calamares/modules")
+    root = Path(os.environ.get("SKALDR_CALAMARES_MODULES", "/etc/calamares/modules"))
     pacstrap = root / "pacstrap.conf"
     shellprocess = root / "shellprocess.conf"
     if not pacstrap.is_file() or not shellprocess.is_file():
