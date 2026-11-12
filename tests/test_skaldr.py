@@ -91,6 +91,9 @@ class SkaldrChecks(unittest.TestCase):
         script = (REPO / 'util-iso.sh').read_text()
         self.assertIn('vars+=("skaldr")', script)
         self.assertIn('built_iso=', script)
+        self.assertNotIn('source "${work_dir}/archiso/profiledef.sh"', script)
+        self.assertIn('iso_name="$(sed -n ', script)
+        self.assertIn('iso_arch="$(sed -n ', script)
         self.assertNotIn('mv "$outFolder/$_profile/cachyos-', script)
         self.assertNotIn("occt", (REPO / "archiso/packages_desktop.x86_64").read_text().splitlines())
 

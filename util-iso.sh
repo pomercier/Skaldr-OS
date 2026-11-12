@@ -191,10 +191,14 @@ run_build() {
     sudo chown $USER $outFolder
 
     cp ${work_dir}/iso/arch/pkglist.x86_64.txt "$outFolder/$_profile/$(gen_iso_fn).pkgs.txt"
-    # Use the active archiso profile to locate the actual built ISO.
-    local iso_name iso_version arch built_iso
-    source "${work_dir}/archiso/profiledef.sh"
-    built_iso="$outFolder/$_profile/${iso_name}-${iso_version}-${arch}.iso"
+    # Read only static metadata: sourcing the ArchISO profile here
+    # reinterprets its associative array and can fail after ISO creation.
+    local iso_name iso_version iso_arch built_iso
+    iso_name="$(sed -n 's/^iso_name="\([^"]*\)"/\1/p' "${work_dir}/archiso/profiledef.sh" | head -n 1)"
+    iso_arch="$(sed -n 's/^arch="\([^"]*\)"/\1/p' "${work_dir}/archiso/profiledef.sh" | head -n 1)"
+    iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
+    [[ -n "$iso_name" && -n "$iso_arch" ]] || die "Invalid ArchISO profile identity"
+    built_iso="$outFolder/$_profile/${iso_name}-${iso_version}-${iso_arch}.iso"
     if [[ ! -f "$built_iso" ]]; then
         die "Expected ISO was not produced: %s" "$built_iso"
     fi
