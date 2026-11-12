@@ -169,6 +169,8 @@ class SkaldrChecks(unittest.TestCase):
         vm = (REPO / "machines/cachyos-dailylive.conf").read_text()
         self.assertIn('mouse="tablet"', vm)
         self.assertIn("-qmp unix:", vm)
+        self.assertIn('$(pwd)/cachyos-dailylive/skaldr-ci-qmp.sock', vm)
+        self.assertNotIn('$(pwd)/machines/cachyos-dailylive/', vm)
         self.assertIn("python3 scripts/skaldr-qmp-click.py", qt)
         self.assertNotIn('qt_send_command "mouse_move', qt)
         qmp = subprocess.run([sys.executable, str(REPO / "scripts/skaldr-qmp-click.py"),
