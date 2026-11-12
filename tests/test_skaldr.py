@@ -157,7 +157,7 @@ class SkaldrChecks(unittest.TestCase):
         self.assertLess(workflow.index("Install Git before checkout"),
                         workflow.index("Checkout complete Skaldr OS repository history"))
         self.assertIn("fetch-depth: 0", workflow)
-        self.assertIn("git cat-file -e 3215497d2e8c5fea90e185affcf973dfa2cf790b", workflow)
+        self.assertIn('git -c "safe.directory=$GITHUB_WORKSPACE" cat-file -e 3215497d2e8c5fea90e185affcf973dfa2cf790b', workflow)
         self.assertIn("python3 scripts/skaldr-version.py --json", workflow)
         self.assertIn("bootloader: grub", workflow)
         self.assertIn("filesystem: btrfs", workflow)
