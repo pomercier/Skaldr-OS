@@ -1,104 +1,94 @@
-# Skaldr OS
+<p align="center">
+  <img src="assets/skaldr-logo.png" alt="Skaldr OS — Nordic raven emblem" width="190">
+</p>
 
-**Skaldr OS** is an evolving, performance-focused Linux distribution project based on the official [CachyOS Live ISO](https://github.com/CachyOS/CachyOS-Live-ISO).
+<h1 align="center">Skaldr OS</h1>
 
-The goal is to keep CachyOS's hardware support, rolling-release foundations, and installation options while developing a consistent, high-performance desktop experience. Skaldr OS is an independent derivative project, not an official CachyOS edition.
+<p align="center"><strong>Performance by intention. Freedom by design.</strong></p>
 
-> **Project status: early development.** The repository currently contains the upstream CachyOS ISO sources and build tooling. The Skaldr-specific configuration described below is the **target design**, not a set of features already implemented, tested, or released. No finished Skaldr OS ISO has been validated.
+<p align="center">
+  An independent, CachyOS-based Linux desktop — created as a personal project and shared openly in case it helps someone else.
+</p>
 
-## Design principles
+<p align="center">
+  <a href="https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-checks.yml"><img alt="Source checks" src="https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-checks.yml/badge.svg"></a>
+  <a href="https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml"><img alt="ISO build" src="https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml/badge.svg"></a>
+  <img alt="Development release" src="https://img.shields.io/badge/release-0.1.0--dev-blue">
+  <img alt="Architecture x86-64" src="https://img.shields.io/badge/architecture-x86__64-5a6881">
+</p>
 
-- **Upstream first:** retain the official CachyOS source and integrate future upstream changes without discarding local customizations.
-- **One permanent branch:** keep the repository focused on its default branch (`master` at present). Any temporary integration or testing branches must be removed after use.
-- **KDE by default, choice preserved:** prefer KDE Plasma without removing other desktop environments offered by CachyOS.
-- **Live and installed parity:** deliver Skaldr's applications and settings in both the live session and the installed system. Final GPU driver selection is the intentional exception.
-- **Hardware-aware configuration:** detect capabilities rather than assuming a particular CPU, GPU, memory size, display, or storage device.
-- **Native packages first:** use Arch/CachyOS packages and a suitable AUR helper; do not add Flatpak, Snap, Docker, or similar application/container distribution layers.
-- **Keep authentication:** retain passwords and normal account authentication. Do not configure passwordless sudo or automatic login for the installed system.
-- **English development history:** write new project comments, documentation, and commit messages in English without rewriting upstream history.
+<p align="center">
+  <a href="#why-skaldr">Why Skaldr?</a> ·
+  <a href="#the-desktop">The desktop</a> ·
+  <a href="#versions-you-can-trace">Versioning</a> ·
+  <a href="#build-it-yourself">Build</a> ·
+  <a href="#project-status">Project status</a>
+</p>
 
-## Current state
+---
 
-| Component | Status |
-| --- | --- |
-| Official CachyOS Live ISO source | Present; forked from upstream |
-| Original ISO build scripts and configurations | Present |
-| Original CachyOS installer integration | Present |
-| KDE Plasma in the live environment | Inherited from upstream |
-| Skaldr OS customizations below | Planned; not yet implemented |
-| Automated upstream conflict handling | Planned; not yet installed in this repository |
-| Custom ISO builds and hardware validation | Not yet completed |
+## A desktop built around the things that matter
 
-## Planned Skaldr OS experience
+Skaldr OS grew from a simple idea: **build the Linux system I actually want to use every day** — fast, flexible, comfortable for gaming and development, and maintainable without rebuilding everything from scratch.
 
-### Desktop and system behavior
+It is built on the work of **[CachyOS](https://cachyos.org/)** and **[Arch Linux](https://archlinux.org/)**. The goal isn't to pretend to replace these projects. It is to add an opinionated, cohesive desktop experience while preserving broad hardware compatibility and upstream improvements.
 
-| Area | Target behavior |
-| --- | --- |
-| Desktop environment | KDE Plasma preselected; all other upstream choices remain available |
-| Keyboard | Caps Lock enabled by default, including the graphical login experience where supported |
-| Authentication | Normal login, lock-screen, sudo, and wallet security retained |
-| CPU scheduling | Prefer `scx_lavd` continuously when kernel and scheduler support permit; recover safely when unavailable |
-| Performance mode | Prefer Gaming and CPU Performance modes continuously when supported |
-| Kernel security mitigations | Apply the explicitly requested `mitigations=off` boot parameter (see security notice) |
-| Memory | Set `vm.swappiness=0` when installed physical RAM is at least 32 GiB; use a hardware-appropriate policy below that threshold |
-| Compressed swap | Retain ZRAM support; do not assume all systems need the same size |
-| Storage and recovery | Preserve CachyOS installation choices and offer Btrfs snapshots where applicable |
+> **Development preview, not a finished release.** Configuration and build workflows are under active development. Source checks are automated, but a successful ISO build and complete installation/boot tests remain release gates. Do not rely on a development ISO as your only computer.
 
-The permanent performance preferences are intentional. Hardware detection and safe fallbacks must prevent missing features or unsupported devices from breaking boot or login.
+## Why Skaldr?
 
-### Applications
+| Built to feel fast | Ready to do more | Hardware-aware |
+| :--- | :--- | :--- |
+| CachyOS foundations, a preferred `scx_lavd` Gaming profile, performance mode, and ZRAM support. | KDE Plasma, gaming tools, media applications, creative tools, native development and QEMU/KVM. | Detect NVIDIA, AMD, Intel and hybrid graphics; ask before making driver changes. |
 
-The target default installation includes the same software in the live ISO and on the installed system:
+| Your everyday workspace | Recover when necessary | No mystery builds |
+| :--- | :--- | :--- |
+| Brave, LibreOffice Fresh, `yay`, `kcalc`, CMake, Make, fakeroot and other practical utilities. | Btrfs snapshots when applicable, recovery boot options and diagnostic tools. | Each developer ISO records its Skaldr change count, Git revision and UTC build date. |
 
-| Category | Planned software |
-| --- | --- |
-| Web browser | Brave instead of Firefox |
-| Office | LibreOffice Fresh, updated through the rolling package repositories |
-| Gaming | CachyOS-compatible gaming tools and applications |
-| Multimedia | Audio, video, codecs, and media tools |
-| Development | `cmake`, `make`, `fakeroot`, `git`, Python tools, and other relevant development utilities |
-| Package management | `pacman` and `yay` (subject to package availability and build verification) |
-| KDE utilities | `kcalc` and standard Plasma applications |
-| Creative apps | ArtCraft Launcher, to install and manage compatible ArtCraft applications |
-| Virtualization | QEMU/KVM and related management tools |
-| GPU tuning | LACT only on hardware and driver combinations it actually supports |
+### What Skaldr deliberately avoids
 
-**Not included:** Firefox, `prelink`, `preload`, Flatpak, Snap, Docker, or an automatic GPU overclock. No proprietary application or optional large model should be downloaded without an appropriate installation mechanism and validation.
+No mandatory NVIDIA, AMD or Intel driver. No automatic GPU overclock. No Flatpak, Snap or Docker in the default distribution. No forced passwordless `sudo` or insecure installed-system login. No rebranding that hides the upstream work.
 
-### GPU driver selection
+The preference for permanent performance settings is intentional, but compatibility checks and recovery paths must take precedence over a system that fails to boot.
 
-A **first-boot graphics driver assistant** is planned for the installed system:
+## The desktop
 
-1. Detect the installed GPU or GPUs, including NVIDIA, AMD, Intel, virtual GPUs, and mixed-GPU systems.
-2. Identify the compatible driver choices using the CachyOS hardware-detection and package-management mechanisms.
-3. **Prefer the latest compatible proprietary driver when one is genuinely available**, while presenting an open-source alternative.
-4. Fall back to supported open-source drivers when no appropriate proprietary option exists.
-5. Confirm the choice before changing drivers and keep a recoverable display configuration.
+**KDE Plasma comes first; other upstream desktop choices remain available.** Skaldr favors a clean desktop with NumLock enabled, normal authentication preserved, and a native toolbox for checking system health, GPU drivers and performance settings.
 
-No universal proprietary driver exists for every GPU. The assistant must never present an unavailable driver as a valid option.
+- **Gaming:** Steam, GameMode, MangoHud, Gamescope and compatibility tools are part of the current package selection.
+- **Multimedia and work:** VLC, FFmpeg, LibreOffice Fresh, Brave and other native utilities.
+- **Development:** Git, Python, Rust, CMake, Make, Ninja, fakeroot, yay and related tools.
+- **Virtualization:** QEMU/KVM and Virt-Manager, when the hardware supports them.
+- **Graphics:** CachyOS `chwd` discovers applicable drivers; a first-boot assistant asks before installing them. LACT is available only where supported.
+- **Recovery and diagnostics:** Snapper integration on Btrfs, `skaldr-doctor` and the initial KDE control center.
 
-### Security trade-off
+**Performance/security choice:** the requested `mitigations=off` kernel option is currently used for normal boot entries. It disables some CPU security mitigations and is not appropriate for every threat model. A fallback boot entry without this setting is retained.
 
-Skaldr OS is intended to keep normal authentication enabled. However, the requested `mitigations=off` setting disables multiple CPU vulnerability mitigations and **reduces system security**. This setting is part of the proposed performance-oriented configuration, not a claim of a safe or universally faster default. It must be documented clearly and remain reversible.
+## Versions you can trace
 
-## Upstream synchronization policy
+A rolling-release base can change every day, but **Skaldr's own release number should still mean something**.
 
-The authoritative source is **[CachyOS/CachyOS-Live-ISO](https://github.com/CachyOS/CachyOS-Live-ISO)**, following its actual default branch (`master` at the time of writing).
+Development builds use:
 
-The intended workflow is to:
+```text
+Skaldr OS 0.1.0-dev.N+gSHA
+```
 
-1. Detect new commits on upstream's current default branch.
-2. Incorporate compatible changes while keeping Skaldr-specific configuration intact.
-3. Stop on merge conflicts and request manual arbitration without silently dropping changes.
-4. Validate the resulting files, build the ISO, and test boot and installation paths before publishing.
-5. Keep only one permanent branch; remove any authorized temporary branches after integration.
+Here `N` counts first-parent commits since the original CachyOS fork point; `SHA` identifies the exact source revision. The UTC build date and full 40-character SHA are recorded in the installed build metadata. Upstream CachyOS history is not incorrectly counted as Skaldr development.
 
-**This is a development policy, not an assertion that automatic synchronization or releases are already configured.** Upstream commits and their original authorship will remain unchanged.
+On first login, a welcome screen shows this version and build provenance. Later, the same facts are available from:
 
-## Build from the current source
+```bash
+skaldr-version
+skaldr-version --json
+skaldr-doctor --json
+```
 
-The commands below use the **existing upstream-derived build system**, not a completed Skaldr OS release. Use a compatible Arch Linux/CachyOS build environment with sufficient free disk space.
+A stable version such as `v0.1.0` is reserved for a **tested and published release**, never granted simply because a commit was pushed. See [the versioning policy](docs/VERSIONING.md).
+
+## Build it yourself
+
+Skaldr is currently a source-first project. Building its ISO requires a supported Arch/CachyOS environment, sufficient disk space, and access to the package mirrors.
 
 ```bash
 sudo pacman -Syu --needed archiso mkinitcpio-archiso git squashfs-tools grub
@@ -108,18 +98,35 @@ cd Skaldr-OS
 sudo ./buildiso.sh -p desktop -v -w
 ```
 
-The build script places generated ISO files under the `out/` directory. Successful compilation, installation, UEFI/BIOS boot, and GPU compatibility are **not yet verified for a Skaldr-branded release**.
+The expected output is in `out/desktop/`. The build includes a version manifest and generates SHA-256 checksums. **Do not assume the generated image is installable until its build and VM tests pass.** You can follow the [ISO build workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml).
 
-## Validation required before the first release
+## Project status
 
-- Verify package availability, legal redistribution, and removal of unwanted packaging systems.
-- Verify that the live environment and installed system receive the same applications and configuration.
-- Verify that KDE is the default while the upstream desktop choices remain selectable.
-- Verify Caps Lock, normal password authentication, performance services, and RAM-dependent swap settings.
-- Validate graphics detection and driver choices across NVIDIA, AMD, Intel, virtual machines, and mixed GPU configurations.
-- Test UEFI and legacy BIOS boot plus Calamares installation and first boot.
-- Verify upstream synchronization, build logs, ISO integrity checksums, and release artifacts.
+| Area | Current state |
+| --- | --- |
+| Base | Public CachyOS Live ISO fork, upstream-compatible |
+| KDE and software profile | Defined in the Live and target manifests |
+| Driver selection | Hardware-aware assistant implemented; real-device matrix still required |
+| Performance and Btrfs policies | Initial implementation; platform testing ongoing |
+| Version provenance | Implemented in build tooling and first-login welcome |
+| CI source validation | Automated on `master` |
+| Full ISO build and Calamares installation | Must pass before a public stable release |
+| Wallpaper, final boot splash and hardware certification | Work in progress |
 
-## Credits and licensing
+The project's priorities, remaining work and known validation gaps are tracked in [the development roadmap](docs/ROADMAP.md).
 
-Skaldr OS builds on the work of the [CachyOS project](https://cachyos.org/) and [Arch Linux](https://archlinux.org/). Original project files retain their respective notices and licenses; see [LICENSE](LICENSE). Acknowledgment of upstream work does not imply official endorsement.
+## Built personally. Shared publicly.
+
+Skaldr OS is **a personal passion project**, not a business, not a paid product, and not a promise to support every possible device forever.
+
+If the configuration helps another Linux user, that is already a good reason to keep the source public. Contributions and thoughtful bug reports may help improve it over time. Reproducible reports should include the version from `skaldr-version`, hardware details and relevant logs — not passwords or private files.
+
+A future mention on [DistroWatch](https://distrowatch.com/) would be a pleasant milestone, **not a requirement or a measure of success**. The software should earn that attention by being useful, honest and consistently maintained.
+
+## Credits
+
+This project stands on the work of **CachyOS**, **Arch Linux**, the **KDE** community, **Calamares** and the many developers behind the included free and open-source packages. Skaldr OS is **not an official CachyOS project or endorsed edition**.
+
+The original authorship, licenses and credits of upstream files are retained. See [LICENSE](LICENSE).
+
+<p align="center"><em>Make it fast. Keep it usable. Share what works.</em></p>
