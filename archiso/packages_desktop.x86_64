@@ -76,6 +76,7 @@ inetutils
 inotify-tools
 intel-ucode
 inxi
+iptables
 irssi
 iw
 iwd
@@ -92,6 +93,9 @@ lact
 ldns
 less
 lftp
+lib32-vulkan-intel
+lib32-vulkan-radeon
+lib32-vulkan-swrast
 libfido2
 libreoffice-fresh
 libreoffice-fresh-fr
@@ -139,6 +143,7 @@ ninja
 nmap
 noto-fonts
 noto-fonts-cjk
+noto-fonts-emoji
 nss-mdns
 ntfs-3g
 ntp
@@ -178,6 +183,7 @@ python-pip
 python-pipx
 qemu-desktop
 qemu-guest-agent
+qt6-multimedia-ffmpeg
 realtime-privileges
 refind
 rp-pppoe
@@ -205,6 +211,7 @@ swtpm
 syslinux
 systemd-resolvconf
 tcpdump
+tesseract-data-eng
 testdisk
 tpm2-tss
 traceroute

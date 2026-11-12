@@ -10,9 +10,13 @@ fuse2
 gamemode
 gamescope
 git
+iptables
 jq
 kcalc
 lact
+lib32-vulkan-intel
+lib32-vulkan-radeon
+lib32-vulkan-swrast
 libreoffice-fresh
 libreoffice-fresh-fr
 libvirt
@@ -20,10 +24,12 @@ make
 mangohud
 mediainfo
 ninja
+noto-fonts-emoji
 python
 python-pip
 python-pipx
 qemu-desktop
+qt6-multimedia-ffmpeg
 rust
 scx-manager
 scx-scheds
@@ -33,6 +39,7 @@ snapper
 steam
 steam-devices
 swtpm
+tesseract-data-eng
 uv
 virt-manager
 vlc
