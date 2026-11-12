@@ -40,10 +40,10 @@ def main():
     if "/usr/local/bin/skaldr-postinstall" not in content:
         # Insert into the existing top-level script list, before the i18n section.
         # Appending after i18n would produce invalid or misleading YAML.
-        insertion_point = content.find("\\ni18n:")
+        insertion_point = content.find("\ni18n:")
         if insertion_point < 0:
             sys.exit("Calamares shellprocess i18n boundary not found")
-        step = '\\n    - command: "/usr/local/bin/skaldr-postinstall"\\n      timeout: 3600\\n      verbose: true'
+        step = '\n    - command: "/usr/local/bin/skaldr-postinstall"\n      timeout: 3600\n      verbose: true'
         content = content[:insertion_point] + step + content[insertion_point:]
         shellprocess.write_text(content)
     print("Calamares configured to preserve Skaldr packages and settings")
