@@ -23,11 +23,22 @@ sed -i "s|#branch=cachyos-dev|#commit=$calamares_revision|" "$work/PKGBUILD"
 sed -i 's/^pkgrel=13$/pkgrel=13.1/' "$work/PKGBUILD"
 echo "Building official CachyOS Calamares source at $calamares_revision against current Boost"
 
+# Build the installer for portable x86-64 regardless of the GitHub runner CPU.
+# This prevents native-host optimizations from leaking into a distributable ISO.
+# Preserve upstream hardening flags; the final -march/-mtune take precedence.
+cp /etc/makepkg.conf "$work/skaldr-makepkg.conf"
+cat >> "$work/skaldr-makepkg.conf" <<'MAKEPKG_PORTABLE'
+
+# Skaldr OS: a rebuilt installer must not depend on the CI runner ISA.
+CFLAGS+=" -march=x86-64 -mtune=generic"
+CXXFLAGS+=" -march=x86-64 -mtune=generic"
+MAKEPKG_PORTABLE
+
 (
   cd "$work"
   export MAKEFLAGS="-j2"
   export CMAKE_BUILD_PARALLEL_LEVEL=2
-  makepkg --syncdeps --noconfirm --needed --cleanbuild
+  makepkg --config "$work/skaldr-makepkg.conf" --syncdeps --noconfirm --needed --cleanbuild
 )
 packages=("$work"/cachyos-calamares-next-*.pkg.tar.zst)
 [[ -f "${packages[0]}" ]] || { echo "No rebuilt Calamares package found" >&2; exit 1; }
