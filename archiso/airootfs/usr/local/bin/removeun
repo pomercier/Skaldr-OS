@@ -39,16 +39,15 @@ local _packages_to_remove=(
   mkinitcpio-archiso
 )
 
-  local _check_nvidia_card="$(chwd --is_nvidia_card | grep -q 'NVIDIA card found!'; echo $?)"
-  if [[ "${_check_nvidia_card}" -ne 0 ]]; then
-    echo "No NVIDIA card detected. Removing nvidia drivers"
-    _packages_to_remove+=(linux-cachyos-lts-nvidia-open nvidia-utils egl-wayland)
-  fi
-
   local xx
   # @ does one by one to avoid errors in the entire process
   # taken from Erik Dubois script
-  for xx in "${_packages_to_remove[@]}"; do pacman -Rsnc "$xx" --noconfirm; done
+  for xx in "${_packages_to_remove[@]}"; do
+    # Never cascade-remove unrelated packages that depend on a live-only tool.
+    if pacman -Qq "$xx" >/dev/null 2>&1; then
+      pacman -Rns --noconfirm "$xx" || echo "Preserving required package: $xx"
+    fi
+  done
 }
 
 _clean_packages

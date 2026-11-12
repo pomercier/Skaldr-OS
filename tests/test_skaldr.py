@@ -63,6 +63,20 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("sudo /usr/local/bin/skaldr-cal-inject", installer)
         self.assertNotIn("exit 1\\n", installer)
 
+    def test_branding_and_controls(self):
+        release = (LIVE / "etc/os-release").read_text()
+        self.assertIn('NAME="Skaldr OS"', release)
+        profile = (REPO / "archiso/profiledef.sh").read_text()
+        self.assertIn('iso_name="skaldr"', profile)
+        self.assertIn("SKALDR_", profile)
+        for name in ("skaldr-doctor", "skaldr-center"):
+            self.assertTrue((LIVE / "usr/local/bin" / name).is_file())
+        injector = INJECT.read_text()
+        self.assertIn("/usr/share/skaldr/os-release", injector)
+        self.assertIn("/usr/local/bin/skaldr-center", injector)
+        cleanup = (LIVE / "usr/local/bin/removeun").read_text()
+        self.assertNotIn("pacman -Rsnc", cleanup)
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)

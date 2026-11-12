@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Read-only Skyl OS health check; prints a human summary or machine-readable JSON."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+
+def command(*args):
+    if not shutil.which(args[0]):
+        return None
+    try:
+        out = subprocess.run(args, capture_output=True, text=True, timeout=8, check=False)
+        return out.stdout.strip() if out.returncode == 0 else None
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+def read(path, default=None):
+    try:
+        return Path(path).read_text().strip()
+    except OSError:
+        return default
+
+
+def get_data():
+    cmdline = read("/proc/cmdline", "") or ""
+    fs = command("findmnt", "-n", "-o", "FSTYPE", "/") or "unknown"
+    scheduler = command("systemctl", "is-active", "scx_loader.service") or "inactive"
+    lact = command("systemctl", "is-active", "lactd.service") or "inactive"
+    graphics = command("lspci", "-nn")
+    if graphics:
+        graphics = [line for line in graphics.splitlines()
+                    if any(word in line.lower() for word in
+                           ("vga compatible", "3d controller", "display controller"))]
+    else:
+        graphics = []
+    packages = ["brave-bin", "libreoffice-fresh", "kcalc", "yay",
+                "lact", "cmake", "fakeroot", "virt-manager", "steam"]
+    missing = [name for name in packages if command("pacman", "-Qq", name) is None]
+    return {
+        "os": next((line.partition("=")[2].strip('"') for line in
+                   (read("/etc/os-release", "") or "").splitlines()
+                   if line.startswith("PRETTY_NAME=")), "unknown"),
+        "kernel": command("uname", "-r") or "unknown",
+        "gpu": graphics,
+        "cpu_scheduler_service": scheduler,
+        "power_profile": command("powerprofilesctl", "get") or "unavailable",
+        "lact_service": lact,
+        "kernel_mitigations_off": "mitigations=off" in cmdline.split(),
+        "swappiness": read("/proc/sys/vm/swappiness", "unknown"),
+        "zram_devices": sorted(path.name for path in Path("/sys/block").glob("zram*")),
+        "root_filesystem": fs,
+        "btrfs_snapshots": fs == "btrfs" and Path("/.snapshots").is_dir(),
+        "numlock_default": "NumLock=0" in (read("/etc/xdg/kcminputrc", "") or ""),
+        "missing_recommended_packages": missing,
+    }
+
+
+def main():
+    report = get_data()
+    if "--json" in sys.argv[1:]:
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    else:
+        print("SKALDR OS — SYSTEM HEALTH")
+        print("=" * 35)
+        for key, value in report.items():
+            if isinstance(value, list):
+                print(f"{key}:")
+                for item in value:
+                    print("  - " + str(item))
+            else:
+                print(f"{key.replace('_', ' ')}: {value}")
+        print("\nNote: this is a diagnostic report, not a performance benchmark.")
+
+
+if __name__ == "__main__":
+    main()

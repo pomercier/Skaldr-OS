@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Lightweight KDE configuration hub using native system utilities.
+set -euo pipefail
+if ! command -v kdialog >/dev/null; then
+    exec /usr/local/bin/skaldr-doctor
+fi
+choice="$(kdialog --title 'Skaldr OS Control Center' --menu \
+    'Choose a Skaldr OS tool:' \
+    health 'System health report' \
+    gpu 'Graphics driver assistant' \
+    snapshot 'Btrfs snapshots and recovery' \
+    performance 'Performance controls' \
+    lact 'GPU tuning (supported hardware only)' \
+    virtual 'Virtual machines' \
+    kde 'KDE System Settings' \
+    help 'Skaldr OS project documentation' || true)"
+case "$choice" in
+    health)
+        exec konsole --hold -e /usr/local/bin/skaldr-doctor ;;
+    gpu)
+        exec /usr/local/bin/skaldr-gpu-assistant --recheck ;;
+    snapshot)
+        if command -v btrfs-assistant >/dev/null; then exec btrfs-assistant; fi ;;
+    performance)
+        if command -v scx-manager >/dev/null; then exec scx-manager; fi
+        if command -v powerprofilesctl >/dev/null; then
+            exec konsole --hold -e powerprofilesctl get
+        fi ;;
+    lact)
+        if command -v lact >/dev/null; then exec lact gui; fi ;;
+    virtual)
+        if command -v virt-manager >/dev/null; then exec virt-manager; fi ;;
+    kde)
+        if command -v systemsettings >/dev/null; then exec systemsettings; fi ;;
+    help)
+        exec xdg-open 'https://github.com/pomercier/Skaldr-OS' ;;
+    *)
+        exit 0 ;;
+esac

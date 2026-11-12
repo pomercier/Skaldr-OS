@@ -12,6 +12,10 @@ import sys
 FILES = [
     "/usr/local/bin/skaldr-postinstall",
     "/usr/local/bin/skaldr-profile",
+    "/usr/local/bin/skaldr-doctor",
+    "/usr/local/bin/skaldr-center",
+    "/usr/share/skaldr/os-release",
+    "/usr/share/applications/skaldr-center.desktop",
     "/usr/local/bin/skaldr-numlock",
     "/etc/systemd/system/skaldr-numlock.service",
     "/etc/xdg/kcminputrc",

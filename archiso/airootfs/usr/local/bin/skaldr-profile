@@ -96,12 +96,23 @@ def lact():
     if any(any(k in line for k in ("nvidia", "amd", "intel", "advanced micro devices")) for line in graphics):
         run("systemctl", "enable", "lactd.service")
 
+def branding():
+    # Write only the local override; do not modify pacman-owned /usr/lib/os-release.
+    source = Path("/usr/share/skaldr/os-release")
+    dest = Path("/etc/os-release")
+    if source.is_file():
+        if dest.is_symlink():
+            dest.unlink()
+        write(dest, source.read_text())
+
+
 def main():
     if os.geteuid() != 0 or len(sys.argv) != 2 or sys.argv[1] not in ("live", "install", "runtime"):
         sys.exit("Usage: sudo skaldr-profile live|install|runtime")
     if sys.argv[1] == "runtime":
         runtime()
         return
+    branding()
     memory()
     performance()
     lact()
