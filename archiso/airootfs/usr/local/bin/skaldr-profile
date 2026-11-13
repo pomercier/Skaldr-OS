@@ -96,10 +96,16 @@ def snapshots():
                         capture_output=True, text=True, check=False)
     if fs.returncode != 0 or fs.stdout.strip() != "btrfs":
         return
-    if subprocess.run(["snapper", "-c", "root", "get-config"],
+    # During Calamares, the target system is chrooted and snapperd is not
+    # running on its D-Bus. Use Snapper's native local mode instead.
+    if subprocess.run(["snapper", "--no-dbus", "-c", "root", "get-config"],
                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
-        if run("snapper", "-c", "root", "create-config", "/") != 0:
-            print("Skaldr: Btrfs snapshot setup was skipped; configure it manually.")
+        result = subprocess.run(["snapper", "--no-dbus", "-c", "root",
+                                 "create-config", "/"],
+                                capture_output=True, text=True, check=False)
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout or "unknown error").strip()
+            print("Skaldr: Btrfs snapshot setup was skipped: " + detail, flush=True)
             return
     for name in ("snapper-timeline.timer", "snapper-cleanup.timer"):
         run("systemctl", "enable", name)

@@ -202,6 +202,35 @@ function test_calamares_finished() {
     qt_screenshot_ppm "$FUNCNAME"
 }
 
+function test_installed_system_cold_boot() {
+    # A successful Calamares dialog is not proof the installed OS boots.
+    # Power down and restart Quickemu. It automatically detaches the ISO
+    # when the installed qcow2 disk contains data; assert this explicitly.
+    qt_echo "Cold boot the newly installed system, without the live ISO"
+    qt_poweroff_vm
+    qt_wait_for_seconds 5
+    local disk_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/disk.qcow2"
+    [[ -s "$disk_file" ]] || qt_test_fail "Installed virtual disk missing"
+    qt_launch_quickemu || qt_test_fail "Could not relaunch the installed disk"
+    qt_wait_for_seconds 8
+    qt_get_qemu_socket || qt_test_fail "QEMU monitor missing after cold boot"
+
+    # The second boot must be sourced from the installed disk, not the ISO.
+    local pid_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/cachyos-dailylive.pid"
+    [[ -s "$pid_file" ]] || qt_test_fail "Second-boot QEMU PID missing"
+    local qemu_pid
+    qemu_pid="$(cat "$pid_file")"
+    [[ -r "/proc/$qemu_pid/cmdline" ]] || qt_test_fail "Second-boot QEMU process missing"
+    if tr '\\0' '\\n' < "/proc/$qemu_pid/cmdline" | grep -Eq '\\.iso($|/)'; then
+        qt_test_fail "Second boot still has live installer ISO attached"
+    fi
+
+    # The account was created during installation; finding it on the
+    # greeter proves the newly installed graphical login is responsive.
+    qt_wait_for_text "$FUNCNAME" "$test_user" 30 10
+    qt_screenshot_ppm "$FUNCNAME"
+}
+
 function test_power_off_vm() {
     qt_poweroff_vm
 }
@@ -262,6 +291,7 @@ function test_install_calamares() {
     test_calamares_summary
     test_calamares_install
     test_calamares_finished
+    test_installed_system_cold_boot
     test_power_off_vm
 }
 

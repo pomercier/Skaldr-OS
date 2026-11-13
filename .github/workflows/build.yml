@@ -165,6 +165,12 @@ jobs:
           serial_pid=$!
           trap 'kill "$serial_pid" 2>/dev/null || :; mkdir -p results/ci; cp "$log_file" results/ci/installer-serial.log || :' EXIT
           ./quicktest/quicktest test_install_calamares cachyos dailylive
+          # Do not promote a green GUI result unless the target policy
+          # actually finished and Btrfs snapshots were initialized.
+          grep -Fq "Skaldr target packages and system preferences installed" "$log_file"
+          if [ "${{ matrix.filesystem }}" = "btrfs" ]; then
+            grep -Fq "Skaldr: Btrfs snapshot configuration is available." "$log_file"
+          fi
         env:
           QT_NOTIFY: "false"
           QT_OPEN_RESULTS: "false"

@@ -144,6 +144,8 @@ class SkaldrChecks(unittest.TestCase):
         profile = PROFILE.read_text()
         self.assertIn('fs.stdout.strip() != "btrfs"', profile)
         self.assertIn('"snapper-cleanup.timer"', profile)
+        self.assertIn('"snapper", "--no-dbus", "-c", "root", "get-config"', profile)
+        self.assertIn('"create-config", "/"', profile)
         self.assertIn('"snapper-timeline.timer"', profile)
         doctor = (LIVE / "usr/local/bin/skaldr-doctor").read_text()
         self.assertIn('"highest_sensor_temperature_celsius"', doctor)
@@ -256,6 +258,12 @@ class SkaldrChecks(unittest.TestCase):
         self.assertLess(qt.index('You are using a testing ISO'),
                         qt.index('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"'))
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15', qt)
+        self.assertIn('test_installed_system_cold_boot', qt)
+        self.assertIn('qt_launch_quickemu || qt_test_fail', qt)
+        self.assertIn('Second boot still has live installer ISO attached', qt)
+        self.assertLess(qt.index('test_calamares_finished\n    test_installed_system_cold_boot'),
+                        qt.index('test_installed_system_cold_boot\n    test_power_off_vm'))
+        self.assertIn('Skaldr: Btrfs snapshot configuration is available.', workflow)
 
     def test_policy(self):
         profile = PROFILE.read_text()
