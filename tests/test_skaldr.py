@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[1]
 LIVE = REPO / "archiso" / "airootfs"
@@ -65,6 +66,27 @@ class SkaldrChecks(unittest.TestCase):
         installed_default = (LIVE / "etc/skel/.config/kscreenlockerrc").read_text()
         self.assertIn("Autolock=true", installed_default)
         self.assertIn("LockOnResume=true", installed_default)
+
+    def test_first_login_autostart_replaces_upstream_greeting(self):
+        script = LIVE / "usr/local/bin/skaldr-postinstall"
+        setup = runpy.run_path(str(script), run_name="skaldr_test")["setup_user_autostart"]
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "testuser"
+            autostart = home / ".config/autostart"
+            autostart.mkdir(parents=True)
+            cachy = autostart / "cachyos-hello.desktop"
+            cachy.write_text("[Desktop Entry]\nName=CachyOS Hello\nExec=cachyos-hello\n")
+            welcome = Path(tmp) / "skaldr-welcome.desktop"
+            welcome.write_text("[Desktop Entry]\nExec=/usr/local/bin/skaldr-welcome --startup\n")
+            with patch("os.chown") as mocked:
+                setup(home, 1000, 1000, welcome)
+            self.assertIn("Hidden=true", cachy.read_text())
+            self.assertEqual((autostart / "skaldr-welcome.desktop").read_text(),
+                             welcome.read_text())
+            self.assertEqual(mocked.call_count, 3)
+        self.assertIn("configure_installed_users()", script.read_text())
+        self.assertIn("--startup", (LIVE / "etc/xdg/autostart/skaldr-welcome.desktop").read_text())
+        self.assertIn("time.sleep(8)", (LIVE / "usr/local/bin/skaldr-welcome").read_text())
 
     def test_quicktest_shell_syntax(self):
         script = REPO / "testcases/cachyos/dailylive/test_install_calamares"

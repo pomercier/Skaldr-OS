@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
+import time
 
 
 def main():
@@ -17,6 +19,10 @@ def main():
         return
     if not shutil.which("kdialog"):
         return
+    # Wait until Plasma's window manager is ready during autostart.
+    # Manual runs of skaldr-welcome remain immediate.
+    if "--startup" in sys.argv:
+        time.sleep(8)
     metadata = json.loads(info.read_text(encoding="utf-8"))
     version = metadata.get("version", "development")
     build = metadata.get("build_date_utc", "unknown")

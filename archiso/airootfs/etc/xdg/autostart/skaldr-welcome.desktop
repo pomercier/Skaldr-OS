@@ -2,7 +2,7 @@
 Type=Application
 Name=Welcome to Skaldr OS
 Comment=Show the release number and source revision on first login
-Exec=/usr/local/bin/skaldr-welcome
+Exec=/usr/local/bin/skaldr-welcome --startup
 TryExec=/usr/local/bin/skaldr-welcome
 Terminal=false
 OnlyShowIn=KDE;

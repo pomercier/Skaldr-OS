@@ -1,11 +1,52 @@
 #!/usr/bin/env python3
 """Finish installing the same Skaldr applications inside Calamares target."""
 from pathlib import Path
+import os
+import pwd
 import subprocess
 import sys
 
 def call(*args):
     subprocess.run(args, check=True)
+
+def setup_user_autostart(home, uid, gid, source):
+    """Start the Skaldr greeting in new KDE accounts; keep CachyOS Hello installed."""
+    if not home.is_dir() or home.is_symlink():
+        raise RuntimeError(f"Invalid installed user home: {home}")
+    folder = home / ".config" / "autostart"
+    if folder.is_symlink():
+        raise RuntimeError(f"Refusing symlink autostart directory: {folder}")
+    folder.mkdir(parents=True, exist_ok=True)
+    os.chown(folder, uid, gid)
+
+    # cachyos-hello installs an autostart into /etc/skel, copied by Calamares
+    # to users' homes. Suppress the redundant launch, not the application.
+    upstream = folder / "cachyos-hello.desktop"
+    if upstream.is_file():
+        if upstream.is_symlink():
+            raise RuntimeError(f"Refusing symlink autostart entry: {upstream}")
+        upstream.write_text("[Desktop Entry]\nType=Application\nName=CachyOS Hello\nHidden=true\n")
+        os.chown(upstream, uid, gid)
+
+    target = folder / "skaldr-welcome.desktop"
+    if target.is_symlink():
+        raise RuntimeError(f"Refusing symlink Skaldr entry: {target}")
+    target.write_text(source.read_text())
+    os.chown(target, uid, gid)
+    print(f"Skaldr: installed first-login autostart for UID {uid}", flush=True)
+
+
+def configure_installed_users():
+    source = Path("/etc/xdg/autostart/skaldr-welcome.desktop")
+    if not source.is_file():
+        raise RuntimeError("Skaldr welcome autostart entry missing")
+    for account in pwd.getpwall():
+        home = Path(account.pw_dir)
+        if not (1000 <= account.pw_uid < 60000 and home.parent == Path("/home")):
+            continue
+        if home.is_dir():
+            setup_user_autostart(home, account.pw_uid, account.pw_gid, source)
+
 
 def main():
     pkg = Path("/usr/share/skaldr/packages.txt")
@@ -19,6 +60,7 @@ def main():
     # Apply Skaldr's NumLock preference only after Calamares has installed it.
     call("/usr/local/bin/skaldr-numlock")
     call("/usr/local/bin/skaldr-profile", "install")
+    configure_installed_users()
     print("Skaldr target packages and system preferences installed")
 
 if __name__ == "__main__":
