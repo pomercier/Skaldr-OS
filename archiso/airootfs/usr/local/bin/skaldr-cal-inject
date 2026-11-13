@@ -40,6 +40,7 @@ FILES = [
     "/usr/share/applications/skaldr-artcraft.desktop",
     "/etc/xdg/autostart/skaldr-gpu-assistant.desktop",
     "/etc/systemd/system/skaldr-performance.service",
+    "/etc/systemd/system/scx_loader.service.d/10-skaldr-kernel.conf",
 ]
 
 

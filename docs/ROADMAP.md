@@ -16,7 +16,8 @@ only when tested; the existence of code is not evidence of successful boot.
 ## Phase B — hardware and performance
 - [x] Vendor-neutral `chwd` driver selection, requiring consent
 - [x] Configure preferred `scx_lavd`, Gaming and power Performance policies
-- [ ] Test scheduler compatibility and automatic safe fallback on non-supporting CPUs
+- [x] Guard scx_loader boot service when the running kernel lacks sched_ext; verify the diagnostic report in isolated tests (2026-11-13)
+- [ ] Verify scheduler failures and built-in kernel fallback on real Intel/AMD hardware
 - [x] Conditional Snapper root configuration and cleanup/timeline timers
 - [ ] Verify bootloader snapshot restore with supported loaders
 - [ ] LTS kernel recovery entry and bootloader verification
@@ -38,7 +39,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [ ] Apply logo to desktop, Calamares, splash, boot and social preview
 - [ ] Secure and test upstream synchronization before it pushes
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
-- [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43478437841)
+- [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43501610894)
 - [ ] Validate a split preview-release upload and reassembly on GitHub Releases
 - [ ] Authorize a development preview only after passing the latest full ISO CI
 - [ ] Publish a stable release only after physical hardware tests and a release-mode ISO build

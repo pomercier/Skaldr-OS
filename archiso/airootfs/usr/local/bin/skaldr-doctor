@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only Skyl OS health check; prints a human summary or machine-readable JSON."""
+"""Read-only Skaldr OS health check; prints a human summary or machine-readable JSON."""
 import json
 import os
 from pathlib import Path
@@ -29,6 +29,12 @@ def get_data():
     cmdline = read("/proc/cmdline", "") or ""
     fs = command("findmnt", "-n", "-o", "FSTYPE", "/") or "unknown"
     scheduler = command("systemctl", "is-active", "scx_loader.service") or "inactive"
+    sched_ext_state = read("/sys/kernel/sched_ext/state", "unavailable") or "unavailable"
+    # Linux restores its built-in scheduler whenever sched_ext is inactive.
+    active_scheduler = (
+        (read("/sys/kernel/sched_ext/root/ops", "") or "unknown")
+        if sched_ext_state == "enabled" else "kernel-default"
+    )
     lact = command("systemctl", "is-active", "lactd.service") or "inactive"
     graphics = command("lspci", "-nn")
     if graphics:
@@ -60,6 +66,8 @@ def get_data():
         "boot_time_summary": boot_time or "not available",
         "smartmontools_installed": command("pacman", "-Qq", "smartmontools") is not None,
         "cpu_scheduler_service": scheduler,
+        "sched_ext_state": sched_ext_state,
+        "active_cpu_scheduler": active_scheduler,
         "power_profile": command("powerprofilesctl", "get") or "unavailable",
         "lact_service": lact,
         "kernel_mitigations_off": "mitigations=off" in cmdline.split(),

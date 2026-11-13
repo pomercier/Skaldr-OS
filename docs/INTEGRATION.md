@@ -12,3 +12,17 @@ The live ISO and target install use the same package manifest. Desktop
 selection remains under Calamares control with KDE as its existing default.
 The Caps Lock helper works on X11; Wayland and the login manager need
 additional compositor-specific validation.
+
+## Scheduler compatibility
+
+Skaldr prefers the scx_lavd Gaming profile via scx_loader. The installed
+system includes a systemd condition for /sys/kernel/sched_ext so kernels
+without this feature skip scx_loader cleanly, without disabling the default
+in-kernel Linux CPU scheduler. On a supported kernel, normal scx_loader
+behavior is unchanged. If a sched_ext scheduler later stops or fails, the
+kernel reverts to its in-kernel scheduler.
+
+Use `skaldr-doctor --json` to distinguish the daemon's service state,
+the current sched_ext state, and the active scheduler. The condition and
+report have isolated tests; real hardware failure/recovery tests remain
+required before claiming universal compatibility.
