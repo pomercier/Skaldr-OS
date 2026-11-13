@@ -86,15 +86,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mkdir -p release-assets
-          gh run download "$VERIFIED_RUN_ID" --dir release-assets
-          iso_count="$(find release-assets -type f -name '*.iso' | wc -l)"
+          # Raw GitHub Actions artifacts and packaged release files must live
+          # in different directories: the packer refuses non-empty outputs.
+          mkdir -p ci-artifacts
+          gh run download "$VERIFIED_RUN_ID" --dir ci-artifacts
+          iso_count="$(find ci-artifacts -type f -name '*.iso' | wc -l)"
           [[ "$iso_count" -eq 1 ]] || {
             echo "::error::Expected exactly one ISO in the successful run, got $iso_count."
             exit 1
           }
-          iso="$(find release-assets -type f -name '*.iso' -print -quit)"
-          manifest="$(find release-assets -type f -name SHA256SUMS -print -quit)"
+          iso="$(find ci-artifacts -type f -name '*.iso' -print -quit)"
+          manifest="$(find ci-artifacts -type f -name SHA256SUMS -print -quit)"
           [[ -f "$manifest" ]] || {
             echo "::error::SHA256SUMS is missing."
             exit 1

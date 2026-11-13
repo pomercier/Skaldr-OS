@@ -26,6 +26,16 @@ class ReleaseAssetsTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
+    def test_release_workflow_separates_raw_and_published_assets(self):
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github/workflows/skaldr-release.yml").read_text()
+        self.assertIn('gh run download "$VERIFIED_RUN_ID" --dir ci-artifacts', workflow)
+        self.assertIn('iso="$(find ci-artifacts -type f', workflow)
+        self.assertIn('manifest="$(find ci-artifacts -type f', workflow)
+        self.assertIn('--out release-assets', workflow)
+        self.assertNotIn('gh run download "$VERIFIED_RUN_ID" --dir release-assets', workflow)
+        self.assertIn('Stable publishing requires a release-mode ISO', workflow)
+
     def test_prepare_and_reassemble_verified_iso(self):
         parts = module.prepare(self.iso, self.sum, self.assets, part_size=225)
         self.assertEqual(len(parts), 4)
