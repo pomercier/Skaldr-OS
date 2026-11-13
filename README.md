@@ -33,7 +33,7 @@ Skaldr OS grew from a simple idea: **build the Linux system I actually want to u
 
 It is built on the work of **[CachyOS](https://cachyos.org/)** and **[Arch Linux](https://archlinux.org/)**. The goal isn't to pretend to replace these projects. It is to add an opinionated, cohesive desktop experience while preserving broad hardware compatibility and upstream improvements.
 
-> **Development preview, not a finished release.** On November 13, 2026, the latest development ISO passed automated UEFI virtual-machine installation, cold boot, KDE login and Skaldr first-run tests with both GRUB/ext4 and Limine/Btrfs. Physical hardware, legacy BIOS and long-term recovery tests remain necessary. Do not rely on a development ISO as your only computer.
+> **Development preview, not a finished release.** On November 13, 2026, the latest development ISO passed automated UEFI virtual-machine installation, cold boot, KDE login and Skaldr first-run tests with both GRUB/ext4 and Limine/Btrfs. Physical hardware, legacy BIOS installation and long-term recovery tests remain necessary. Legacy BIOS live boot has already passed. Do not rely on a development ISO as your only computer.
 
 ## Why Skaldr?
 
@@ -102,7 +102,7 @@ The expected output is in `out/desktop/`. The build includes a version manifest 
 
 ## Download and verify a development image
 
-The successful [Desktop ISO workflow for commit a2203235](https://github.com/pomercier/Skaldr-OS/actions/runs/43367190468) contains the installable developer ISO and its SHA-256 manifest as GitHub Actions artifacts. GitHub Actions artifacts have limited retention and may require a signed-in account.
+The verified [Desktop ISO workflow for commit 3599623](https://github.com/pomercier/Skaldr-OS/actions/runs/43478437841) contains the installable developer ISO and its SHA-256 manifest as GitHub Actions artifacts. GitHub Actions artifacts have limited retention and may require a signed-in account.
 
 For future **manually authorized preview releases**, GitHub's per-asset limit is under 2 GiB, so the approximately 4 GiB ISO is split into ordered files named `.iso.part001`, `.iso.part002` and so on. Download every part, `SHA256SUMS`, `SHA256SUMS.parts`, and `reassemble-skaldr-iso.py` to the same folder. Rebuild and verify the original image with:
 

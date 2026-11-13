@@ -45,13 +45,16 @@ FILES = [
 
 def insert_in_sequence(document, key, item_lines, identity, default_indent):
     lines = document.splitlines(keepends=True)
-    section = next((i for i, line in enumerate(lines) if line == key + ":\n" or line.strip() == key + ":"), None)
+    # Only accept a top-level block sequence; never inject into a nested key.
+    section = next((i for i, line in enumerate(lines)
+                    if line and not line[0].isspace() and line.strip() == key + ":"), None)
     if section is None:
         raise ValueError("Missing Calamares key: " + key)
     end = next((i for i in range(section + 1, len(lines))
                 if lines[i].strip() and not lines[i][0].isspace()), len(lines))
-    existing = "".join(lines[section + 1:end])
-    if identity in existing:
+    existing = lines[section + 1:end]
+    # A comment mentioning a hook is not evidence that the hook is installed.
+    if any(identity in line for line in existing if not line.lstrip().startswith("#")):
         return document
     indent = default_indent
     for line in lines[section + 1:end]:
@@ -71,21 +74,25 @@ def main():
     if not pacstrap.is_file() or not shellprocess.is_file():
         sys.exit("Required Calamares configuration missing; refusing unconfigured installation")
 
-    original = pacstrap.read_text()
-    updated = original
+    # Validate both module configurations before modifying either one.
+    # Otherwise a missing shellprocess script section could leave the
+    # pacstrap configuration partly modified after an installer error.
+    original_pacstrap = pacstrap.read_text()
+    original_shellprocess = shellprocess.read_text()
+    updated_pacstrap = original_pacstrap
     for path in FILES:
-        updated = insert_in_sequence(updated, "postInstallFiles",
-                                     ['- "' + path + '"'], '"' + path + '"', "  ")
-    if original != updated:
-        pacstrap.write_text(updated)
+        updated_pacstrap = insert_in_sequence(updated_pacstrap, "postInstallFiles",
+                                              ['- "' + path + '"'], '"' + path + '"', "  ")
+    updated_shellprocess = insert_in_sequence(
+        original_shellprocess, "script",
+        ['- command: "/usr/local/bin/skaldr-postinstall"',
+         "timeout: 3600", "verbose: true"],
+        "/usr/local/bin/skaldr-postinstall", "    ")
 
-    original = shellprocess.read_text()
-    updated = insert_in_sequence(original, "script",
-                                 ['- command: "/usr/local/bin/skaldr-postinstall"',
-                                  "timeout: 3600", "verbose: true"],
-                                 "/usr/local/bin/skaldr-postinstall", "    ")
-    if original != updated:
-        shellprocess.write_text(updated)
+    if original_pacstrap != updated_pacstrap:
+        pacstrap.write_text(updated_pacstrap)
+    if original_shellprocess != updated_shellprocess:
+        shellprocess.write_text(updated_shellprocess)
 
     print("Skaldr OS target installation integration enabled")
 
