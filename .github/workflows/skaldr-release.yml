@@ -89,7 +89,9 @@ jobs:
           # Raw GitHub Actions artifacts and packaged release files must live
           # in different directories: the packer refuses non-empty outputs.
           mkdir -p ci-artifacts
-          gh run download "$VERIFIED_RUN_ID" --dir ci-artifacts
+          # Download only the ISO artifact; the workflow also publishes
+          # diagnostics and split/reassembly verification metadata.
+          gh run download "$VERIFIED_RUN_ID" --pattern 'skaldr-os-x86_64-*' --dir ci-artifacts
           iso_count="$(find ci-artifacts -type f -name '*.iso' | wc -l)"
           [[ "$iso_count" -eq 1 ]] || {
             echo "::error::Expected exactly one ISO in the successful run, got $iso_count."

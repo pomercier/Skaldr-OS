@@ -29,12 +29,26 @@ class ReleaseAssetsTests(unittest.TestCase):
     def test_release_workflow_separates_raw_and_published_assets(self):
         workflow = (Path(__file__).resolve().parents[1] /
                     ".github/workflows/skaldr-release.yml").read_text()
-        self.assertIn('gh run download "$VERIFIED_RUN_ID" --dir ci-artifacts', workflow)
+        self.assertIn('gh run download "$VERIFIED_RUN_ID" --pattern', workflow)
+        self.assertIn("'skaldr-os-x86_64-*' --dir ci-artifacts", workflow)
         self.assertIn('iso="$(find ci-artifacts -type f', workflow)
         self.assertIn('manifest="$(find ci-artifacts -type f', workflow)
         self.assertIn('--out release-assets', workflow)
         self.assertNotIn('gh run download "$VERIFIED_RUN_ID" --dir release-assets', workflow)
+        self.assertNotIn('gh run download "$VERIFIED_RUN_ID" --dir ci-artifacts', workflow)
         self.assertIn('Stable publishing requires a release-mode ISO', workflow)
+
+    def test_full_size_preview_validation_requires_iso_and_all_boot_tests(self):
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github/workflows/build.yml").read_text()
+        self.assertIn("preview_assets:", workflow)
+        self.assertIn("needs: [build, quicktest]", workflow)
+        self.assertIn("Verify full-size ISO preview reconstruction", workflow)
+        self.assertIn('name: skaldr-os-x86_64-', workflow)
+        self.assertIn("python3 scripts/skaldr-release-assets.py prepare", workflow)
+        self.assertIn("python3 scripts/skaldr-release-assets.py reassemble --directory release-assets", workflow)
+        self.assertIn('rm -f -- "$iso"', workflow)
+        self.assertIn('(cd release-assets && sha256sum --check SHA256SUMS)', workflow)
 
     def test_prepare_and_reassemble_verified_iso(self):
         parts = module.prepare(self.iso, self.sum, self.assets, part_size=225)

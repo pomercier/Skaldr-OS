@@ -110,7 +110,7 @@ For future **manually authorized preview releases**, GitHub's per-asset limit is
 python3 reassemble-skaldr-iso.py reassemble --directory .
 ```
 
-The utility refuses missing, modified or unexpected parts and checks the complete ISO's original SHA-256 checksum before making it available. **Never flash an individual part.** See `ASSEMBLE.txt` included with any preview release. No stable release is published automatically.
+The utility refuses missing, modified or unexpected parts and checks the complete ISO's original SHA-256 checksum before making it available. The full-size ISO round trip is also required in the Desktop ISO CI after all three boot scenarios pass. **Never flash an individual part.** See `ASSEMBLE.txt` included with any preview release. No stable release is published automatically.
 
 ## Project status
 
@@ -122,7 +122,7 @@ The utility refuses missing, modified or unexpected parts and checks the complet
 | Performance and Btrfs policies | Initial implementation; platform testing ongoing |
 | Version provenance | Implemented in build tooling and first-login welcome |
 | CI source validation | Automated on `master` |
-| Full ISO build and Calamares installation | **Passed** automated UEFI VM installation, cold boot without the live ISO, password-protected KDE login and first-run Skaldr welcome, for both GRUB/ext4 and Limine/Btrfs ([2026-11-13, run 43367190468](https://github.com/pomercier/Skaldr-OS/actions/runs/43367190468)); physical hardware and BIOS remain untested |
+| Full ISO build and Calamares installation | **Passed** automated UEFI VM installation, cold boot without the live ISO, password-protected KDE login and first-run Skaldr welcome, for both GRUB/ext4 and Limine/Btrfs ([2026-11-13, run 43465976353](https://github.com/pomercier/Skaldr-OS/actions/runs/43465976353)); **legacy BIOS live boot also passed** in the same workflow; physical hardware and legacy BIOS installation remain untested |
 | Wallpaper, final boot splash and hardware certification | Work in progress |
 
 The project's priorities, remaining work and known validation gaps are tracked in [the development roadmap](docs/ROADMAP.md).

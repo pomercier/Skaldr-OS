@@ -211,3 +211,51 @@ jobs:
         with:
           name: skaldr-os-test-results-${{needs.build.outputs.builddate}}-${{ matrix.bootloader }}-${{ matrix.filesystem }}
           path: results/*
+
+  preview_assets:
+    name: Verify full-size ISO preview reconstruction
+    runs-on: ubuntu-latest
+    needs: [build, quicktest]
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout validated Skaldr sources
+        uses: actions/checkout@v4
+
+      - name: Download this run's exact ISO and original checksum
+        uses: actions/download-artifact@v4
+        with:
+          name: skaldr-os-x86_64-${{ needs.build.outputs.builddate }}
+          path: ci-artifacts
+
+      - name: Verify, split, and reconstruct the actual multi-gigabyte ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find ci-artifacts -maxdepth 1 -type f -name '*.iso' | wc -l)" -eq 1
+          (cd ci-artifacts && sha256sum --check SHA256SUMS)
+          iso="$(find ci-artifacts -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          python3 scripts/skaldr-release-assets.py prepare \
+            --iso "$iso" \
+            --checksum ci-artifacts/SHA256SUMS \
+            --out release-assets
+          # Remove the redundant source ISO before reconstructing to keep
+          # peak GitHub runner disk use lower than 9 GB.
+          rm -f -- "$iso"
+          python3 scripts/skaldr-release-assets.py reassemble --directory release-assets
+          (cd release-assets && sha256sum --check SHA256SUMS)
+          echo "Verified all parts and reassembled the original multi-gigabyte ISO."
+          du -h release-assets/*
+
+      - name: Store proof and reassembly instructions (no duplicate ISO)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skaldr-preview-verification-${{ needs.build.outputs.builddate }}
+          path: |
+            release-assets/SHA256SUMS
+            release-assets/SHA256SUMS.parts
+            release-assets/ASSEMBLE.txt
+            release-assets/reassemble-skaldr-iso.py
+          if-no-files-found: warn
