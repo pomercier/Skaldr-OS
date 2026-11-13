@@ -33,7 +33,7 @@ Skaldr OS grew from a simple idea: **build the Linux system I actually want to u
 
 It is built on the work of **[CachyOS](https://cachyos.org/)** and **[Arch Linux](https://archlinux.org/)**. The goal isn't to pretend to replace these projects. It is to add an opinionated, cohesive desktop experience while preserving broad hardware compatibility and upstream improvements.
 
-> **Development preview, not a finished release.** Configuration and build workflows are under active development. Source checks are automated, but a successful ISO build and complete installation/boot tests remain release gates. Do not rely on a development ISO as your only computer.
+> **Development preview, not a finished release.** On November 13, 2026, the latest development ISO passed automated UEFI virtual-machine installation, cold boot, KDE login and Skaldr first-run tests with both GRUB/ext4 and Limine/Btrfs. Physical hardware, legacy BIOS and long-term recovery tests remain necessary. Do not rely on a development ISO as your only computer.
 
 ## Why Skaldr?
 
@@ -100,6 +100,18 @@ sudo ./buildiso.sh -p desktop -v -w
 
 The expected output is in `out/desktop/`. The build includes a version manifest and generates SHA-256 checksums. **Do not assume the generated image is installable until its build and VM tests pass.** You can follow the [ISO build workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml).
 
+## Download and verify a development image
+
+The successful [Desktop ISO workflow for commit a2203235](https://github.com/pomercier/Skaldr-OS/actions/runs/43367190468) contains the installable developer ISO and its SHA-256 manifest as GitHub Actions artifacts. GitHub Actions artifacts have limited retention and may require a signed-in account.
+
+For future **manually authorized preview releases**, GitHub's per-asset limit is under 2 GiB, so the approximately 4 GiB ISO is split into ordered files named `.iso.part001`, `.iso.part002` and so on. Download every part, `SHA256SUMS`, `SHA256SUMS.parts`, and `reassemble-skaldr-iso.py` to the same folder. Rebuild and verify the original image with:
+
+```text
+python3 reassemble-skaldr-iso.py reassemble --directory .
+```
+
+The utility refuses missing, modified or unexpected parts and checks the complete ISO's original SHA-256 checksum before making it available. **Never flash an individual part.** See `ASSEMBLE.txt` included with any preview release. No stable release is published automatically.
+
 ## Project status
 
 | Area | Current state |
@@ -110,7 +122,7 @@ The expected output is in `out/desktop/`. The build includes a version manifest 
 | Performance and Btrfs policies | Initial implementation; platform testing ongoing |
 | Version provenance | Implemented in build tooling and first-login welcome |
 | CI source validation | Automated on `master` |
-| Full ISO build and Calamares installation | Passed automated UEFI VM installation and cold-boot tests for GRUB/ext4 and Limine/Btrfs (2026-11-13, workflow 43350558608); installed KDE login and hardware testing remain |
+| Full ISO build and Calamares installation | **Passed** automated UEFI VM installation, cold boot without the live ISO, password-protected KDE login and first-run Skaldr welcome, for both GRUB/ext4 and Limine/Btrfs ([2026-11-13, run 43367190468](https://github.com/pomercier/Skaldr-OS/actions/runs/43367190468)); physical hardware and BIOS remain untested |
 | Wallpaper, final boot splash and hardware certification | Work in progress |
 
 The project's priorities, remaining work and known validation gaps are tracked in [the development roadmap](docs/ROADMAP.md).

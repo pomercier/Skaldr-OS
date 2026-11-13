@@ -6,9 +6,10 @@ only when tested; the existence of code is not evidence of successful boot.
 ## Phase A — boot and installation reliability
 - [x] Correct NumLock and the collision with `cachyos-kde-settings`
 - [x] Replace cascade-removal of dependencies with guarded cleanup
-- [ ] Successful ISO build, checksum, UEFI and legacy BIOS smoke test
-- [x] Complete Calamares install and cold reboot in a UEFI VM (GRUB/ext4 and Limine/Btrfs; 2026-11-13, run 43350558608)
-- [ ] Login to the installed KDE Plasma session and verify the first-run Skaldr welcome
+- [x] Successful ISO build, generated checksum and UEFI installation smoke tests (2026-11-13; run 43367190468)
+- [ ] Legacy BIOS boot smoke test
+- [x] Complete Calamares install and cold reboot in a UEFI VM (GRUB/ext4 and Limine/Btrfs; 2026-11-13, run 43367190468)
+- [x] Log in to installed KDE Plasma and verify the first-run Skaldr welcome (both scenarios; run 43367190468)
 - [ ] Automated integration tests against actual Calamares module configuration
 
 ## Phase B — hardware and performance
@@ -35,8 +36,10 @@ only when tested; the existence of code is not evidence of successful boot.
 - [ ] Add approved logo and wallpaper assets as real repository files
 - [ ] Apply logo to desktop, Calamares, splash, boot and social preview
 - [ ] Secure and test upstream synchronization before it pushes
-- [ ] Produce verified ISO hashes, provenance and release candidate builds
-- [ ] Publish a release only after clean installation and boot testing
+- [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
+- [ ] Validate a split preview-release upload and reassembly on GitHub Releases
+- [ ] Authorize a development preview only after passing the latest full ISO CI
+- [ ] Publish a stable release only after physical hardware tests and a release-mode ISO build
 
 The user-selected `mitigations=off` default reduces CPU security mitigations.
 Maintain a recoverable boot path without this flag.

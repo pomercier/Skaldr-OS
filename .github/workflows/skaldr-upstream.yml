@@ -69,7 +69,7 @@ jobs:
           # Never publish an upstream merge that breaks Skaldr's source checks.
           python3 -m venv /tmp/skaldr-upstream-venv
           /tmp/skaldr-upstream-venv/bin/pip install --quiet 'PyYAML>=6,<7'
-          /tmp/skaldr-upstream-venv/bin/python -m unittest discover -s tests -p 'test_skaldr.py' -v
+          /tmp/skaldr-upstream-venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
           /tmp/skaldr-upstream-venv/bin/python -m py_compile \
             archiso/airootfs/usr/local/bin/skaldr-profile \
             archiso/airootfs/usr/local/bin/skaldr-cal-inject \

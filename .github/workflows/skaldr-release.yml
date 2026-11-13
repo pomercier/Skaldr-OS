@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release tag (for example v0.1.0)'
+        description: 'Development preview tag, e.g. v0.1.0-preview.1'
         required: true
         type: string
       stable:
-        description: 'Publish as a stable release (otherwise prerelease)'
+        description: 'Publish as stable (blocked until a separately validated release-mode ISO exists)'
         required: true
         default: false
         type: boolean
@@ -35,12 +35,21 @@ jobs:
         shell: bash
         env:
           RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_STABLE: ${{ inputs.stable }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ && "$RELEASE_VERSION" == "v$(cat VERSION)" ]] || {
-            echo "::error::Version must use vMAJOR.MINOR.PATCH"
+          if [[ "$RELEASE_STABLE" == true ]]; then
+            echo "::error::Stable publishing requires a release-mode ISO and physical testing. Only previews are permitted."
             exit 1
-          }
+          fi
+          if [[ ! "$RELEASE_VERSION" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-preview\.([1-9][0-9]*)$ ]]; then
+            echo "::error::Use vMAJOR.MINOR.PATCH-preview.N, for example v0.1.0-preview.1"
+            exit 1
+          fi
+          if [[ "${BASH_REMATCH[1]}" != "$(cat VERSION)" ]]; then
+            echo "::error::Preview base version does not match VERSION"
+            exit 1
+          fi
           if git rev-parse -q --verify "refs/tags/$RELEASE_VERSION" >/dev/null; then
             echo "::error::The release tag already exists."
             exit 1
@@ -62,6 +71,14 @@ jobs:
           fi
           echo "VERIFIED_RUN_ID=$run_id" >> "$GITHUB_ENV"
           echo "Verified ISO run: $run_id"
+          source_run="$(gh run list --workflow skaldr-checks.yml --commit "$RELEASE_SHA" \
+            --status success --json databaseId \
+            --jq '.[0].databaseId // empty')"
+          if [[ -z "$source_run" ]]; then
+            echo "::error::No successful source checks exist for this exact source revision."
+            exit 1
+          fi
+          echo "Verified source checks: $source_run"
 
       - name: Retrieve verified ISO and checksum
         shell: bash
@@ -86,8 +103,13 @@ jobs:
             cd "$(dirname "$manifest")"
             sha256sum --check SHA256SUMS
           )
-          cp "$iso" "./$(basename "$iso")"
-          cp "$manifest" ./SHA256SUMS
+          # Each GitHub Release asset must be strictly smaller than 2 GiB.
+          # Keep the full ISO SHA256SUMS and add hashes for each part.
+          python3 scripts/skaldr-release-assets.py prepare \
+            --iso "$iso" \
+            --checksum "$manifest" \
+            --out release-assets
+          test -n "$(find release-assets -maxdepth 1 -name '*.iso.part*' -print -quit)"
 
       - name: Publish the authorized release
         shell: bash
@@ -97,8 +119,9 @@ jobs:
           RELEASE_STABLE: ${{ inputs.stable }}
         run: |
           set -euo pipefail
-          options=(--target "$RELEASE_SHA" --title "Skaldr OS $RELEASE_VERSION" --generate-notes)
-          if [[ "$RELEASE_STABLE" != true ]]; then
-            options+=(--prerelease)
-          fi
-          gh release create "$RELEASE_VERSION" ./*.iso SHA256SUMS "${options[@]}"
+          notes="This is a DEVELOPMENT PREVIEW from tested commit $RELEASE_SHA, not a hardware-certified stable release. Download all ISO parts, both SHA256 manifests, ASSEMBLE.txt and reassemble-skaldr-iso.py. Run the script to verify each part and reassemble the original ISO before flashing it."
+          gh release create "$RELEASE_VERSION" release-assets/* \
+            --target "$RELEASE_SHA" \
+            --title "Skaldr OS $RELEASE_VERSION" \
+            --generate-notes --notes "$notes" \
+            --prerelease --latest=false
