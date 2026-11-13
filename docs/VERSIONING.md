@@ -29,10 +29,9 @@ through `skaldr-version` or `skaldr-version --json`.
 
 ## Validated public releases
 
-Only after **successful build + installation tests** should a stable version,
-such as `v0.1.0`, be created through the guarded release workflow.
-A new feature increments MINOR, compatible fixes increment PATCH, and
-breaking architectural changes can increment MAJOR.
+The first public **development preview** is [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1), published November 13, 2026 from validated commit `b391fc35f4eaade3c1ff5231c33c10f63770bda6`. Its ISO embeds build version `0.1.0-dev.62`; the public preview tag and internal build number serve different purposes.
+
+Stable `v0.1.0` remains blocked pending real-hardware, recovery and release-mode build validation. A new feature increments MINOR, compatible fixes increment PATCH, and breaking architectural changes can increment MAJOR.
 
 The development counter is a traceability aid, **not a statement that the ISO
 has passed installation tests**. A build tag and checksums are linked to an

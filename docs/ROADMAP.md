@@ -22,6 +22,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [ ] Verify bootloader snapshot restore with supported loaders
 - [ ] LTS kernel recovery entry and bootloader verification
 - [ ] LACT validation and thermal diagnostics
+- [ ] Complete the [physical hardware test matrix](HARDWARE-TESTING.md), including NVIDIA/AMD/Intel coverage
 - [ ] Test memory policy and ZRAM on multiple RAM capacities
 
 ## Phase C — installed user experience
@@ -39,9 +40,10 @@ only when tested; the existence of code is not evidence of successful boot.
 - [ ] Apply logo to desktop, Calamares, splash, boot and social preview
 - [ ] Secure and test upstream synchronization before it pushes
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
-- [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43501610894)
-- [ ] Validate a split preview-release upload and reassembly on GitHub Releases
-- [ ] Authorize a development preview only after passing the latest full ISO CI
+- [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)
+- [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)
+- [ ] Independently download and reassemble all public release assets on a second machine
+- [x] Authorize development preview only after source checks and all five ISO tests passed for commit b391fc35
 - [ ] Publish a stable release only after physical hardware tests and a release-mode ISO build
 
 The user-selected `mitigations=off` default reduces CPU security mitigations.
