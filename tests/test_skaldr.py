@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Static and isolated integration checks for the Skaldr OS ISO sources."""
+import hashlib
 import os
+import runpy
 from pathlib import Path
 import subprocess
 import sys
@@ -277,6 +279,30 @@ class SkaldrChecks(unittest.TestCase):
                         qt.index('test_installed_system_cold_boot\n    test_power_off_vm'))
         self.assertIn('Skaldr: Btrfs snapshot configuration is available.', workflow)
 
+    def test_limine_checksum_sync(self):
+        # The final initramfs can change after a prior limine.conf was hashed.
+        # The repaired hash must match the actual bytes; a missing file fails.
+        sync = runpy.run_path(str(PROFILE), run_name="skaldr_profile_test")["sync_limine_checksums"]
+        with tempfile.TemporaryDirectory() as tmp:
+            boot = Path(tmp)
+            image = boot / "disk-id/linux-cachyos/initramfs"
+            image.parent.mkdir(parents=True)
+            image.write_bytes(b"the actual rebuilt initramfs bytes")
+            config = boot / "limine.conf"
+            config.write_text(
+                "/+Skaldr\n"
+                + "  module_path: boot():/disk-id/linux-cachyos/initramfs#"
+                + "0" * 128
+                + "\n"
+            )
+            self.assertEqual(sync(config, boot), 1)
+            self.assertIn(hashlib.blake2b(image.read_bytes()).hexdigest(),
+                          config.read_text())
+            self.assertEqual(sync(config, boot), 0)
+            image.unlink()
+            with self.assertRaisesRegex(RuntimeError, "missing boot file"):
+                sync(config, boot)
+
     def test_policy(self):
         profile = PROFILE.read_text()
         self.assertIn('vm.swappiness = 0', profile)
@@ -285,6 +311,8 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn('performance', profile.lower())
         self.assertIn('mitigations=off', profile)
         self.assertIn('check_limine_integrity()', profile)
+        self.assertIn('sync_limine_checksums()', profile)
+        self.assertIn('limine-enroll-config', profile)
         self.assertIn('hashlib.blake2b()', profile)
         self.assertIn('"limine-update"', profile)
         self.assertIn('os.geteuid()', profile)

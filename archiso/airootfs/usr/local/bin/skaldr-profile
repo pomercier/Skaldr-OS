@@ -70,6 +70,49 @@ def check_limine_integrity():
     print(f"Skaldr: verified {checked} Limine boot-file checksum(s).", flush=True)
 
 
+def sync_limine_checksums(config=Path("/boot/limine.conf"), boot_root=Path("/boot")):
+    """Repair stale BLAKE2b paths from the final initramfs, then verify again.
+
+    limine-update/mkinitcpio can rebuild successive kernels after earlier
+    entries were hashed; preserve full file verification, never suppress it.
+    """
+    if not config.is_file():
+        return 0
+    pattern = re.compile(
+        r"^([ \t]*(?:path|kernel_path|module_path):[ \t]*boot\(\):/)"
+        r"([^#\s]+)#([0-9a-fA-F]{128})([ \t]*)(\r?\n?)$"
+    )
+    changed = 0
+    checked = 0
+    updated = []
+    for line in config.read_text().splitlines(keepends=True):
+        match = pattern.match(line)
+        if match is None:
+            updated.append(line)
+            continue
+        prefix, name, claimed, whitespace, ending = match.groups()
+        image = boot_root / name
+        if not image.is_file():
+            raise RuntimeError(f"Limine references missing boot file: {image}")
+        digest = hashlib.blake2b()
+        with image.open("rb") as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(chunk)
+        actual = digest.hexdigest()
+        checked += 1
+        if actual.lower() != claimed.lower():
+            updated.append(f"{prefix}{name}#{actual}{whitespace}{ending}")
+            changed += 1
+        else:
+            updated.append(line)
+    if checked == 0:
+        raise RuntimeError("Limine has no verifiable boot-file checksums")
+    if changed:
+        write(config, "".join(updated))
+    print(f"Skaldr: refreshed {changed} of {checked} Limine BLAKE2b checksum(s).", flush=True)
+    return changed
+
+
 def boot():
     # Do not modify unknown bootloader formats. Invalid parameters can prevent boot.
     limine = Path("/etc/default/limine")
@@ -92,6 +135,12 @@ def boot():
         # Refresh entries and BLAKE2b digests after the final initramfs build.
         if shutil.which("limine-update") and run("limine-update") != 0:
             raise RuntimeError("Limine boot entry update failed")
+        # An earlier generated entry may still hash a subsequently rebuilt
+        # kernel/initramfs. Hash the final files, then validate the actual bytes.
+        refreshed = sync_limine_checksums()
+        if 'ENABLE_ENROLL_LIMINE_CONFIG=yes' in value:
+            if not shutil.which("limine-enroll-config") or run("limine-enroll-config") != 0:
+                raise RuntimeError("Limine Secure Boot config re-enrollment failed")
         os.sync()
         check_limine_integrity()
     grub = Path("/etc/default/grub")
