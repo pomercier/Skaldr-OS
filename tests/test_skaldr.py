@@ -273,10 +273,15 @@ class SkaldrChecks(unittest.TestCase):
                         qt.index('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"'))
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15', qt)
         self.assertIn('test_installed_system_cold_boot', qt)
+        self.assertIn('test_installed_plasma_first_login', qt)
+        self.assertIn('qt_send_string_return "$test_password"', qt)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 30 10', qt)
         self.assertIn('qt_launch_quickemu || qt_test_fail', qt)
         self.assertIn('Second boot still has live installer ISO attached', qt)
         self.assertLess(qt.index('test_calamares_finished\n    test_installed_system_cold_boot'),
-                        qt.index('test_installed_system_cold_boot\n    test_power_off_vm'))
+                        qt.index('test_installed_system_cold_boot\n    test_installed_plasma_first_login'))
+        self.assertLess(qt.index('test_installed_plasma_first_login\n    test_power_off_vm'),
+                        qt.index('\n}\n\ntest_description', qt.index('function test_install_calamares()')))
         self.assertIn('Skaldr: Btrfs snapshot configuration is available.', workflow)
 
     def test_limine_checksum_sync(self):

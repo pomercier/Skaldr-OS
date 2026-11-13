@@ -231,6 +231,16 @@ function test_installed_system_cold_boot() {
     qt_screenshot_ppm "$FUNCNAME"
 }
 
+function test_installed_plasma_first_login() {
+    # The login greeter alone is not proof that Plasma starts successfully.
+    # The installed account must accept the password and display Skaldr's
+    # release-provenance dialog during its first KDE session.
+    qt_echo "Log into the installed Plasma session with the test account"
+    qt_send_string_return "$test_password"
+    qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 30 10
+    qt_screenshot_ppm "$FUNCNAME"
+}
+
 function test_power_off_vm() {
     qt_poweroff_vm
 }
@@ -292,6 +302,7 @@ function test_install_calamares() {
     test_calamares_install
     test_calamares_finished
     test_installed_system_cold_boot
+    test_installed_plasma_first_login
     test_power_off_vm
 }
 

@@ -110,7 +110,7 @@ The expected output is in `out/desktop/`. The build includes a version manifest 
 | Performance and Btrfs policies | Initial implementation; platform testing ongoing |
 | Version provenance | Implemented in build tooling and first-login welcome |
 | CI source validation | Automated on `master` |
-| Full ISO build and Calamares installation | Must pass before a public stable release |
+| Full ISO build and Calamares installation | Passed automated UEFI VM installation and cold-boot tests for GRUB/ext4 and Limine/Btrfs (2026-11-13, workflow 43350558608); installed KDE login and hardware testing remain |
 | Wallpaper, final boot splash and hardware certification | Work in progress |
 
 The project's priorities, remaining work and known validation gaps are tracked in [the development roadmap](docs/ROADMAP.md).

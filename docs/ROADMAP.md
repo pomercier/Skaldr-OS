@@ -7,7 +7,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Correct NumLock and the collision with `cachyos-kde-settings`
 - [x] Replace cascade-removal of dependencies with guarded cleanup
 - [ ] Successful ISO build, checksum, UEFI and legacy BIOS smoke test
-- [ ] Complete Calamares install and installed-system reboot in a VM
+- [x] Complete Calamares install and cold reboot in a UEFI VM (GRUB/ext4 and Limine/Btrfs; 2026-11-13, run 43350558608)
+- [ ] Login to the installed KDE Plasma session and verify the first-run Skaldr welcome
 - [ ] Automated integration tests against actual Calamares module configuration
 
 ## Phase B — hardware and performance
