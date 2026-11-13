@@ -118,8 +118,22 @@ jobs:
 
       - name: Install dependencies
         id: dependencies
+        shell: bash
         run: |
-          pacman -Syu --noconfirm git ffmpeg imagemagick tesseract-data-eng qemu-desktop socat
+          set -euo pipefail
+          # A single Arch mirror/signature CDN outage must not invalidate
+          # the already-built ISO or hide a genuine package error.
+          for attempt in 1 2 3; do
+            if pacman -Syu --noconfirm git ffmpeg imagemagick tesseract-data-eng qemu-desktop socat; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Arch package installation failed after three attempts."
+              exit 1
+            fi
+            echo "::warning::Arch mirror download failed (attempt $attempt/3), retrying."
+            sleep $((attempt * 10))
+          done
 
       - name: Create build user
         id: user

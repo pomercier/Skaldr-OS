@@ -271,7 +271,9 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn('mouse="tablet"', vm)
         self.assertIn('disk_size="48G"', vm)
         self.assertNotIn('cpu_model="x86-64-v3"', vm)
-        self.assertIn('extra_args="-cpu x86-64-v3', vm)
+        self.assertIn('extra_args="-cpu Haswell-v4', vm)
+        self.assertNotIn('extra_args="-cpu x86-64-v3', vm)
+        self.assertIn('"Haswell-v4"', qt)
         self.assertIn('serial="socket"', vm)
         self.assertIn("-qmp unix:", vm)
         self.assertIn('$(pwd)/cachyos-dailylive/skaldr-ci-qmp.sock', vm)
@@ -308,6 +310,8 @@ class SkaldrChecks(unittest.TestCase):
         self.assertLess(qt.index('test_installed_plasma_first_login\n    test_power_off_vm'),
                         qt.index('\n}\n\ntest_description', qt.index('function test_install_calamares()')))
         self.assertIn('Skaldr: Btrfs snapshot configuration is available.', workflow)
+        self.assertIn('Arch mirror download failed (attempt $attempt/3)', workflow)
+        self.assertIn('for attempt in 1 2 3; do', workflow)
 
     def test_limine_checksum_sync(self):
         # The final initramfs can change after a prior limine.conf was hashed.

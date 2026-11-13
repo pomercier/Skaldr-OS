@@ -47,7 +47,7 @@ function test_ci_cpu_model() {
     [[ -r "/proc/$pid/cmdline" ]] || qt_test_fail "CPU validation: missing process arguments"
     model="$(tr '\0' '\n' < "/proc/$pid/cmdline" | awk '$0 == "-cpu" { getline; cpu = $0 } END { print cpu }')"
     qt_echo "Effective QEMU CPU model: $model"
-    [[ "$model" == "x86-64-v3" ]] || qt_test_fail "CPU validation: expected x86-64-v3, received $model"
+    [[ "$model" == "Haswell-v4" ]] || qt_test_fail "CPU validation: expected Haswell-v4 (x86-64-v3 ABI), received $model"
 }
 
 function test_post_boot_grub() {
