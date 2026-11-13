@@ -17,8 +17,13 @@ for user in plasmalogin sddm; do
         else
             target="$home/.config/kcminputrc"
         fi
-        install -d -m 0755 "$(dirname "$target")"
-        install -m 0644 "$source_file" "$target"
-        chown "$user:$group" "$target"
+        # The greeter must own its .config directory. Creating it as root
+        # makes plasma-login-wallpaper fail before the login screen appears.
+        install -d -m 0755 -o "$user" -g "$group" "$home/.config"
+        install -d -m 0755 -o "$user" -g "$group" "$(dirname "$target")"
+        install -m 0644 -o "$user" -g "$group" "$source_file" "$target"
+        if [[ "$user" == "plasmalogin" && -f "$home/.config/plasma-login-wallpaperrc" ]]; then
+            chown "$user:$group" "$home/.config/plasma-login-wallpaperrc"
+        fi
     fi
 done

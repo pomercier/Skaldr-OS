@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Apply hardware-aware Skaldr defaults to live and installed systems."""
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -43,6 +44,32 @@ def performance():
 def runtime():
     run("powerprofilesctl", "set", "performance")
     
+def check_limine_integrity():
+    """Validate boot-file BLAKE2b checksums without ever disabling verification."""
+    config = Path("/boot/limine.conf")
+    if not config.exists():
+        return
+    checked = 0
+    for line in config.read_text().splitlines():
+        match = re.match(
+            r"^\\s*(?:path|kernel_path|module_path):\\s*boot\\(\\):/([^#\\s]+)#([0-9a-fA-F]{128})\\s*$",
+            line,
+        )
+        if match is None:
+            continue
+        path = Path("/boot") / match.group(1)
+        if not path.is_file():
+            raise RuntimeError(f"Limine references missing boot file: {path}")
+        with path.open("rb") as source:
+            digest = hashlib.blake2b()
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(chunk)
+        if digest.hexdigest().lower() != match.group(2).lower():
+            raise RuntimeError(f"Limine BLAKE2b checksum mismatch: {path}")
+        checked += 1
+    print(f"Skaldr: verified {checked} Limine boot-file checksum(s).", flush=True)
+
+
 def boot():
     # Do not modify unknown bootloader formats. Invalid parameters can prevent boot.
     limine = Path("/etc/default/limine")
@@ -60,7 +87,13 @@ def boot():
         if not found:
             lines.append('KERNEL_CMDLINE[default]="mitigations=off"')
         write(limine, "\n".join(lines) + "\n")
-        run("limine-mkinitcpio")
+        if run("limine-mkinitcpio") != 0:
+            raise RuntimeError("Limine initramfs regeneration failed")
+        # Refresh entries and BLAKE2b digests after the final initramfs build.
+        if shutil.which("limine-update") and run("limine-update") != 0:
+            raise RuntimeError("Limine boot entry update failed")
+        os.sync()
+        check_limine_integrity()
     grub = Path("/etc/default/grub")
     if grub.exists():
         value = grub.read_text()

@@ -64,10 +64,22 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("Autolock=true", installed_default)
         self.assertIn("LockOnResume=true", installed_default)
 
+    def test_quicktest_shell_syntax(self):
+        script = REPO / "testcases/cachyos/dailylive/test_install_calamares"
+        result = subprocess.run(["bash", "-n", str(script)],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        source = script.read_text()
+        self.assertEqual(source.count("function test_input_validation()"), 1)
+        self.assertIn('grep -aFq', source)
+
     def test_numlock_and_installer(self):
         self.assertEqual((LIVE / "etc/xdg/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")
         self.assertFalse((LIVE / "etc/skel/.config/kcminputrc").exists())
-        self.assertIn("install -m 0644", (LIVE / "usr/local/bin/skaldr-numlock").read_text())
+        numlock = (LIVE / "usr/local/bin/skaldr-numlock").read_text()
+        self.assertIn('install -m 0644 "$source_file"', numlock)
+        self.assertIn('install -d -m 0755 -o "$user" -g "$group" "$home/.config"', numlock)
+        self.assertIn('plasma-login-wallpaperrc', numlock)
         self.assertFalse((LIVE / "usr/local/bin/skaldr-capslock").exists())
         self.assertFalse((LIVE / "etc/xdg/autostart/skaldr-capslock.desktop").exists())
         self.assertIn("skaldr-numlock", INJECT.read_text())
@@ -272,6 +284,9 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn('default_mode = "Gaming"', profile)
         self.assertIn('performance', profile.lower())
         self.assertIn('mitigations=off', profile)
+        self.assertIn('check_limine_integrity()', profile)
+        self.assertIn('hashlib.blake2b()', profile)
+        self.assertIn('"limine-update"', profile)
         self.assertIn('os.geteuid()', profile)
 
     def test_live_boot(self):
