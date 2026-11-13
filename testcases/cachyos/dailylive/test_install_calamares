@@ -37,6 +37,19 @@ function qt_wait_else() {
     qt_test_fail "Coulnd't find text «$text» in screenshot «$QT_SCREENSHOT_COUNT» after $retries retries"
 }
 
+function test_ci_cpu_model() {
+    # Quickemu 4.9.9 prints a host CPU label even when extra_args
+    # overrides its default. Verify the last effective QEMU -cpu option.
+    local pid_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/cachyos-dailylive.pid"
+    [[ -s "$pid_file" ]] || qt_test_fail "CPU validation: no QEMU process"
+    local pid model
+    pid="$(cat "$pid_file")"
+    [[ -r "/proc/$pid/cmdline" ]] || qt_test_fail "CPU validation: missing process arguments"
+    model="$(tr '\0' '\n' < "/proc/$pid/cmdline" | awk '$0 == "-cpu" { getline; cpu = $0 } END { print cpu }')"
+    qt_echo "Effective QEMU CPU model: $model"
+    [[ "$model" == "x86-64-v3" ]] || qt_test_fail "CPU validation: expected x86-64-v3, received $model"
+}
+
 function test_post_boot_grub() {
     qt_wait_for_seconds 5
     qt_wait_for_text "$FUNCNAME" "GNU GRUB" 3 5
@@ -214,6 +227,7 @@ function test_installed_system_cold_boot() {
     qt_launch_quickemu || qt_test_fail "Could not relaunch the installed disk"
     qt_wait_for_seconds 8
     qt_get_qemu_socket || qt_test_fail "QEMU monitor missing after cold boot"
+    test_ci_cpu_model
 
     # The second boot must be sourced from the installed disk, not the ISO.
     local pid_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/cachyos-dailylive.pid"
@@ -288,6 +302,7 @@ function test_input_validation() {
 function test_install_calamares() {
     test_input_validation
     test_setup
+    test_ci_cpu_model
     test_post_boot_grub
     test_launch_calamares
     test_calamares_welcome

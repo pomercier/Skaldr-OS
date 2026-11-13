@@ -248,7 +248,8 @@ class SkaldrChecks(unittest.TestCase):
         vm = (REPO / "machines/cachyos-dailylive.conf").read_text()
         self.assertIn('mouse="tablet"', vm)
         self.assertIn('disk_size="48G"', vm)
-        self.assertIn('cpu_model="x86-64-v3"', vm)
+        self.assertNotIn('cpu_model="x86-64-v3"', vm)
+        self.assertIn('extra_args="-cpu x86-64-v3', vm)
         self.assertIn('serial="socket"', vm)
         self.assertIn("-qmp unix:", vm)
         self.assertIn('$(pwd)/cachyos-dailylive/skaldr-ci-qmp.sock', vm)
@@ -272,6 +273,8 @@ class SkaldrChecks(unittest.TestCase):
         self.assertLess(qt.index('You are using a testing ISO'),
                         qt.index('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"'))
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15', qt)
+        self.assertIn('test_ci_cpu_model', qt)
+        self.assertIn('Effective QEMU CPU model:', qt)
         self.assertIn('test_installed_system_cold_boot', qt)
         self.assertIn('test_installed_plasma_first_login', qt)
         self.assertIn('qt_send_string_return "$test_password"', qt)
