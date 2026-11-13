@@ -102,6 +102,8 @@ class SkaldrChecks(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Launch installer", bios.read_text())
         self.assertIn("OVMF", bios.read_text())
+        self.assertIn("function test_setup()", bios.read_text())
+        self.assertIn("function test_live_bios()", bios.read_text())
 
     def test_numlock_and_installer(self):
         self.assertEqual((LIVE / "etc/xdg/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")

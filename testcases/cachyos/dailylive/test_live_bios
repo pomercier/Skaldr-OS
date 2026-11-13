@@ -7,6 +7,12 @@ Boot Skaldr OS into its live KDE desktop with legacy BIOS firmware
 EOF
 }
 
+function test_setup() {
+    # The quicktest runner invokes test_setup before starting any VM.
+    # This smoke test needs no Calamares user/account state.
+    :
+}
+
 function test_live_bios() {
     # Check the actual QEMU process: this is not a UEFI/OVMF smoke test.
     local pid_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/cachyos-dailylive.pid"
