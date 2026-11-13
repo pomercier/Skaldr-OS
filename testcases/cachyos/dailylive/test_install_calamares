@@ -221,7 +221,83 @@ function test_installed_system_cold_boot() {
     local qemu_pid
     qemu_pid="$(cat "$pid_file")"
     [[ -r "/proc/$qemu_pid/cmdline" ]] || qt_test_fail "Second-boot QEMU process missing"
-    if tr '\\0' '\\n' < "/proc/$qemu_pid/cmdline" | grep -Eq '\\.iso($|/)'; then
+    if tr '\000' '\n' < "/proc/$qemu_pid/cmdline" | grep -Eq '\.iso
+        qt_test_fail "Second boot still has live installer ISO attached"
+    fi
+
+    # The account was created during installation; finding it on the
+    # greeter proves the newly installed graphical login is responsive.
+    qt_wait_for_text "$FUNCNAME" "$test_user" 30 10
+    qt_screenshot_ppm "$FUNCNAME"
+}
+
+function test_power_off_vm() {
+    qt_poweroff_vm
+}
+
+function test_input_validation() {
+    local -Ar bootloaders=(
+        ["grub"]="0"
+        ["refind"]="1"
+        ["refind-ai"]="2"
+        ["systemd-boot"]="3"
+        ["limine"]="4"
+    )
+
+    local -Ar filesystems=(
+        ["btrfs"]="0"
+        ["xfs"]="1"
+        ["ext4"]="2"
+        ["f2fs"]="3"
+        ["zfs"]="4"
+    )
+
+    local bootloader="${TEST_BOOTLOADER:-Limine}"
+    local -g bootloader_index="${bootloaders[$bootloader]}"
+
+    if [ -z "$bootloader_index" ]; then
+        qt_echo "🚨 Unknown bootloader passed: $bootloader"
+        exit 1
+    else
+        qt_echo "✅ Selected bootloader is $bootloader ($bootloader_index)"
+    fi
+
+    local filesystem="${TEST_FILESYSTEM:-btrfs}"
+    local -g filesystem_index="${filesystems[$filesystem]}"
+
+    if [ -z "$filesystem_index" ]; then
+        qt_echo "🚨 Unknown filesystem passed: $filesystem"
+        exit 1
+    else
+        qt_echo "✅ Selected filesystem is $filesystem ($filesystem_index)"
+    fi
+
+    qt_echo "✅ Validation passed"
+}
+
+function test_install_calamares() {
+    test_input_validation
+    test_setup
+    test_post_boot_grub
+    test_launch_calamares
+    test_calamares_welcome
+    test_calamares_location
+    test_calamares_keyboard
+    test_calamares_bootloader
+    test_calamares_partitions
+    test_calamares_desktop
+    test_calamares_packages
+    test_calamares_users
+    test_calamares_summary
+    test_calamares_install
+    test_calamares_finished
+    test_installed_system_cold_boot
+    test_power_off_vm
+}
+
+test_description
+
+; then
         qt_test_fail "Second boot still has live installer ISO attached"
     fi
 
