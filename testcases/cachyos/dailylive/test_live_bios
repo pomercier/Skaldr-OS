@@ -1,0 +1,33 @@
+# Smoke-test the actual live ISO through legacy BIOS (SeaBIOS/ISOLINUX).
+# The other two matrix jobs test complete UEFI Calamares installations.
+
+function test_description() {
+    cat << EOF
+Boot Skaldr OS into its live KDE desktop with legacy BIOS firmware
+EOF
+}
+
+function test_live_bios() {
+    # Check the actual QEMU process: this is not a UEFI/OVMF smoke test.
+    local pid_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/cachyos-dailylive.pid"
+    [[ -s "$pid_file" ]] || qt_test_fail "Legacy BIOS QEMU process is missing"
+    local pid
+    pid="$(cat "$pid_file")"
+    [[ -r "/proc/$pid/cmdline" ]] || qt_test_fail "Cannot inspect legacy BIOS QEMU command"
+    if grep -aEiq 'OVMF|edk2.*pflash' "/proc/$pid/cmdline"; then
+        qt_test_fail "Legacy BIOS test actually booted via UEFI/OVMF"
+    fi
+
+    qt_echo "Verify Skaldr live desktop starts with legacy BIOS, without OVMF"
+    # Select the default Syslinux entry. If the kernel already started,
+    # Enter is harmless; the live desktop is still the success condition.
+    qt_wait_for_seconds 5
+    qt_send_key_combo "ret"
+    qt_wait_for_seconds 85
+    qt_wait_for_text "$FUNCNAME" "Launch installer" 20 10
+    qt_screenshot_ppm "$FUNCNAME"
+    qt_echo "Legacy BIOS reached the live KDE installer desktop"
+    qt_poweroff_vm
+}
+
+test_description

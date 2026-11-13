@@ -111,6 +111,8 @@ jobs:
             filesystem: ext4
           - bootloader: limine
             filesystem: btrfs
+          - bootloader: bios
+            filesystem: live
     steps:
       - name: Clone CachyOS-Live-ISO
         id: clone
@@ -178,12 +180,19 @@ jobs:
           ) &
           serial_pid=$!
           trap 'kill "$serial_pid" 2>/dev/null || :; mkdir -p results/ci; cp "$log_file" results/ci/installer-serial.log || :' EXIT
-          ./quicktest/quicktest test_install_calamares cachyos dailylive
-          # Do not promote a green GUI result unless the target policy
-          # actually finished and Btrfs snapshots were initialized.
-          grep -Fq "Skaldr target packages and system preferences installed" "$log_file"
-          if [ "${{ matrix.filesystem }}" = "btrfs" ]; then
-            grep -Fq "Skaldr: Btrfs snapshot configuration is available." "$log_file"
+          if [ "${{ matrix.bootloader }}" = "bios" ]; then
+            # Quickemu defaults to UEFI. Override only this matrix job;
+            # GRUB/ext4 and Limine/Btrfs installation checks remain UEFI.
+            printf '\nboot="legacy"\n' >> machines/cachyos-dailylive.conf
+            ./quicktest/quicktest test_live_bios cachyos dailylive
+          else
+            ./quicktest/quicktest test_install_calamares cachyos dailylive
+            # The GUI alone is not proof that target packages and policies
+            # were installed; preserve the mandatory serial assertions.
+            grep -Fq "Skaldr target packages and system preferences installed" "$log_file"
+            if [ "${{ matrix.filesystem }}" = "btrfs" ]; then
+              grep -Fq "Skaldr: Btrfs snapshot configuration is available." "$log_file"
+            fi
           fi
         env:
           QT_NOTIFY: "false"

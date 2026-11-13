@@ -96,6 +96,12 @@ class SkaldrChecks(unittest.TestCase):
         source = script.read_text()
         self.assertEqual(source.count("function test_input_validation()"), 1)
         self.assertIn('grep -aFq', source)
+        bios = REPO / "testcases/cachyos/dailylive/test_live_bios"
+        result = subprocess.run(["bash", "-n", str(bios)],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Launch installer", bios.read_text())
+        self.assertIn("OVMF", bios.read_text())
 
     def test_numlock_and_installer(self):
         self.assertEqual((LIVE / "etc/xdg/kcminputrc").read_text(), "[Keyboard]\nNumLock=0\n")
@@ -263,6 +269,10 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("bootloader: grub", workflow)
         self.assertIn("filesystem: btrfs", workflow)
         self.assertIn("filesystem: ext4", workflow)
+        self.assertIn("bootloader: bios", workflow)
+        self.assertIn("filesystem: live", workflow)
+        self.assertIn('boot="legacy"', workflow)
+        self.assertIn("test_live_bios cachyos dailylive", workflow)
         qt = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS!"', qt)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"', qt)
