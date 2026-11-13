@@ -239,9 +239,23 @@ function test_installed_system_cold_boot() {
         qt_test_fail "Second boot still has live installer ISO attached"
     fi
 
-    # The account was created during installation; finding it on the
-    # greeter proves the newly installed graphical login is responsive.
-    qt_wait_for_text "$FUNCNAME" "$test_user" 30 10
+    # The installed greeter is visible, but OCR can miss its low-contrast
+    # user label. The on-screen keyboard control is reliably readable in
+    # the actual CI screenshots, even after the central widgets fade.
+    qt_wait_for_text "$FUNCNAME" "Show On-Screen Keyboard" 30 10
+    qt_screenshot_ppm "$FUNCNAME"
+
+    # Wake the idle greeter and focus its central password field. The
+    # following test still requires a real password-protected KDE login
+    # and the first-run Skaldr welcome, not just this screen marker.
+    local snapshot width height
+    snapshot="$(find "$QT_RESULTS" -type f -name "screenshot_*.ppm" | sort | tail -n 1)"
+    [[ -f "$snapshot" ]] || qt_test_fail "Installed greeter screenshot missing"
+    width="$(identify -format "%w" "$snapshot")"
+    height="$(identify -format "%h" "$snapshot")"
+    qt_echo "Focus installed login with QMP at $((width / 2)),$((height * 60 / 100))"
+    python3 scripts/skaldr-qmp-click.py --x "$((width / 2))" --y "$((height * 60 / 100))" --width "$width" --height "$height" || qt_test_fail "QMP login focus failed"
+    qt_wait_for_seconds 1
     qt_screenshot_ppm "$FUNCNAME"
 }
 
