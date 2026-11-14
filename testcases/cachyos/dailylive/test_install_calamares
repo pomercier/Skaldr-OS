@@ -266,7 +266,14 @@ function test_installed_plasma_first_login() {
     # release-provenance dialog during its first KDE session.
     qt_echo "Log into the installed Plasma session with the test account"
     qt_send_string_return "$test_password"
-    qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 30 10
+    # Both real UEFI runs installed, cold-booted and logged into KDE, but
+    # Tesseract repeatedly transcribed the welcome title as
+    # "Welcome to Skaldr O". The body markers below appeared in 27 distinct
+    # screenshots from EACH installed system, never in the live installer.
+    # Verify TWO installation-specific provenance strings rather than a
+    # single error-prone window title. Keep the login and cold-boot checks.
+    qt_wait_for_text "$FUNCNAME" "Skaldr changes since the fork" 20 8
+    qt_wait_for_text "$FUNCNAME" "Source revision:" 10 5
     qt_screenshot_ppm "$FUNCNAME"
 }
 

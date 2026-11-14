@@ -329,7 +329,9 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn('QMP login focus failed', qt)
         self.assertIn('test_installed_plasma_first_login', qt)
         self.assertIn('qt_send_string_return "$test_password"', qt)
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 30 10', qt)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Skaldr changes since the fork" 20 8', qt)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Source revision:" 10 5', qt)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 30 10', qt)
         self.assertIn('qt_launch_quickemu || qt_test_fail', qt)
         self.assertIn('Second boot still has live installer ISO attached', qt)
         self.assertLess(qt.index('test_calamares_finished\n    test_installed_system_cold_boot'),
