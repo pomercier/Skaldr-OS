@@ -38,7 +38,7 @@ text_calamares_partitions="Manual partitioning"
 
 # Calamares Desktop
 
-text_calamares_desktop="Plasma Desktop"
+text_calamares_desktop="KDE Plasma"
 
 # Calamares Packages
 

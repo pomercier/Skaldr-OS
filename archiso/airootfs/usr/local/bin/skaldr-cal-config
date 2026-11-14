@@ -28,7 +28,7 @@ items:
     - id: KDE-Desktop
       name: "KDE Plasma"
       description: "Skaldr OS uses KDE Plasma as its sole desktop environment."
-      screenshot: "/etc/calamares/images/kde.webp"
+      screenshot: "/usr/share/pixmaps/skaldr-logo.png"
 """
 GROUPS = """---
 groupsUrl:

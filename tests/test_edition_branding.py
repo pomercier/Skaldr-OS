@@ -137,6 +137,11 @@ branding: cachyos
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(conf.read_bytes(), original)
 
+    def test_kde_chooser_has_no_upstream_screenshot(self):
+        config = (REPO / "archiso/airootfs/usr/local/bin/skaldr-cal-config").read_text()
+        self.assertIn('screenshot: "/usr/share/pixmaps/skaldr-logo.png"', config)
+        self.assertNotIn('screenshot: "/etc/calamares/images/kde.webp"', config)
+
     def test_installer_uses_real_svg_logo_at_proportional_size(self):
         view = (REPO / "archiso/airootfs/usr/share/skaldr/installer/show.qml").read_text()
         builder = (REPO / "util-iso.sh").read_text()
