@@ -213,13 +213,14 @@ jobs:
           TEST_BOOTLOADER: "${{ matrix.bootloader }}"
           TEST_FILESYSTEM: "${{ matrix.filesystem }}"
 
-      - name: Index real QEMU screenshots and OCR cues
+      - name: Index Quicktest recordings and sample visual frames
         if: always()
         shell: bash
         run: |
           python3 scripts/skaldr-visual-evidence.py \
             --results-dir results \
-            --output results/ci/visual-evidence.json
+            --output results/ci/visual-evidence.json \
+            --frames-per-video 3
 
       - name: Upload results to artifacts
         id: upload-results

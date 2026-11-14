@@ -11,7 +11,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Complete Calamares install and cold reboot in a UEFI VM (GRUB/ext4 and Limine/Btrfs; 2026-11-13, run 43367190468)
 - [x] Log in to installed KDE Plasma and verify the first-run Skaldr welcome (both scenarios; run 43367190468)
 - [x] Fail-closed Calamares configuration preflight with isolated YAML integration regression tests (2026-11-13)
-- [ ] Validate KDE-only Calamares, custom branding and local diagnostic export with the real packaged installer in the next full ISO CI
+- [x] Validate KDE-only Calamares, custom branding and installed KDE welcome with GRUB/ext4 and Limine/Btrfs in the full ISO (2026-11-14, run 43556906661); local log export still requires a focused privacy audit
 - [x] Add isolated KDE-only/branding regression tests; keep stock internal package identifiers for upstream compatibility
 
 ## Phase B — hardware and performance
@@ -47,8 +47,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Define installed/live Skaldr OS identity metadata
 - [ ] Add approved logo and wallpaper assets as real repository files
 - [x] Add per-ISO measured-size JSON report to every built ISO artifact (implementation and isolated tests)
-- [x] Add screenshot hash/OCR cue index to all QEMU test artifacts without disclosing the full OCR text (isolated tests)
-- [ ] Approve visual appearance using fresh VM screenshots and a known-good baseline
+- [x] Add a Quicktest video SHA-256 index and bounded screenshot extraction, since archived recordings replace temporary PPM screenshots; source-level regression tests added
+- [ ] Approve visual appearance using new CI frame samples and a documented known-good baseline (manual review still required)
 - [ ] Verify vector KDE wallpaper, Calamares and BIOS/GRUB splash branding in live VM screenshots after new ISO build
 - [x] Replace rate-limited unauthenticated REST default-branch discovery with official Git symbolic HEAD and fail-closed regression tests
 - [ ] Verify the repaired upstream synchronization in a live GitHub Actions run before claiming automatic merging is restored

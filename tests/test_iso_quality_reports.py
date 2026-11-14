@@ -55,6 +55,56 @@ class VisualEvidenceTests(unittest.TestCase):
             self.assertEqual(screen["stage"], "test_launch_calamares")
             self.assertNotIn("private@example.invalid", json.dumps(result))
 
+    def test_mp4_only_is_indexed_after_quicktest_discards_ppms(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            video = root / "cachyos/dailylive/quicktest.mp4"
+            video.parent.mkdir(parents=True)
+            data = b"recording-byte-content-from-quicktest"
+            video.write_bytes(data)
+            result = VISUAL["inventory"](root)
+            self.assertEqual(result["schema"], "skaldr.visual-ci-evidence.v2")
+            self.assertEqual(result["video_count"], 1)
+            self.assertEqual(result["screenshot_count"], 0)
+            self.assertEqual(result["image_count"], 0)
+            self.assertEqual(result["videos"][0]["sha256"], hashlib.sha256(data).hexdigest())
+            self.assertEqual(result["videos"][0]["recording"],
+                             "cachyos/dailylive/quicktest.mp4")
+
+    def test_ci_sampling_uses_bounded_frames_and_no_full_video_text(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "quicktest.mp4").write_bytes(b"synthetic-video")
+            output = root / "ci/visual-frames"
+            def mocked_sample(_video, meta, folder, count):
+                folder.mkdir(parents=True, exist_ok=True)
+                self.assertEqual(count, 3)
+                self.assertEqual(meta["duration_seconds"], 126.0)
+                frames = []
+                for i in range(count):
+                    image = folder / f"vm-frame-{i + 1:02d}.png"
+                    image.write_bytes(b"PNG-" + bytes([i]))
+                    frames.append({"file": image.name,
+                                   "at_seconds": float(i),
+                                   "sha256": hashlib.sha256(image.read_bytes()).hexdigest()})
+                return frames, None
+            globals_ = VISUAL["inventory"].__globals__
+            with patch.dict(globals_, {
+                "video_info": lambda _p: {"duration_seconds": 126.0,
+                                           "width": 1408, "height": 792},
+                "sample_video": mocked_sample,
+            }):
+                result = VISUAL["inventory"](root, frames_dir=output,
+                                              frames_per_video=3)
+            self.assertEqual(result["video_count"], 1)
+            self.assertEqual(result["image_count"], 3)
+            self.assertEqual(len(result["videos"][0]["frames"]), 3)
+            self.assertEqual(len(list(output.rglob("*.png"))), 3)
+            self.assertNotIn("synthetic-video", json.dumps(result))
+            with self.assertRaisesRegex(ValueError, "between 0 and 6"):
+                VISUAL["inventory"](root, frames_per_video=7)
+
     def test_invalid_ppm_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

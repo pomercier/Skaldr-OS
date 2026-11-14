@@ -147,7 +147,7 @@ release assets on a second machine is still pending.
 | Version provenance | Implemented in build tooling and first-login welcome |
 | CI source validation | Automated on `master` |
 | Public preview | **Published** [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1), seven verified-release assets from `b391fc35` |
-| Full ISO build and Calamares installation | **Passed** UEFI GRUB/ext4 and Limine/Btrfs VM installation, cold reboot without the ISO, password-protected KDE login, and first-run Skaldr welcome ([2026-11-13, run 43507233020](https://github.com/pomercier/Skaldr-OS/actions/runs/43507233020)). Legacy BIOS **live boot** passed; physical hardware and legacy BIOS **installation** remain untested |
+| Full ISO build and Calamares installation | **Passed** the updated KDE-only/Skaldr-branded ISO for GRUB/ext4 and Limine/Btrfs, including cold reboot, password-protected KDE login and first-run welcome, plus legacy BIOS live boot ([2026-11-14, run 43556906661](https://github.com/pomercier/Skaldr-OS/actions/runs/43556906661)). Physical hardware and legacy BIOS **installation** remain untested |
 | Wallpaper, final boot splash and hardware certification | Work in progress |
 
 The project's priorities and gaps are tracked in [the development roadmap](docs/ROADMAP.md). Use [safe update, power and diagnostic controls](docs/SAFE-CONTROLS.md), the [hardware test checklist](docs/HARDWARE-TESTING.md) and the [community compatibility report template](docs/HARDWARE-COMPATIBILITY.md).
