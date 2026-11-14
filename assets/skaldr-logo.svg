@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-labelledby="title desc">
+<title id="title">Skaldr OS</title><desc id="desc">Silver Nordic raven in a cyan-to-violet halo above the Skaldr OS wordmark and Valknut.</desc>
+<defs>
+<linearGradient id="aurora" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#00f1e4"/><stop offset=".49" stop-color="#06a5fb"/><stop offset=".8" stop-color="#8351f8"/><stop offset="1" stop-color="#e948ef"/></linearGradient>
+<linearGradient id="silver" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#fff"/><stop offset=".34" stop-color="#f4f8ff"/><stop offset=".60" stop-color="#a2b9d4"/><stop offset=".82" stop-color="#6f8fae"/><stop offset="1" stop-color="#dce8fa"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset=".23" stop-color="#e3edfc"/><stop offset=".42" stop-color="#9fb5d6"/><stop offset=".54" stop-color="#f9fdff"/><stop offset=".83" stop-color="#708eaf"/><stop offset="1" stop-color="#f4faff"/></linearGradient>
+<linearGradient id="cyan" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#77ffff"/><stop offset=".47" stop-color="#00cdeb"/><stop offset="1" stop-color="#1375ce"/></linearGradient>
+<linearGradient id="violet" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fac4ff"/><stop offset=".5" stop-color="#db41fa"/><stop offset="1" stop-color="#6e28bc"/></linearGradient>
+<filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6"/></filter></defs>
+<rect x="54" y="52" width="916" height="894" rx="152" fill="#0a1324"/>
+<rect x="57" y="55" width="910" height="888" rx="150" fill="none" stroke="#203451" stroke-width="4" opacity=".72"/>
+<path d="M171 484 C155 255 309 96 512 96 C727 96 871 252 858 481" stroke="url(#aurora)" stroke-width="23" stroke-linecap="round" fill="none" opacity=".28" filter="url(#glow)"/>
+<path d="M171 484 C155 255 309 96 512 96 C727 96 871 252 858 481" stroke="url(#aurora)" stroke-width="12" stroke-linecap="round" fill="none"/>
+<path d="M232 770 C344 907 666 925 796 755" stroke="url(#aurora)" stroke-width="17" stroke-linecap="round" fill="none" opacity=".3" filter="url(#glow)"/>
+<path d="M232 770 C344 907 666 925 796 755" stroke="url(#aurora)" stroke-width="11" stroke-linecap="round" fill="none"/>
+<path d="M179 585 L280 461 L331 354 L275 392 Q358 287 434 259 Q459 174 586 159 Q690 158 744 222 L790 251 L873 315 Q833 292 787 294 Q708 287 684 327 Q657 367 676 406 L643 394 L593 328 Q575 416 566 502 L526 436 L452 554 L437 473 L294 614 L339 501 Z" fill="#07101f" stroke="#132b45" stroke-width="14" stroke-linejoin="round"/>
+<path d="M197 576 L331 400 L285 421 Q356 323 447 281 Q505 176 592 171 Q694 162 741 227 Q716 203 663 197 Q613 174 560 200 Q482 226 417 308 L365 377 Q472 312 557 286 Q476 353 430 411 Q383 462 341 483 Z" fill="url(#silver)" stroke="#d9efff" stroke-width="3" stroke-linejoin="round"/>
+<path d="M357 323 Q452 212 589 179 Q693 161 744 234 L699 214 Q642 201 590 217 Q512 230 442 300 Z" fill="#f8fdff"/>
+<path d="M446 301 Q540 214 629 220 Q671 214 709 242 Q621 231 550 277 Q502 296 446 301 Z" fill="#081528"/>
+<path d="M510 233 Q604 171 685 190 Q717 197 738 229 Q647 206 593 232 Q550 246 510 233 Z" fill="url(#steel)"/>
+<path d="M448 317 Q551 261 658 259 Q571 290 520 343 Q467 374 427 426 Q421 380 448 317 Z" fill="#0c2238"/>
+<path d="M299 478 Q405 356 527 322 Q479 362 431 403 L354 490 Q442 413 553 385 Q493 447 433 510 L314 614 L377 515 L229 588 Z" fill="url(#steel)" stroke="#e9f9ff" stroke-width="3"/>
+<path d="M274 550 Q390 441 494 409 Q422 488 347 545 L279 606 L323 540 Z" fill="#456487"/>
+<path d="M399 537 Q501 424 572 369 Q554 457 477 547 L447 592 L457 513 Z" fill="url(#silver)"/>
+<path d="M526 393 Q581 312 648 290 Q625 373 603 443 L568 504 L566 413 Z" fill="#c9dcf3"/>
+<path d="M640 274 Q723 233 786 267 Q824 288 865 319 Q796 295 740 308 Q692 318 667 365 L671 326 Q654 297 621 296 Z" fill="#091625" stroke="#233b58" stroke-width="5"/>
+<path d="M647 262 Q705 221 762 245 Q811 261 865 315 Q784 279 727 277 Q687 274 647 289 Z" fill="url(#silver)"/>
+<path d="M698 278 Q771 270 828 294 L868 316 Q815 309 784 309 Q717 311 691 342 Q711 298 698 278 Z" fill="#04101d"/>
+<path d="M682 240 Q716 209 747 235 Q741 262 709 263 Z" fill="#00dfff" stroke="#ddffff" stroke-width="6"/>
+<path d="M702 235 Q728 232 737 245" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+<path d="M632 301 Q686 328 675 410 Q642 377 631 348 Q603 384 577 467 Q572 378 610 325 Z" fill="url(#silver)"/>
+<path d="M561 364 Q557 459 510 549 Q525 437 533 385 Z" fill="#112a47"/>
+<g font-family="DejaVu Sans, Arial, sans-serif" font-size="112" font-weight="900" letter-spacing="-6" text-anchor="middle" paint-order="stroke fill"><text x="448" y="732" fill="url(#steel)" stroke="#1c3047" stroke-width="5">SKALDR</text><text x="800" y="732" fill="url(#aurora)" stroke="#25345c" stroke-width="5" letter-spacing="-3">OS</text></g>
+<path d="M290 778 H441" stroke="url(#cyan)" stroke-width="10" stroke-linecap="round"/><path d="M583 778 H735" stroke="url(#violet)" stroke-width="10" stroke-linecap="round"/>
+<path d="M512 745 L571 843 H453 Z" fill="none" stroke="url(#steel)" stroke-width="10"/><path d="M512 771 L550 832 H474 Z" fill="none" stroke="#a4bbd4" stroke-width="8"/><path d="M485 809 L511 763 L538 809" fill="none" stroke="#fff" stroke-width="8" stroke-linejoin="miter"/>
+</svg>

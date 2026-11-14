@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/skaldr-logo.png" alt="Skaldr OS — Nordic raven emblem" width="190">
+  <img src="assets/skaldr-logo.svg" alt="Skaldr OS — crisp vector Nordic raven emblem" width="280" height="280">
 </p>
 
 <h1 align="center">Skaldr OS</h1>
