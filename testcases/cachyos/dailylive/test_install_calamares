@@ -277,6 +277,22 @@ function test_installed_plasma_first_login() {
     qt_screenshot_ppm "$FUNCNAME"
 }
 
+function test_installed_native_control_center() {
+    # Validate the real GUI in the installed Plasma session, not merely the
+    # build container's QT_QPA_PLATFORM=offscreen smoke test. Preserve the
+    # first-login welcome assertion as the prerequisite for this action.
+    qt_echo "Launch installed Skaldr Control Center in KDE Plasma"
+    qt_send_key_combo "alt-f4"
+    qt_wait_for_seconds 2
+    qt_send_key_combo "alt-f2"
+    qt_wait_for_seconds 2
+    qt_send_string_return "skaldr-center"
+    qt_wait_for_text "$FUNCNAME" "System overview" 18 6
+    qt_wait_for_text "$FUNCNAME" "Live system health" 8 5
+    qt_screenshot_ppm "$FUNCNAME"
+    # No privileged operation is selected or executed by this smoke test.
+}
+
 function test_power_off_vm() {
     qt_poweroff_vm
 }
@@ -340,6 +356,7 @@ function test_install_calamares() {
     test_calamares_finished
     test_installed_system_cold_boot
     test_installed_plasma_first_login
+    test_installed_native_control_center
     test_power_off_vm
 }
 
