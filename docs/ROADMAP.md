@@ -30,10 +30,14 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] KDE default and initial NumLock settings
 - [x] Initial system health inspector and KDE control center
 - [x] Games, creative tools, office, multimedia and development package manifest
-- [ ] Setup wizard, Btrfs snapshots UI and sustained performance monitoring
+- [x] Implement opt-in snapshot-before-pacman updater, fail-closed on Btrfs (source-level tests)
+- [x] Implement persistent Balanced/Gaming/Creator power choices without overclock (source-level tests)
+- [x] Add locally generated allowlisted diagnostic report and privacy checks
+- [ ] Validate snapshot creation, updates and power modes on real hardware
+- [ ] Build a full native Qt6 Control Center and setup wizard, including long-term performance monitoring
 - [ ] HDR/VRR, suspend, codec hardware acceleration test matrix
 - [ ] Validate bundled checksum-verified official ArtCraft Launcher AppImage on the live and installed KDE desktop
-- [ ] Distribution-first update frontend
+- [ ] Expand the safe update workflow into a complete distribution-first update frontend and rollback UX
 
 ## Phase D — brand, updates and quality
 - [x] Rename ISO profile and boot labels without renaming official kernel binaries

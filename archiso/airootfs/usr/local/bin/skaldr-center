@@ -7,9 +7,14 @@ fi
 choice="$(kdialog --title 'Skaldr OS Control Center' --menu \
     'Choose a Skaldr OS tool:' \
     health 'System health report' \
+    report 'Private diagnostic JSON (no upload)' \
+    update 'Safely update packages (snapshot first)' \
+    balanced 'Balanced power mode' \
+    gaming 'Gaming power mode' \
+    creator 'Creator power mode' \
     gpu 'Graphics driver assistant' \
     snapshot 'Btrfs snapshots and recovery' \
-    performance 'Performance controls' \
+    performance 'Advanced performance controls' \
     lact 'GPU tuning (supported hardware only)' \
     virtual 'Virtual machines' \
     kde 'KDE System Settings' \
@@ -17,6 +22,16 @@ choice="$(kdialog --title 'Skaldr OS Control Center' --menu \
 case "$choice" in
     health)
         exec konsole --hold -e /usr/local/bin/skaldr-doctor ;;
+    report)
+        exec konsole --hold -e /usr/local/bin/skaldr-report ;;
+    update)
+        if kdialog --title 'Skaldr OS update' --yesno 'Start an interactive system update? On Btrfs a successful Snapper snapshot is required before pacman starts. On ext4 use the terminal command with --allow-without-snapshot only if you accept that risk.'; then
+            exec konsole --hold -e pkexec /usr/local/bin/skaldr-update --apply
+        fi ;;
+    balanced|gaming|creator)
+        if kdialog --title 'Skaldr OS power mode' --yesno "Apply the $choice profile system-wide? No overclock or graphics driver change will be made."; then
+            exec konsole --hold -e pkexec /usr/local/bin/skaldr-performance apply "$choice" --confirm
+        fi ;;
     gpu)
         exec /usr/local/bin/skaldr-gpu-assistant --recheck ;;
     snapshot)

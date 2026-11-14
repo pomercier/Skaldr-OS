@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""Create a minimal, user-controlled Skaldr diagnostic without identifiers."""
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+
+# Never export accounts, network addresses, drive serials, environment,
+# journal contents or the output of arbitrary system commands.
+ALLOWED = ("os", "kernel", "gpu", "highest_sensor_temperature_celsius",
+           "boot_time_summary", "cpu_scheduler_service", "sched_ext_state",
+           "active_cpu_scheduler", "power_profile", "lact_service",
+           "kernel_mitigations_off", "swappiness", "zram_devices",
+           "root_filesystem", "btrfs_snapshots", "numlock_default")
+
+
+def sanitize(data):
+    if not isinstance(data, dict):
+        raise ValueError("Doctor produced invalid JSON")
+    # GPU strings from lspci contain PCI device descriptions, not MAC or
+    # serial numbers; truncate defensively, and never attach full logs.
+    report = {name: data.get(name) for name in ALLOWED if name in data}
+    if isinstance(report.get("gpu"), list):
+        report["gpu"] = [str(g)[:160] for g in report["gpu"][:12]]
+    report["generated_utc"] = datetime.now(timezone.utc).isoformat()
+    report["privacy_note"] = (
+        "Review even this limited report before sharing. Nothing is uploaded."
+    )
+    return report
+
+
+def collect():
+    result = subprocess.run(["/usr/local/bin/skaldr-doctor", "--json"],
+                            capture_output=True, text=True, timeout=25,
+                            check=False)
+    if result.returncode != 0:
+        raise RuntimeError("skaldr-doctor failed; no report exported")
+    return sanitize(json.loads(result.stdout))
+
+
+def write_new(path, content):
+    target = Path(path).expanduser()
+    if target.is_symlink():
+        raise ValueError("Refusing to overwrite a symlink")
+    # O_EXCL prevents following or overwriting existing reports.
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as out:
+            out.write(content)
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--write", metavar="FILE",
+                        help="Write a private JSON report to a new file (no uploads)")
+    args = parser.parse_args(argv)
+    content = json.dumps(collect(), indent=2, ensure_ascii=False) + "\n"
+    if args.write:
+        write_new(args.write, content)
+        print("Private report created: " + args.write)
+    else:
+        print(content, end="")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
+        sys.exit(f"Skaldr diagnostics failed safely: {exc}")

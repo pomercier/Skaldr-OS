@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Opt-in Balanced/Gaming/Creator power policy, without automatic overclocking."""
+import argparse
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+ROOT = Path("/etc/skaldr")
+SETTING = ROOT / "performance-profile"
+PROFILES = {"balanced": "balanced", "gaming": "performance",
+            "creator": "performance"}
+DEFAULT = "gaming"  # Preserve the existing Skaldr default.
+
+
+def current(path=SETTING):
+    try:
+        name = path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return DEFAULT
+    if name not in PROFILES:
+        raise ValueError("Invalid saved Skaldr profile; refusing to modify settings")
+    return name
+
+
+def store(name, directory=ROOT):
+    directory.mkdir(parents=True, exist_ok=True)
+    # Atomic replacement of a root-owned config file.
+    descriptor, tmp = tempfile.mkstemp(prefix=".performance-", dir=directory)
+    try:
+        os.fchmod(descriptor, 0o644)
+        with os.fdopen(descriptor, "w") as f:
+            f.write(name + "\n")
+        os.replace(tmp, directory / "performance-profile")
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="action", required=True)
+    sub.add_parser("status")
+    plan = sub.add_parser("plan")
+    plan.add_argument("profile", choices=PROFILES)
+    apply = sub.add_parser("apply")
+    apply.add_argument("profile", choices=PROFILES)
+    apply.add_argument("--confirm", action="store_true",
+                       help="Explicitly authorize a persistent system power profile")
+    args = parser.parse_args(argv)
+    if args.action == "status":
+        print(f"Skaldr mode: {current()} (default: {DEFAULT})")
+        return 0
+    power = PROFILES[args.profile]
+    print(f"Selected: {args.profile}; powerprofilesctl: {power}", flush=True)
+    print("CPU sched_ext compatibility/fallback remains managed by scx_loader.")
+    print("No GPU/CPU overclock or driver changes are made.")
+    if args.action == "plan":
+        return 0
+    if not args.confirm or os.geteuid() != 0:
+        raise PermissionError("Persistent changes require root and --confirm")
+    # Validate support before persisting, so unsupported power modes fail closed.
+    output = subprocess.run(["powerprofilesctl", "list"],
+                            capture_output=True, text=True, timeout=10, check=False)
+    if output.returncode != 0 or power not in output.stdout:
+        raise RuntimeError(f"Power profile {power} not available; no settings changed")
+    previous = current()
+    store(args.profile)
+    result = subprocess.run(["powerprofilesctl", "set", power], check=False)
+    if result.returncode != 0:
+        store(previous)
+        raise RuntimeError("Could not activate power mode; prior setting restored")
+    print("Saved profile: " + args.profile + " (applies again on next boot)")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, RuntimeError, PermissionError,
+            subprocess.TimeoutExpired) as exc:
+        sys.exit(f"Skaldr profile: {exc}")

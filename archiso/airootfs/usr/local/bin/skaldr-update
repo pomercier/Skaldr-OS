@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Explicit, fail-closed package update with a pre-update Btrfs snapshot."""
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone
+
+
+def execute(args, **kwargs):
+    return subprocess.run(args, check=False, **kwargs)
+
+
+def filesystem(execute_fn=execute):
+    result = execute_fn(["findmnt", "-n", "-o", "FSTYPE", "/"], capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError("Cannot determine root filesystem; refusing update")
+    return result.stdout.strip()
+
+
+def snapshot_required(fs, opt_in):
+    if fs == "btrfs":
+        return True
+    if not opt_in:
+        raise RuntimeError("Root is not Btrfs: automatic rollback is unavailable. "
+                           "Re-run with --allow-without-snapshot only after checking backups.")
+    return False
+
+
+def snapshot(execute_fn=execute):
+    if not shutil.which("snapper"):
+        raise RuntimeError("Snapper is not installed; refusing unprotected Btrfs update")
+    check = execute_fn(["snapper", "--no-dbus", "-c", "root", "get-config"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if check.returncode != 0:
+        raise RuntimeError("Snapper root configuration missing; refusing update")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    message = f"Skaldr OS before manual system update {stamp}"
+    result = execute_fn(["snapper", "--no-dbus", "-c", "root", "create",
+                         "--type", "single", "--description", message])
+    if result.returncode != 0:
+        raise RuntimeError("Pre-update Btrfs snapshot failed; pacman was NOT executed")
+    print("Created a pre-update root snapshot (restore remains manual).", flush=True)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--dry-run", action="store_true",
+                       help="Show the selected safety policy; do not change any files")
+    group.add_argument("--apply", action="store_true",
+                       help="Update system packages with pacman, checking snapshot first")
+    parser.add_argument("--allow-without-snapshot", action="store_true",
+                        help="Explicitly allow unprotected updates on non-Btrfs root only")
+    args = parser.parse_args(argv)
+    fs = filesystem()
+    will_snapshot = snapshot_required(fs, args.allow_without_snapshot)
+    print(f"Skaldr update: filesystem={fs}, pre-update-snapshot={will_snapshot}", flush=True)
+    if args.dry_run:
+        print("DRY RUN: no snapshot created and no packages modified.")
+        return 0
+    if os.geteuid() != 0:
+        raise RuntimeError("Run with administrative authorization (e.g. pkexec); no update started")
+    if not shutil.which("pacman"):
+        raise RuntimeError("pacman not found; no update started")
+    if will_snapshot:
+        snapshot()
+    else:
+        print("WARNING: proceeding without an automatic snapshot by explicit request.",
+              file=sys.stderr, flush=True)
+    # Interactive pacman prompts and signature validation remain enabled.
+    return execute(["pacman", "-Syu"]).returncode
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (RuntimeError, OSError) as error:
+        print(f"Skaldr update refused: {error}", file=sys.stderr)
+        sys.exit(1)

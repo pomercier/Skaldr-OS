@@ -42,7 +42,15 @@ def performance():
         run("systemctl", "enable", "skaldr-numlock.service")
 
 def runtime():
-    run("powerprofilesctl", "set", "performance")
+    # Honor a user-selected setting; otherwise preserve Gaming default.
+    saved = Path("/etc/skaldr/performance-profile")
+    name = saved.read_text().strip() if saved.exists() else "gaming"
+    options = {"balanced": "balanced", "gaming": "performance",
+               "creator": "performance"}
+    if name not in options:
+        print("Skaldr: unknown power profile; using Gaming default", flush=True)
+        name = "gaming"
+    run("powerprofilesctl", "set", options[name])
     
 def check_limine_integrity():
     """Validate boot-file BLAKE2b checksums without ever disabling verification."""
