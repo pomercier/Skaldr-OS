@@ -58,12 +58,23 @@ function test_post_boot_grub() {
 }
 
 function test_launch_calamares() {
-    # Skaldr's own KDE welcome replaces upstream CachyOS Hello and its
-    # unsupported generic "testing ISO" popup. Keep a visible UI assertion.
+    # Regression evidence: the real 1408x792 screenshot has a working
+    # "Launch installer" button, but Tesseract recognizes it as
+    # "Launchinstaler". Detect the stable dialog heading instead, then
+    # click the button with tablet QMP coordinates.
     qt_wait_for_seconds 90
-    qt_wait_for_text "$FUNCNAME" "Launch installer" 8 5
+    qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 8 5
     qt_screenshot_ppm "$FUNCNAME"
-    qt_send_key "return"
+
+    local snapshot width height target_x target_y
+    snapshot="$(find "$QT_RESULTS" -type f -name "screenshot_*.ppm" | sort | tail -n 1)"
+    [[ -f "$snapshot" ]] || qt_test_fail "No live welcome screenshot"
+    width="$(identify -format "%w" "$snapshot")"
+    height="$(identify -format "%h" "$snapshot")"
+    target_x=$((width * 53 / 100))
+    target_y=$((height * 59 / 100))
+    qt_echo "Click visible Skaldr installer button at $target_x,$target_y"
+    python3 scripts/skaldr-qmp-click.py --x "$target_x" --y "$target_y" --width "$width" --height "$height" || qt_test_fail "Skaldr installer QMP click failed"
     qt_wait_for_seconds 15
     qt_screenshot_ppm "$FUNCNAME"
 }

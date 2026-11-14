@@ -30,7 +30,7 @@ function test_live_bios() {
     qt_wait_for_seconds 5
     qt_send_key_combo "ret"
     qt_wait_for_seconds 85
-    qt_wait_for_text "$FUNCNAME" "Launch installer" 20 10
+    qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 20 10
     qt_screenshot_ppm "$FUNCNAME"
     qt_echo "Legacy BIOS reached the live KDE installer desktop"
     qt_poweroff_vm

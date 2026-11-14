@@ -100,7 +100,7 @@ class SkaldrChecks(unittest.TestCase):
         result = subprocess.run(["bash", "-n", str(bios)],
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Launch installer", bios.read_text())
+        self.assertIn("Welcome to Skaldr OS", bios.read_text())
         self.assertIn("OVMF", bios.read_text())
         self.assertIn("function test_setup()", bios.read_text())
         self.assertIn("function test_live_bios()", bios.read_text())
@@ -281,7 +281,8 @@ class SkaldrChecks(unittest.TestCase):
         qt = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS!"', qt)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"', qt)
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "Launch installer"', qt)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 8 5', qt)
+        self.assertIn('Skaldr installer QMP click failed', qt)
         vm = (REPO / "machines/cachyos-dailylive.conf").read_text()
         self.assertIn('mouse="tablet"', vm)
         self.assertIn('disk_size="48G"', vm)
@@ -309,7 +310,7 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("qt_wait_for_seconds 90", qt)
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "You are using a testing ISO"', qt)
         self.assertIn('qt_send_key "return"', qt)
-        self.assertLess(qt.index('qt_wait_for_text "$FUNCNAME" "Launch installer"'),
+        self.assertLess(qt.index('qt_wait_for_text "$FUNCNAME" "Welcome to Skaldr OS" 8 5'),
                         qt.index('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"'))
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15', qt)
         self.assertIn('test_ci_cpu_model', qt)
