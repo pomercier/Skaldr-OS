@@ -49,6 +49,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Add per-ISO measured-size JSON report to every built ISO artifact (implementation and isolated tests)
 - [x] Add a Quicktest video SHA-256 index and bounded screenshot extraction, since archived recordings replace temporary PPM screenshots; source-level regression tests added
 - [ ] Approve visual appearance using new CI frame samples and a documented known-good baseline (manual review still required)
+- [x] Replace cropped Calamares productWelcome 4K wallpaper with a dedicated 880x340 SVG and QML fallback (source tests; full ISO validation pending)
 - [ ] Verify vector KDE wallpaper, Calamares and BIOS/GRUB splash branding in live VM screenshots after new ISO build
 - [x] Replace rate-limited unauthenticated REST default-branch discovery with official Git symbolic HEAD and fail-closed regression tests
 - [ ] Verify the repaired upstream synchronization in a live GitHub Actions run before claiming automatic merging is restored

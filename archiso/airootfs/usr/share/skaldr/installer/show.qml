@@ -1,38 +1,20 @@
 import QtQuick 2.15
 
 Rectangle {
-    // The Calamares slideshow viewport is about 880x340 at CI resolution.
-    // The previous 1100x650 image was clipped, showing oversized abstract
-    // wallpaper fragments instead of a recognizable Skaldr illustration.
+    // Render the same 880x340 vector banner in the QML slideshow and
+    // the static Calamares productWelcome fallback. Never crop a 4K wallpaper.
     id: root
     width: 880
     height: 340
-    gradient: Gradient {
-        GradientStop { position: 0.0; color: "#101b31" }
-        GradientStop { position: 1.0; color: "#172743" }
-    }
+    color: "#0b162a"
 
     Image {
-        id: skaldrLogo
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: -8
-        width: 228
-        height: 228
-        source: "file:///usr/share/pixmaps/skaldr-logo.svg"
-        sourceSize.width: 512
-        sourceSize.height: 512
+        anchors.fill: parent
+        source: "file:///usr/share/calamares/branding/skaldr/welcome.svg"
+        sourceSize.width: 880
+        sourceSize.height: 340
         fillMode: Image.PreserveAspectFit
         smooth: true
-    }
-
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 18
-        text: "PERFORMANCE BY INTENTION"
-        font.family: "DejaVu Sans"
-        font.pixelSize: 15
-        font.letterSpacing: 2
-        color: "#ccd9ed"
+        cache: true
     }
 }

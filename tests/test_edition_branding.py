@@ -120,7 +120,11 @@ branding: cachyos
                 (root / "usr/share/calamares/branding/skaldr/branding.desc").read_text())
             self.assertEqual(branding["strings"]["productName"], "Skaldr OS")
             self.assertEqual(branding["uploadServer"]["type"], "none")
-            self.assertTrue((root / "usr/share/calamares/branding/skaldr/welcome.svg").is_file())
+            installed = root / "usr/share/calamares/branding/skaldr/welcome.svg"
+            self.assertTrue(installed.is_file())
+            expected = REPO / "archiso/airootfs/usr/share/skaldr/installer/welcome.svg"
+            self.assertEqual(installed.read_bytes(), expected.read_bytes())
+            self.assertNotIn('width="3840"', installed.read_text())
             before = (root / "etc/calamares/modules/netinstall.yaml").read_bytes()
             second = self.invoke(root)
             self.assertEqual(second.returncode, 0, second.stderr)
@@ -142,16 +146,40 @@ branding: cachyos
         self.assertIn('screenshot: "/usr/share/pixmaps/skaldr-logo.png"', config)
         self.assertNotIn('screenshot: "/etc/calamares/images/kde.webp"', config)
 
-    def test_installer_uses_real_svg_logo_at_proportional_size(self):
-        view = (REPO / "archiso/airootfs/usr/share/skaldr/installer/show.qml").read_text()
-        builder = (REPO / "util-iso.sh").read_text()
-        injector = (REPO / "archiso/airootfs/usr/local/bin/skaldr-cal-inject").read_text()
-        self.assertIn('source: "file:///usr/share/pixmaps/skaldr-logo.svg"', view)
+    def test_calamare_welcome_is_self_contained_scalable_banner_not_wallpaper(self):
+        brand = REPO / "archiso/airootfs/usr/share/skaldr/installer"
+        view = (brand / "show.qml").read_text()
+        config = PREPARE.read_text()
+        banner = (brand / "welcome.svg").read_text()
+        document = ET.fromstring(banner)
+        self.assertEqual(document.tag, "{http://www.w3.org/2000/svg}svg")
+        self.assertEqual(document.attrib["width"], "880")
+        self.assertEqual(document.attrib["height"], "340")
+        self.assertEqual(document.attrib["viewBox"], "0 0 880 340")
+        self.assertIn("SKALDR", banner)
+        self.assertIn("PERFORMANCE BY INTENTION", banner)
+        self.assertNotIn("<image", banner)
+        self.assertNotIn("data:image", banner)
+        self.assertIn('brand_source / "welcome.svg"', config)
+        self.assertIn('shutil.copyfile(splash, brand_target / "welcome.svg")', config)
+        self.assertNotIn('shutil.copyfile(wallpaper, brand_target / "welcome.svg")', config)
+        self.assertIn('file:///usr/share/calamares/branding/skaldr/welcome.svg', view)
+        self.assertIn("Image.PreserveAspectFit", view)
         self.assertIn("width: 880", view)
         self.assertIn("height: 340", view)
-        self.assertNotIn("3840x2160.svg", view)
-        self.assertIn('assets/skaldr-logo.svg', builder)
-        self.assertIn("/usr/share/pixmaps/skaldr-logo.svg", injector)
+
+    def test_missing_dedicated_splash_fails_without_mutating_calamares(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_fixture(root)
+            splash = root / "usr/share/skaldr/installer/welcome.svg"
+            splash.unlink()
+            settings = root / "etc/calamares/settings.conf"
+            before = settings.read_bytes()
+            run = self.invoke(root)
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn(str(splash), run.stderr)
+            self.assertEqual(settings.read_bytes(), before)
 
     def test_vector_wallpapers_and_boot_splashes(self):
         with tempfile.TemporaryDirectory() as tmp:

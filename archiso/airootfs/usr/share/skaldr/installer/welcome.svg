@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" role="img">
+<title>Skaldr OS KDE Plasma Installer</title>
+<desc>Silver Nordic raven, cyan-violet halo and complete wordmark, composed for Calamares 880 by 340 pixels.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#102038"/><stop offset="1" stop-color="#081326"/></linearGradient>
+<linearGradient id="aurora"><stop stop-color="#00e4e6"/><stop offset=".5" stop-color="#147aef"/><stop offset="1" stop-color="#d347ed"/></linearGradient>
+<linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset=".55" stop-color="#d7e6fa"/><stop offset="1" stop-color="#7f9dbe"/></linearGradient>
+</defs>
+<rect width="880" height="340" fill="url(#bg)"/>
+<path d="M0 290 Q220 310 440 289 T880 292" stroke="#1c3858" stroke-width="2" fill="none"/>
+<circle cx="182" cy="162" r="117" stroke="#244565" stroke-width="2" fill="none"/>
+<path d="M85 185 A117 117 0 0 1 299 151" stroke="url(#aurora)" stroke-width="8" stroke-linecap="round" fill="none"/>
+<path d="M96 237 A117 117 0 0 0 283 232" stroke="url(#aurora)" stroke-width="8" stroke-linecap="round" fill="none"/>
+<g transform="translate(35 30) scale(.34)">
+<path d="M180 586 L280 460 L332 353 L278 392 Q360 287 434 259 Q462 172 586 159 Q692 160 744 222 L791 250 L873 315 Q791 286 736 298 Q696 308 682 361 L676 405 L642 394 L594 330 Q576 416 565 502 L526 438 L450 554 L438 472 L293 614 L337 500 Z" fill="#08192a" stroke="#315472" stroke-width="12"/>
+<path d="M197 576 L332 400 L286 420 Q355 324 448 281 Q505 176 592 170 Q696 162 742 227 Q717 203 662 198 Q614 172 559 201 Q483 229 415 310 L365 379 Q470 312 556 286 Q478 353 430 411 Q382 464 341 483 Z" fill="url(#silver)" stroke="#f2faff" stroke-width="3"/>
+<path d="M358 324 Q455 209 589 179 Q692 162 744 233 L700 215 Q646 202 590 216 Q512 231 443 300 Z" fill="#f5fcff"/>
+<path d="M298 478 Q405 355 527 323 Q480 361 430 404 L353 490 Q440 411 553 385 Q493 448 432 510 L315 614 L377 514 L230 588 Z" fill="url(#silver)" stroke="#f2faff" stroke-width="3"/>
+<path d="M272 550 Q386 442 492 409 Q419 487 346 546 L279 606 L323 541 Z" fill="#506e92"/>
+<path d="M399 536 Q503 426 572 369 Q553 457 476 548 L446 592 L457 513 Z" fill="url(#silver)"/>
+<path d="M646 262 Q705 221 762 245 Q813 261 866 315 Q783 279 727 277 Q685 274 646 289 Z" fill="url(#silver)"/>
+<path d="M697 278 Q771 269 828 294 L868 316 Q815 309 784 309 Q716 310 690 341 Q710 297 697 278 Z" fill="#071524"/>
+<path d="M681 240 Q716 209 747 235 Q741 263 710 264 Z" fill="#00dcff" stroke="#e4ffff" stroke-width="7"/>
+<path d="M632 301 Q685 328 674 410 Q642 377 630 348 Q602 383 576 467 Q572 379 610 325 Z" fill="url(#silver)"/>
+</g>
+<path d="M325 82 H795" stroke="url(#aurora)" stroke-width="4" stroke-linecap="round"/>
+<text x="323" y="161" fill="url(#silver)" font-family="DejaVu Sans,Arial,sans-serif" font-size="60" font-weight="900" letter-spacing="-2">SKALDR <tspan fill="#1cd7f0">OS</tspan></text>
+<text x="328" y="203" fill="#d8eafa" font-family="DejaVu Sans,Arial,sans-serif" font-size="20" letter-spacing="2">PERFORMANCE BY INTENTION</text>
+<text x="328" y="241" fill="#92a9c7" font-family="DejaVu Sans,Arial,sans-serif" font-size="16" letter-spacing="1">KDE PLASMA  /  DEVELOPMENT PREVIEW</text>
+<path d="M328 266 H450" stroke="#19d5e5" stroke-width="4" stroke-linecap="round"/>
+<path d="M467 266 H589" stroke="#b357f6" stroke-width="4" stroke-linecap="round"/>
+<text x="440" y="315" text-anchor="middle" fill="#6982a2" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" letter-spacing="2">FREEDOM BY DESIGN</text>
+</svg>

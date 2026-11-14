@@ -86,14 +86,15 @@ def prepare(root=Path("/")):
     original = root / "usr/share/calamares/settings_online.conf"
     brand_source = root / "usr/share/skaldr/installer"
     brand_target = root / "usr/share/calamares/branding/skaldr"
-    wallpaper = root / "usr/share/wallpapers/Skaldr/contents/images/3840x2160.svg"
+    # The installer welcome is a dedicated 880x340 SVG, not a cropped 4K wallpaper.
+    splash = brand_source / "welcome.svg"
     logo = root / "usr/share/pixmaps/skaldr-logo.png"
     mandatory = [original, installer, modules / "netinstall.yaml",
                  modules / "netinstall.conf",
                  modules / "packagechooser_desktop.conf",
                  modules / "welcome_online.conf",
                  brand_source / "branding.desc", brand_source / "show.qml",
-                 wallpaper, logo]
+                 splash, logo]
     absent = [str(p) for p in mandatory if not p.is_file()]
     if absent:
         raise ValueError("Skaldr Calamares preflight: missing " + ", ".join(absent))
@@ -116,7 +117,7 @@ def prepare(root=Path("/")):
     brand_target.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(brand_source / "branding.desc", brand_target / "branding.desc")
     shutil.copyfile(brand_source / "show.qml", brand_target / "show.qml")
-    shutil.copyfile(wallpaper, brand_target / "welcome.svg")
+    shutil.copyfile(splash, brand_target / "welcome.svg")
     shutil.copyfile(logo, brand_target / "logo.png")
     shutil.copyfile(logo, brand_target / "icon.png")
     updates = {
