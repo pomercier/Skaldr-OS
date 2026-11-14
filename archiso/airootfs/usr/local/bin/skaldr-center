@@ -13,6 +13,8 @@ choice="$(kdialog --title 'Skaldr OS Control Center' --menu \
     gaming 'Gaming power mode' \
     creator 'Creator power mode' \
     gpu 'Graphics driver assistant' \
+    gpucheck 'Read-only GPU / Vulkan diagnostics' \
+    recovery 'Recovery readiness (read-only)' \
     snapshot 'Btrfs snapshots and recovery' \
     performance 'Advanced performance controls' \
     lact 'GPU tuning (supported hardware only)' \
@@ -34,6 +36,10 @@ case "$choice" in
         fi ;;
     gpu)
         exec /usr/local/bin/skaldr-gpu-assistant --recheck ;;
+    gpucheck)
+        exec konsole --hold -e /usr/local/bin/skaldr-gpu-diagnostics ;;
+    recovery)
+        exec konsole --hold -e /usr/local/bin/skaldr-recovery ;;
     snapshot)
         if command -v btrfs-assistant >/dev/null; then exec btrfs-assistant; fi ;;
     performance)

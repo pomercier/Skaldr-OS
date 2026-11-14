@@ -150,7 +150,7 @@ release assets on a second machine is still pending.
 | Full ISO build and Calamares installation | **Passed** UEFI GRUB/ext4 and Limine/Btrfs VM installation, cold reboot without the ISO, password-protected KDE login, and first-run Skaldr welcome ([2026-11-13, run 43507233020](https://github.com/pomercier/Skaldr-OS/actions/runs/43507233020)). Legacy BIOS **live boot** passed; physical hardware and legacy BIOS **installation** remain untested |
 | Wallpaper, final boot splash and hardware certification | Work in progress |
 
-The project's priorities and gaps are tracked in [the development roadmap](docs/ROADMAP.md). The [hardware test checklist](docs/HARDWARE-TESTING.md) describes what must still be verified.
+The project's priorities and gaps are tracked in [the development roadmap](docs/ROADMAP.md). Use [safe update, power and diagnostic controls](docs/SAFE-CONTROLS.md), the [hardware test checklist](docs/HARDWARE-TESTING.md) and the [community compatibility report template](docs/HARDWARE-COMPATIBILITY.md).
 
 ## Built personally. Shared publicly.
 

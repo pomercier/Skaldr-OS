@@ -26,6 +26,8 @@ FILES = [
     "/etc/xdg/autostart/skaldr-welcome.desktop",
     "/usr/local/bin/skaldr-doctor",
     "/usr/local/bin/skaldr-report",
+    "/usr/local/bin/skaldr-gpu-diagnostics",
+    "/usr/local/bin/skaldr-recovery",
     "/usr/local/bin/skaldr-update",
     "/usr/local/bin/skaldr-performance",
     "/usr/local/bin/skaldr-center",

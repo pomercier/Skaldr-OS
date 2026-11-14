@@ -35,7 +35,10 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Add locally generated allowlisted diagnostic report and privacy checks
 - [ ] Validate snapshot creation, updates and power modes on real hardware
 - [ ] Build a full native Qt6 Control Center and setup wizard, including long-term performance monitoring
-- [ ] HDR/VRR, suspend, codec hardware acceleration test matrix
+- [x] Add read-only GPU/Vulkan/FFmpeg/display inventory with isolated unit tests
+- [x] Add read-only recovery readiness report (Snapper, kernel filenames, bootloader presence)
+- [x] Create contributor hardware test-report template (no privacy-sensitive identifiers)
+- [ ] Validate GPU decoding, HDR/VRR, suspend and recovery on physical machines
 - [ ] Validate bundled checksum-verified official ArtCraft Launcher AppImage on the live and installed KDE desktop
 - [ ] Expand the safe update workflow into a complete distribution-first update frontend and rollback UX
 
