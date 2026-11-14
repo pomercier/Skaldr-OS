@@ -20,7 +20,7 @@ jobs:
       - name: Install YAML parser for isolated Calamares tests
         run: python -m pip install 'PyYAML>=6,<7'
       - name: Validate Python entrypoints
-        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-cal-config archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject archiso/airootfs/usr/local/bin/skaldr-doctor archiso/airootfs/usr/local/bin/skaldr-report archiso/airootfs/usr/local/bin/skaldr-gpu-diagnostics archiso/airootfs/usr/local/bin/skaldr-recovery archiso/airootfs/usr/local/bin/skaldr-update archiso/airootfs/usr/local/bin/skaldr-performance scripts/skaldr-version.py scripts/skaldr-qmp-click.py scripts/skaldr-make-boot-splash.py scripts/skaldr-iso-audit.py scripts/skaldr-visual-evidence.py archiso/airootfs/usr/local/bin/skaldr-welcome archiso/airootfs/usr/local/bin/skaldr-version
+        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-cal-config archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject archiso/airootfs/usr/local/bin/skaldr-control-center archiso/airootfs/usr/local/lib/skaldr/control_center_actions.py archiso/airootfs/usr/local/bin/skaldr-doctor archiso/airootfs/usr/local/bin/skaldr-report archiso/airootfs/usr/local/bin/skaldr-gpu-diagnostics archiso/airootfs/usr/local/bin/skaldr-recovery archiso/airootfs/usr/local/bin/skaldr-update archiso/airootfs/usr/local/bin/skaldr-performance scripts/skaldr-version.py scripts/skaldr-qmp-click.py scripts/skaldr-make-boot-splash.py scripts/skaldr-iso-audit.py scripts/skaldr-visual-evidence.py archiso/airootfs/usr/local/bin/skaldr-welcome archiso/airootfs/usr/local/bin/skaldr-version
       - name: Validate Bash entrypoints
         run: |
           set -euo pipefail
@@ -28,6 +28,7 @@ jobs:
                         archiso/airootfs/usr/local/bin/skaldr-artcraft \
                         archiso/airootfs/usr/local/bin/skaldr-numlock \
                         archiso/airootfs/usr/local/bin/skaldr-center \
+                        archiso/airootfs/usr/local/bin/skaldr-center-legacy \
                         archiso/airootfs/usr/local/bin/removeun \
                         archiso/airootfs/usr/local/bin/calamares-online.sh \
                         scripts/skaldr-make-wallpaper.sh \

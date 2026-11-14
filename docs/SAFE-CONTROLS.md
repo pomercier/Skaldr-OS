@@ -73,9 +73,22 @@ sharing with anyone.
 
 ## Control Center
 
-The existing KDE `skaldr-center` menu now links to the updater, diagnostics
-and three power modes through an explicit consent step. This is an incremental
-control-center improvement, **not yet a complete native Qt application**.
+The native **Skaldr Control Center 2.0** uses Arch Linux's `pyside6` Qt6
+bindings. It offers six pages: Overview, Performance, Graphics, Recovery,
+Applications and About. It reuses the existing read-only diagnostic utilities,
+Snapper-protected updater and explicit power-mode selection, and never starts
+system-changing commands without confirmation and polkit authorization.
+
+Launch with `skaldr-center`. If Qt6 is unavailable, the pre-existing native
+KDE `kdialog` menu remains available; force it with:
+
+```sh
+SKALDR_CENTER_LEGACY=1 skaldr-center
+```
+
+The development workflow now runs an offscreen Qt6 startup smoke test. This
+does **not** replace manual tests of visual scaling, accessibility or real
+hardware, and the application is not yet a full setup wizard.
 
 ## Validation boundary
 

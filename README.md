@@ -61,7 +61,7 @@ The preference for permanent performance settings is intentional, but compatibil
 - **Development:** Git, Python, Rust, CMake, Make, Ninja, fakeroot, yay and related tools.
 - **Virtualization:** QEMU/KVM and Virt-Manager, when the hardware supports them.
 - **Graphics:** CachyOS `chwd` discovers applicable drivers; a first-boot assistant asks before installing them. LACT is available only where supported.
-- **Recovery and diagnostics:** Snapper integration on Btrfs, `skaldr-doctor` and the initial KDE control center.
+- **Recovery and diagnostics:** Snapper integration on Btrfs, `skaldr-doctor` and the new native Qt6 Control Center with a KDE fallback. The interface keeps privileged changes behind confirmation and polkit.
 
 **Performance/security choice:** the requested `mitigations=off` kernel option is currently used for normal boot entries. It disables some CPU security mitigations and is not appropriate for every threat model. A fallback boot entry without this setting is retained.
 

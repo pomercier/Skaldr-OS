@@ -110,6 +110,8 @@ branding: cachyos
             self.assertNotIn("GNOME-Desktop", names)
             self.assertNotIn("Xfce4", names)
             self.assertTrue(next(x for x in groups if x["name"] == "KDE-Desktop")["selected"])
+            kde = next(x for x in groups if x["name"] == "KDE-Desktop")
+            self.assertEqual(kde["packages"].count("pyside6"), 1)
             base = next(x for x in groups if x["name"] == "Skaldr OS base packages")
             self.assertNotIn("cachyos-hello", base["packages"])
             self.assertNotIn("cachyos-wallpapers", base["packages"])
@@ -130,6 +132,9 @@ branding: cachyos
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertEqual((root / "etc/calamares/modules/netinstall.yaml").read_bytes(),
                              before)
+            self.assertEqual(next(x for x in yaml.safe_load(
+                (root / "etc/calamares/modules/netinstall.yaml").read_text())
+                if x["name"] == "KDE-Desktop")["packages"].count("pyside6"), 1)
 
     def test_missing_calamares_file_fails_without_mutating_installer(self):
         with tempfile.TemporaryDirectory() as tmp:

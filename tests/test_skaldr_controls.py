@@ -149,7 +149,7 @@ class ReportPrivacyTests(unittest.TestCase):
 
 class InstalledIntegrationTests(unittest.TestCase):
     def test_reach_all_three_tools_from_live_and_installed_center(self):
-        center = (LIVE / "usr/local/bin/skaldr-center").read_text()
+        center = (LIVE / "usr/local/bin/skaldr-center-legacy").read_text()
         install = (LIVE / "usr/local/bin/skaldr-cal-inject").read_text()
         perms = (Path(__file__).resolve().parents[1] / "archiso/profiledef.sh").read_text()
         for name in ("skaldr-report", "skaldr-update", "skaldr-performance"):

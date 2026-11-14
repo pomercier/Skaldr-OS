@@ -58,6 +58,16 @@ def filter_groups(source):
                                    "  selected: true", block, count=1)
             if count != 1:
                 raise ValueError("Missing KDE selection in netinstall")
+            # pyside6 must exist on the *installed* KDE system as well as on
+            # the live ISO; desktop selection is an online package manifest.
+            # Insert once and fail closed if the upstream packages key moves.
+            if not re.search(r"(?m)^    - pyside6\s*$", block):
+                block, pkg_count = re.subn(
+                    r"(?m)^  packages:\s*$",
+                    "  packages:\n    - pyside6",
+                    block, count=1)
+                if pkg_count != 1:
+                    raise ValueError("Missing KDE packages in netinstall")
         if name == "CachyOS Packages":
             block = block.replace('name: "CachyOS Packages"',
                                   'name: "Skaldr OS base packages"')

@@ -51,6 +51,13 @@ jobs:
         run: |
           sudo pacman -Syu --noconfirm git curl pacman-contrib archiso cachyos-keyring mkinitcpio-archiso squashfs-tools grub
 
+      - name: Smoke-test native Qt6 Control Center offscreen
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -S --noconfirm --needed pyside6
+          QT_QPA_PLATFORM=offscreen python3 archiso/airootfs/usr/local/bin/skaldr-control-center --smoke-test
+
       - name: Verify source provenance and build version
         shell: bash
         run: |

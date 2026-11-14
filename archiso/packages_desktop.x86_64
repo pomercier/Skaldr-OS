@@ -175,6 +175,7 @@ polkit
 polkit-kde-agent
 power-profiles-daemon
 pv
+pyside6
 python
 python-pip
 python-pipx

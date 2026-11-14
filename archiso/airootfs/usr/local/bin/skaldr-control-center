@@ -1,0 +1,395 @@
+#!/usr/bin/env python3
+"""Skaldr Control Center 2.0 — native Qt6 dashboard, explicit actions only.
+
+Uses the official Arch Linux pyside6 package; no pip, Flatpak, Snap or daemon.
+Never executes a command through a shell and never runs privileged actions
+without a confirmation dialog followed by polkit authorization.
+"""
+import importlib.util
+import json
+from pathlib import Path
+import sys
+
+from PySide6.QtCore import QProcess, Qt, QTimer, QUrl
+from PySide6.QtGui import QDesktopServices, QFont, QIcon
+from PySide6.QtWidgets import (
+    QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QListWidget,
+    QMainWindow, QMessageBox, QPushButton, QScrollArea, QStackedWidget,
+    QTextEdit, QVBoxLayout, QWidget,
+)
+
+ACTIONS_PATH = Path("/usr/local/lib/skaldr/control_center_actions.py")
+if not ACTIONS_PATH.exists():
+    # Support source-tree offscreen smoke tests without modifying host machine.
+    ACTIONS_PATH = (Path(__file__).resolve().parents[1] /
+                    "lib/skaldr/control_center_actions.py")
+spec = importlib.util.spec_from_file_location("skaldr_control_actions", ACTIONS_PATH)
+if spec is None or spec.loader is None:
+    raise RuntimeError("Skaldr Control Center action policy not installed")
+policy = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(policy)
+
+NAV = ("Overview", "Performance", "Graphics", "Recovery", "Applications", "About")
+PAGES = {
+    "Overview": ("System overview", "Read-only system health and live policy state"),
+    "Performance": ("Performance profiles", "Persistent power profiles without overclocking"),
+    "Graphics": ("Graphics & display", "Read-only GPU, Vulkan and video capability information"),
+    "Recovery": ("Recovery & updates", "Inspect recovery readiness; require Btrfs snapshots before updates"),
+    "Applications": ("System tools", "Launch familiar KDE and desktop applications"),
+    "About": ("About Skaldr", "Distribution build provenance and community support"),
+}
+STYLE = """
+QMainWindow, QWidget#root { background: #0b1324; color: #e6effc; }
+QWidget { color: #e6effc; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-size: 13px; }
+QFrame#sidebar { background: #0e1b30; border-right: 1px solid #273854; }
+QFrame#card { background: #15243b; border: 1px solid #2a4263; border-radius: 12px; }
+QListWidget { background: transparent; border: 0; outline: 0; padding: 9px; }
+QListWidget::item { border-radius: 9px; min-height: 39px; padding: 6px 11px; }
+QListWidget::item:selected { background: #183e58; color: #42f1f0; font-weight: 700; }
+QListWidget::item:hover { background: #21314b; }
+QLabel#heading { font-size: 27px; font-weight: 800; }
+QLabel#brand { font-size: 20px; color: #57e8f2; font-weight: 850; }
+QLabel#subtitle { color: #9fb4d0; font-size: 13px; }
+QLabel#note { color: #9fb4d0; font-size: 12px; }
+QPushButton { background: #1d3350; border: 1px solid #386187; padding: 9px 14px; border-radius: 8px; }
+QPushButton:hover { background: #255072; border-color: #45cfe3; }
+QPushButton:disabled { color: #7789a1; background: #1a2638; border-color: #283a52; }
+QPushButton#primary { background: #126983; border-color: #24bad7; font-weight: 700; }
+QPushButton#primary:hover { background: #1887a2; }
+QTextEdit { background: #091525; border: 1px solid #284260; border-radius: 8px; color: #d9e9fb; padding: 12px; }
+QScrollArea { border: 0; background: transparent; }
+"""
+
+
+def label(text, name=None, wrap=False):
+    widget = QLabel(text)
+    if name:
+        widget.setObjectName(name)
+    widget.setWordWrap(wrap)
+    return widget
+
+
+def action_button(text, callback, primary=False):
+    button = QPushButton(text)
+    if primary:
+        button.setObjectName("primary")
+    button.clicked.connect(callback)
+    return button
+
+
+class ControlCenter(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Skaldr OS — Control Center")
+        self.resize(1060, 735)
+        self.setMinimumSize(760, 535)
+        self.setWindowIcon(QIcon("/usr/share/pixmaps/skaldr-logo.png"))
+        self.setStyleSheet(STYLE)
+        self.smoke_test = "--smoke-test" in sys.argv
+        self.latest = {}
+        self.running_process = None
+        self.running_page = None
+
+        root = QWidget()
+        root.setObjectName("root")
+        layout = QHBoxLayout(root)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        self.setCentralWidget(root)
+
+        sidebar = QFrame()
+        sidebar.setObjectName("sidebar")
+        sidebar.setFixedWidth(226)
+        menu = QVBoxLayout(sidebar)
+        menu.setContentsMargins(14, 20, 12, 15)
+        menu.addWidget(label("SKALDR OS", "brand"))
+        menu.addWidget(label("CONTROL CENTER  2.0", "subtitle"))
+        self.nav = QListWidget()
+        self.nav.addItems(NAV)
+        menu.addWidget(self.nav, 1)
+        menu.addWidget(label("PERFORMANCE BY INTENTION", "note"))
+        layout.addWidget(sidebar)
+
+        main = QWidget()
+        content = QVBoxLayout(main)
+        content.setContentsMargins(29, 25, 28, 20)
+        content.setSpacing(13)
+        self.title = label("", "heading")
+        self.subtitle = label("", "subtitle", True)
+        content.addWidget(self.title)
+        content.addWidget(self.subtitle)
+        self.stack = QStackedWidget()
+        self.fields = {}
+        for page in NAV:
+            self.stack.addWidget(self.make_page(page))
+        content.addWidget(self.stack, 1)
+        self.status = label("Read-only by default. All changes require approval.", "note", True)
+        content.addWidget(self.status)
+        layout.addWidget(main, 1)
+
+        self.nav.currentRowChanged.connect(self.change_page)
+        self.nav.setCurrentRow(0)
+        # setCurrentRow(0) already refreshes Overview; no duplicate process.
+
+    def card(self, heading, note=None):
+        frame = QFrame()
+        frame.setObjectName("card")
+        block = QVBoxLayout(frame)
+        block.setContentsMargins(19, 18, 19, 18)
+        block.setSpacing(11)
+        header = label(heading)
+        font = header.font()
+        font.setBold(True)
+        font.setPointSize(max(11, font.pointSize() + 2))
+        header.setFont(font)
+        block.addWidget(header)
+        if note:
+            block.addWidget(label(note, "note", True))
+        return frame, block
+
+    def make_page(self, name):
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        inside = QWidget()
+        column = QVBoxLayout(inside)
+        column.setContentsMargins(0, 8, 4, 8)
+        column.setSpacing(14)
+        if name in ("Overview", "Graphics", "Recovery", "About"):
+            key = {"Overview": "health", "Graphics": "graphics",
+                   "Recovery": "recovery", "About": "version"}[name]
+            frame, block = self.card(
+                {"health": "Live system health", "graphics": "GPU and display capabilities",
+                 "recovery": "Read-only recovery readiness", "version": "Build information"}[key],
+                "Commands are read-only; no drivers, partitions or boot entries are changed.")
+            row = QHBoxLayout()
+            row.addStretch(1)
+            row.addWidget(action_button("Refresh information", lambda k=key: self.refresh(k)))
+            block.addLayout(row)
+            field = QTextEdit()
+            field.setReadOnly(True)
+            field.setMinimumHeight(260)
+            field.setText("Select Refresh information to collect data.")
+            self.fields[key] = field
+            block.addWidget(field)
+            column.addWidget(frame)
+        if name == "Overview":
+            frame, block = self.card(
+                "Quick actions",
+                "Choose an action below; any persistent change requires confirmation.")
+            row = QHBoxLayout()
+            row.addWidget(action_button("Performance modes", lambda: self.nav.setCurrentRow(1)))
+            row.addWidget(action_button("Recovery & updates", lambda: self.nav.setCurrentRow(3)))
+            row.addWidget(action_button("System Settings", lambda: self.open_external("systemsettings")))
+            block.addLayout(row)
+            column.addWidget(frame)
+        elif name == "Performance":
+            frame, block = self.card(
+                "Power policy",
+                "Balanced: lower-power policy. Gaming/Creator: performance mode. "
+                "Schedulers, GPU clocks and drivers are never overclocked or replaced.")
+            block.addWidget(label("Saved mode is reapplied after reboot when supported.", "note"))
+            row = QHBoxLayout()
+            for mode in policy.PROFILE_CHOICES:
+                row.addWidget(action_button(mode.title(), lambda m=mode: self.set_profile(m),
+                                            mode == "gaming"))
+            block.addLayout(row)
+            row2 = QHBoxLayout()
+            row2.addWidget(action_button("Inspect current mode", lambda: self.refresh_profile()))
+            row2.addWidget(action_button("Advanced scheduler manager", lambda: self.open_program("scx-manager")))
+            block.addLayout(row2)
+            self.profile_field = label("No changes have been made.", "note", True)
+            block.addWidget(self.profile_field)
+            column.addWidget(frame)
+        elif name == "Graphics":
+            frame, block = self.card(
+                "Graphics actions",
+                "Driver changes always require the separate driver assistant. "
+                "Listed FFmpeg codecs do not prove hardware decoding works.")
+            row = QHBoxLayout()
+            row.addWidget(action_button("Graphics driver assistant", lambda: self.open_external("gpu_assistant")))
+            row.addWidget(action_button("LACT (optional)", lambda: self.open_external("gpu_tuning")))
+            block.addLayout(row)
+            column.addWidget(frame)
+        elif name == "Recovery":
+            frame, block = self.card(
+                "Protected system updates",
+                "Btrfs + configured Snapper are required. The updater creates a "
+                "snapshot before pacman. Other root filesystems are refused in this GUI.")
+            row = QHBoxLayout()
+            row.addWidget(action_button("Start protected update", self.start_update, True))
+            row.addWidget(action_button("Open Btrfs Assistant", lambda: self.open_external("snapshots")))
+            block.addLayout(row)
+            block.addWidget(label("A snapshot does not guarantee bootloader rollback. "
+                                  "Restoration still requires separate testing.", "note", True))
+            column.addWidget(frame)
+        elif name == "Applications":
+            frame, block = self.card("Desktop tools", "Optional apps open only when installed.")
+            for title, key in (
+                ("KDE System Settings", "systemsettings"),
+                ("Virtual Machine Manager", "virtual_machines"),
+                ("Btrfs Assistant", "snapshots"),
+                ("Graphics driver assistant", "gpu_assistant"),
+                ("LACT GPU tuning", "gpu_tuning"),
+            ):
+                block.addWidget(action_button(title, lambda k=key: self.open_external(k)))
+            column.addWidget(frame)
+            frame, block = self.card(
+                "Private diagnostics",
+                "Export an allowlisted JSON report to a new local file (mode 0600). "
+                "Nothing is uploaded and existing files will not be overwritten.")
+            block.addWidget(action_button("Save local diagnostic report", self.save_report, True))
+            column.addWidget(frame)
+        elif name == "About":
+            frame, block = self.card("Open-source project", "CachyOS-based, independently branded Skaldr OS.")
+            block.addWidget(action_button(
+                "Source code and documentation",
+                lambda: QDesktopServices.openUrl(QUrl("https://github.com/pomercier/Skaldr-OS"))))
+            column.addWidget(frame)
+        column.addStretch(1)
+        scroll.setWidget(inside)
+        return scroll
+
+    def change_page(self, index):
+        if not 0 <= index < len(NAV):
+            return
+        name = NAV[index]
+        self.title.setText(PAGES[name][0])
+        self.subtitle.setText(PAGES[name][1])
+        self.stack.setCurrentIndex(index)
+        mapping = {0: "health", 2: "graphics", 3: "recovery", 5: "version"}
+        if not self.smoke_test and index in mapping and mapping[index] not in self.latest:
+            self.refresh(mapping[index])
+
+    def message(self, title, detail):
+        QMessageBox.warning(self, title, detail)
+
+    def start_command(self, args, on_result=None):
+        if self.running_process is not None and self.running_process.state() != QProcess.ProcessState.NotRunning:
+            self.status.setText("A diagnostic is already running.")
+            return
+        proc = QProcess(self)
+        self.running_process = proc
+        self.status.setText("Running local diagnostic — no network upload.")
+        def finished(code, _status):
+            stdout = bytes(proc.readAllStandardOutput()).decode("utf-8", errors="replace")
+            stderr = bytes(proc.readAllStandardError()).decode("utf-8", errors="replace")
+            self.status.setText("Local diagnostic complete." if code == 0 else "Diagnostic failed.")
+            if on_result:
+                on_result(code, stdout, stderr)
+            elif code != 0:
+                self.message("Skaldr diagnostic", stderr[:800] or f"Exit code {code}")
+        proc.finished.connect(finished)
+        def failed(error):
+            if error == QProcess.ProcessError.FailedToStart:
+                self.running_process = None
+                self.status.setText("Diagnostic command unavailable.")
+                self.message("Unable to start diagnostic", args[0] + " could not be started.")
+        proc.errorOccurred.connect(failed)
+        proc.start(args[0], args[1:])
+
+    def refresh(self, key):
+        args = policy.READ_ONLY[key]
+        def done(code, stdout, stderr):
+            field = self.fields[key]
+            if code:
+                field.setPlainText(f"Unable to read system information.\n{stderr[:1000]}")
+                return
+            try:
+                value = json.loads(stdout)
+                if not isinstance(value, dict):
+                    raise ValueError("Expected a JSON object")
+                self.latest[key] = value
+                field.setPlainText("\n".join(
+                    f"{k.replace('_',' ').capitalize()}: {policy.display_value(v)}"
+                    for k, v in value.items()))
+            except ValueError:
+                field.setPlainText("The diagnostic returned invalid JSON.")
+        self.start_command(args, done)
+
+    def refresh_profile(self):
+        self.start_command(
+            [policy.PROFILE_EXECUTABLE, "status"],
+            lambda code, stdout, stderr: self.profile_field.setText(
+                stdout.strip() if code == 0 else "Unable to read profile: " + stderr[:300]))
+
+    def set_profile(self, mode):
+        if QMessageBox.question(
+            self, "Change system power profile",
+            f"Apply {mode.title()} system-wide?\n\nThis changes a power policy only. "
+            "It does not overclock the GPU or install drivers."
+        ) != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            command = policy.power_mode_command(mode, approved=True)
+            self.launch_detached(command)
+        except (ValueError, PermissionError, FileNotFoundError) as err:
+            self.message("Cannot change power mode", str(err))
+
+    def start_update(self):
+        fs = self.latest.get("health", {}).get("root_filesystem")
+        if not fs:
+            self.message("Check filesystem first", "Refresh Overview before starting an update.")
+            return
+        if QMessageBox.question(
+            self, "Protected system update",
+            "Run an interactive pacman update?\n\nOn Btrfs, the updater "
+            "requires a successful Snapper root snapshot BEFORE pacman starts. "
+            "It will not bypass Snapper failures."
+        ) != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            self.launch_detached(policy.update_command(fs, approved=True))
+        except (ValueError, PermissionError, FileNotFoundError) as err:
+            self.message("Update refused", str(err))
+
+    def save_report(self):
+        name, _ = QFileDialog.getSaveFileName(self, "Save private diagnostic report",
+                                             str(Path.home() / "skaldr-diagnostic.json"),
+                                             "JSON files (*.json)")
+        if not name:
+            return
+        try:
+            command = policy.report_command(name)
+            self.start_command(command, lambda code, out, err: self.message(
+                "Diagnostic report", "Saved private report to:\n" + name if code == 0
+                else "Report could not be saved:\n" + err[:700]))
+        except (ValueError, FileExistsError, FileNotFoundError, OSError) as err:
+            self.message("Report not saved", str(err))
+
+    def open_program(self, executable):
+        from shutil import which
+        if not which(executable):
+            self.message("Optional tool unavailable", executable + " is not installed.")
+            return
+        self.launch_detached([executable])
+
+    def open_external(self, key):
+        try:
+            self.launch_detached(policy.get_external_tool(key))
+        except (FileNotFoundError, KeyError) as err:
+            self.message("Optional tool unavailable", str(err))
+
+    def launch_detached(self, cmd):
+        success, _pid = QProcess.startDetached(cmd[0], cmd[1:])
+        if not success:
+            self.message("Unable to launch", "Could not start: " + cmd[0])
+
+
+def main(argv=None):
+    args = list(sys.argv[1:] if argv is None else argv)
+    if any(arg not in ("--smoke-test",) for arg in args):
+        raise SystemExit("Usage: skaldr-control-center [--smoke-test]")
+    app = QApplication(["Skaldr Control Center"])
+    app.setApplicationName("Skaldr Control Center")
+    screen = ControlCenter()
+    if "--smoke-test" in args:
+        # For offscreen CI: instantiate each page; never run external actions.
+        assert screen.stack.count() == len(NAV)
+        QTimer.singleShot(0, app.quit)
+    else:
+        screen.show()
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

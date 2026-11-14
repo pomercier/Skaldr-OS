@@ -59,7 +59,7 @@ class RecoveryTests(unittest.TestCase):
 class PackagingTests(unittest.TestCase):
     def test_tools_installed_and_accessible_via_kde_center(self):
         installer = (ROOT / "usr/local/bin/skaldr-cal-inject").read_text()
-        center = (ROOT / "usr/local/bin/skaldr-center").read_text()
+        center = (ROOT / "usr/local/bin/skaldr-center-legacy").read_text()
         profile = (Path(__file__).resolve().parents[1] / "archiso/profiledef.sh").read_text()
         for name in ("skaldr-gpu-diagnostics", "skaldr-recovery"):
             with self.subTest(name=name):

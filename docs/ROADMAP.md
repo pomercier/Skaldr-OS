@@ -34,7 +34,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Implement persistent Balanced/Gaming/Creator power choices without overclock (source-level tests)
 - [x] Add locally generated allowlisted diagnostic report and privacy checks
 - [ ] Validate snapshot creation, updates and power modes on real hardware
-- [ ] Build a full native Qt6 Control Center and setup wizard, including long-term performance monitoring
+- [x] Implement native PySide6/Qt6 Control Center with six pages, polkit-gated actions, explicit confirmations and kdialog fallback (initial source/CI validation)
+- [ ] Validate the Control Center's live and installed GUI in QEMU screenshots; add accessibility checks, long-term monitoring and a guided setup wizard
 - [x] Add read-only GPU/Vulkan/FFmpeg/display inventory with isolated unit tests
 - [x] Add read-only recovery readiness report (Snapper, kernel filenames, bootloader presence)
 - [x] Create contributor hardware test-report template (no privacy-sensitive identifiers)
