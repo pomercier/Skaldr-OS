@@ -50,7 +50,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Add screenshot hash/OCR cue index to all QEMU test artifacts without disclosing the full OCR text (isolated tests)
 - [ ] Approve visual appearance using fresh VM screenshots and a known-good baseline
 - [ ] Verify vector KDE wallpaper, Calamares and BIOS/GRUB splash branding in live VM screenshots after new ISO build
-- [ ] Secure and test upstream synchronization before it pushes
+- [x] Replace rate-limited unauthenticated REST default-branch discovery with official Git symbolic HEAD and fail-closed regression tests
+- [ ] Verify the repaired upstream synchronization in a live GitHub Actions run before claiming automatic merging is restored
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
 - [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)
 - [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)

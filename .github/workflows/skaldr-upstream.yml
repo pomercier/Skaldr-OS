@@ -23,16 +23,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Discover the current official default branch
+      - name: Discover the current official default branch via Git
         id: upstream
         shell: bash
         run: |
           set -euo pipefail
-          branch="$(curl --fail --silent --show-error --location \
-            --header 'Accept: application/vnd.github+json' \
-            https://api.github.com/repos/CachyOS/CachyOS-Live-ISO \
-            | python3 -c 'import json,sys; print(json.load(sys.stdin)["default_branch"])')"
-          test -n "$branch"
+          branch="$(bash scripts/skaldr-discover-upstream.sh)"
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
           echo "Official upstream default branch: $branch"
 
@@ -43,7 +39,9 @@ jobs:
         run: |
           set -euo pipefail
           git remote add cachyos https://github.com/CachyOS/CachyOS-Live-ISO.git
-          git fetch --no-tags cachyos "$UPSTREAM_BRANCH"
+          # Explicitly populate the remote tracking ref we will merge.
+          # The source is a verified symbolic HEAD, not an assumed branch.
+          git fetch --no-tags cachyos "refs/heads/${UPSTREAM_BRANCH}:refs/remotes/cachyos/${UPSTREAM_BRANCH}"
           git branch -r
 
       - name: Merge upstream changes safely
