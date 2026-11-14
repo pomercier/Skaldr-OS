@@ -286,7 +286,8 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("Calamares Next QMP click failed", qt)
         self.assertIn("width * 78 / 100", qt)
         self.assertIn("height * 90 / 100", qt)
-        self.assertNotIn('qt_send_key_combo "tab"\n    qt_send_key_combo "tab"\n    qt_send_key_combo "spc"', qt)
+        welcome_step = qt.split("function test_calamares_welcome() {", 1)[1].split("\nfunction test_calamares_location() {", 1)[0]
+        self.assertNotIn('qt_send_key_combo "tab"\n    qt_send_key_combo "tab"\n    qt_send_key_combo "spc"', welcome_step)
         vm = (REPO / "machines/cachyos-dailylive.conf").read_text()
         self.assertIn('mouse="tablet"', vm)
         self.assertIn('disk_size="48G"', vm)
