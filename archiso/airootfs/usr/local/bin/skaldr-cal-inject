@@ -15,6 +15,7 @@ FILES = [
     "/usr/local/bin/skaldr-welcome",
     "/usr/local/bin/skaldr-theme",
     "/usr/share/pixmaps/skaldr-logo.png",
+    "/usr/share/pixmaps/skaldr-logo.svg",
     "/usr/share/icons/hicolor/128x128/apps/skaldr.png",
     "/usr/share/wallpapers/Skaldr/metadata.json",
     "/usr/share/wallpapers/Skaldr/contents/images/3840x2160.svg",

@@ -188,6 +188,9 @@ run_build() {
     skaldr_iso_version="$(python3 "${src_dir}/scripts/skaldr-version.py" --field iso_version)"
     python3 "${src_dir}/scripts/skaldr-version.py" --install-to "${work_dir}/archiso/airootfs"
     bash "${src_dir}/scripts/skaldr-make-wallpaper.sh" "${work_dir}/archiso/airootfs"
+    # Preserve vector source art for sharp Calamares branding at every DPI.
+    install -Dm644 "${src_dir}/assets/skaldr-logo.svg" \
+        "${work_dir}/archiso/airootfs/usr/share/pixmaps/skaldr-logo.svg"
     python3 "${src_dir}/scripts/skaldr-make-boot-splash.py" "${work_dir}/archiso"
     bash "${src_dir}/scripts/skaldr-stage-artcraft.sh" "${work_dir}/archiso/airootfs"
     sed -i "s/^iso_version=.*/iso_version=\"${skaldr_iso_version}\"/" "${work_dir}/archiso/profiledef.sh"

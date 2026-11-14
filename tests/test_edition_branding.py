@@ -137,6 +137,17 @@ branding: cachyos
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(conf.read_bytes(), original)
 
+    def test_installer_uses_real_svg_logo_at_proportional_size(self):
+        view = (REPO / "archiso/airootfs/usr/share/skaldr/installer/show.qml").read_text()
+        builder = (REPO / "util-iso.sh").read_text()
+        injector = (REPO / "archiso/airootfs/usr/local/bin/skaldr-cal-inject").read_text()
+        self.assertIn('source: "file:///usr/share/pixmaps/skaldr-logo.svg"', view)
+        self.assertIn("width: 880", view)
+        self.assertIn("height: 340", view)
+        self.assertNotIn("3840x2160.svg", view)
+        self.assertIn('assets/skaldr-logo.svg', builder)
+        self.assertIn("/usr/share/pixmaps/skaldr-logo.svg", injector)
+
     def test_vector_wallpapers_and_boot_splashes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

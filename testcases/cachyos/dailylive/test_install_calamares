@@ -84,9 +84,22 @@ function test_calamares_welcome() {
     # This remains an actual Calamares window assertion, not an unconditional
     # pass or a search for the unrelated CachyOS Hello desktop.
     qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15
-    qt_send_key_combo "tab"
-    qt_send_key_combo "tab"
-    qt_send_key_combo "spc"
+    qt_screenshot_ppm "$FUNCNAME"
+
+    # The separate "Skaldr Support" and "Known issues" links changed the
+    # welcome page tab order. Two tabs + Space now selects Known issues,
+    # rather than Next. Click the visibly enabled Next button instead.
+    # Verified against 1408x792 CI screenshots: x=1103, y=711.
+    local snapshot width height
+    snapshot="$(find "$QT_RESULTS" -type f -name "screenshot_*.ppm" | sort | tail -n 1)"
+    [[ -f "$snapshot" ]] || qt_test_fail "Calamares welcome screenshot missing"
+    width="$(identify -format "%w" "$snapshot")"
+    height="$(identify -format "%h" "$snapshot")"
+    qt_echo "Advance branded Calamares welcome with QMP at $((width * 78 / 100)),$((height * 90 / 100))"
+    python3 scripts/skaldr-qmp-click.py \
+        --x "$((width * 78 / 100))" --y "$((height * 90 / 100))" \
+        --width "$width" --height "$height" || qt_test_fail "Calamares Next QMP click failed"
+    qt_wait_for_text "$FUNCNAME" "$text_calamares_language" 10 5
 }
 
 function test_calamares_location() {
