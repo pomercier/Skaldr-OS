@@ -43,6 +43,9 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Rename ISO profile and boot labels without renaming official kernel binaries
 - [x] Define installed/live Skaldr OS identity metadata
 - [ ] Add approved logo and wallpaper assets as real repository files
+- [x] Add per-ISO measured-size JSON report to every built ISO artifact (implementation and isolated tests)
+- [x] Add screenshot hash/OCR cue index to all QEMU test artifacts without disclosing the full OCR text (isolated tests)
+- [ ] Approve visual appearance using fresh VM screenshots and a known-good baseline
 - [ ] Verify vector KDE wallpaper, Calamares and BIOS/GRUB splash branding in live VM screenshots after new ISO build
 - [ ] Secure and test upstream synchronization before it pushes
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)

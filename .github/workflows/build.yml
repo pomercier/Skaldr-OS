@@ -86,6 +86,15 @@ jobs:
           test -n "$(find out/desktop -maxdepth 1 -name '*.iso' -print -quit)"
           (cd out/desktop && sha256sum -- *.iso > SHA256SUMS)
 
+      - name: Audit measured ISO size and package categories
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/skaldr-iso-audit.py \
+            --manifest archiso/packages_desktop.x86_64 \
+            --iso-dir out/desktop \
+            --output out/desktop/iso-audit.json
+
       - name: Upload ISO to artifacts
         id: upload
         uses: actions/upload-artifact@v4
@@ -203,6 +212,14 @@ jobs:
           QUICKEMU_VM_DIR: "./machines"
           TEST_BOOTLOADER: "${{ matrix.bootloader }}"
           TEST_FILESYSTEM: "${{ matrix.filesystem }}"
+
+      - name: Index real QEMU screenshots and OCR cues
+        if: always()
+        shell: bash
+        run: |
+          python3 scripts/skaldr-visual-evidence.py \
+            --results-dir results \
+            --output results/ci/visual-evidence.json
 
       - name: Upload results to artifacts
         id: upload-results
