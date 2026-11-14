@@ -16,4 +16,14 @@ printf '%s  %s\n' "$checksum" "$tmp" | sha256sum --check --status || {
     exit 1
 }
 install -m 0755 "$tmp" "$dest"
-echo "Bundled official ArtCraft Launcher v0.19.0 (Linux x86_64)"
+# Preserve the upstream Apache/MIT distribution licenses and attribution.
+license_dir="$root/usr/share/licenses/skaldr-artcraft"
+mkdir -p "$license_dir"
+for filename in LICENSE-APACHE LICENSE-MIT NOTICE; do
+    curl --fail --location --show-error --silent --retry 4 --retry-delay 4 \
+         "https://raw.githubusercontent.com/storytold/craft-launcher/v0.19.0/$filename" \
+         --output "$license_dir/$filename"
+    test -s "$license_dir/$filename"
+done
+echo "Bundled verified ArtCraft Launcher v0.19.0 with licensing notices"
+

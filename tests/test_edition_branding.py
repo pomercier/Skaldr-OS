@@ -186,6 +186,8 @@ branding: cachyos
         self.assertIn("64197858d155f447ae323f905015116d848f1375675d731eb08d5708f8722e9b",
                       stage)
         self.assertIn("sha256sum --check --status", stage)
+        for name in ("LICENSE-APACHE", "LICENSE-MIT", "NOTICE"):
+            self.assertIn(name, stage)
         launch = (ROOT / "usr/local/bin/skaldr-artcraft").read_text()
         self.assertIn('exec "$app" "$@"', launch)
         self.assertNotIn("xdg-open", launch)
