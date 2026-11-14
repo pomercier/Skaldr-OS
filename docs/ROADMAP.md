@@ -11,7 +11,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Complete Calamares install and cold reboot in a UEFI VM (GRUB/ext4 and Limine/Btrfs; 2026-11-13, run 43367190468)
 - [x] Log in to installed KDE Plasma and verify the first-run Skaldr welcome (both scenarios; run 43367190468)
 - [x] Fail-closed Calamares configuration preflight with isolated YAML integration regression tests (2026-11-13)
-- [ ] Automated integration tests against actual packaged Calamares module configuration
+- [ ] Validate KDE-only Calamares, custom branding and local diagnostic export with the real packaged installer in the next full ISO CI
+- [x] Add isolated KDE-only/branding regression tests; keep stock internal package identifiers for upstream compatibility
 
 ## Phase B — hardware and performance
 - [x] Vendor-neutral `chwd` driver selection, requiring consent
@@ -31,13 +32,14 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Games, creative tools, office, multimedia and development package manifest
 - [ ] Setup wizard, Btrfs snapshots UI and sustained performance monitoring
 - [ ] HDR/VRR, suspend, codec hardware acceleration test matrix
-- [ ] Native ArtCraft package and distribution-first update frontend
+- [ ] Validate bundled checksum-verified official ArtCraft Launcher AppImage on the live and installed KDE desktop
+- [ ] Distribution-first update frontend
 
 ## Phase D — brand, updates and quality
 - [x] Rename ISO profile and boot labels without renaming official kernel binaries
 - [x] Define installed/live Skaldr OS identity metadata
 - [ ] Add approved logo and wallpaper assets as real repository files
-- [ ] Apply logo to desktop, Calamares, splash, boot and social preview
+- [ ] Verify vector KDE wallpaper, Calamares and BIOS/GRUB splash branding in live VM screenshots after new ISO build
 - [ ] Secure and test upstream synchronization before it pushes
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
 - [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)

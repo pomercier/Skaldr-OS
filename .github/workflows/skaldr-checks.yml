@@ -20,7 +20,7 @@ jobs:
       - name: Install YAML parser for isolated Calamares tests
         run: python -m pip install 'PyYAML>=6,<7'
       - name: Validate Python entrypoints
-        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject archiso/airootfs/usr/local/bin/skaldr-doctor scripts/skaldr-version.py scripts/skaldr-qmp-click.py archiso/airootfs/usr/local/bin/skaldr-welcome archiso/airootfs/usr/local/bin/skaldr-version
+        run: python -m py_compile archiso/airootfs/usr/local/bin/skaldr-profile archiso/airootfs/usr/local/bin/skaldr-cal-config archiso/airootfs/usr/local/bin/skaldr-postinstall archiso/airootfs/usr/local/bin/skaldr-cal-inject archiso/airootfs/usr/local/bin/skaldr-doctor scripts/skaldr-version.py scripts/skaldr-qmp-click.py scripts/skaldr-make-boot-splash.py archiso/airootfs/usr/local/bin/skaldr-welcome archiso/airootfs/usr/local/bin/skaldr-version
       - name: Validate Bash entrypoints
         run: |
           set -euo pipefail
@@ -31,6 +31,8 @@ jobs:
                         archiso/airootfs/usr/local/bin/removeun \
                         archiso/airootfs/usr/local/bin/calamares-online.sh \
                         scripts/skaldr-make-wallpaper.sh \
+                        scripts/skaldr-stage-artcraft.sh \
+                        archiso/airootfs/usr/local/bin/skaldr-live-installer \
                         archiso/airootfs/usr/local/bin/skaldr-theme \
                         util-iso.sh \
                         buildiso.sh; do

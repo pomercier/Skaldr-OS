@@ -1,0 +1,34 @@
+---
+componentName: skaldr
+welcomeStyleCalamares: false
+welcomeExpandingLogo: false
+windowExpanding: normal
+windowSize: "1100px,650px"
+windowPlacement: center
+sidebar: widget
+navigation: widget
+strings:
+    productName: "Skaldr OS"
+    shortProductName: "Skaldr"
+    version: "Development Preview"
+    shortVersion: "Preview"
+    versionedName: "Skaldr OS Development Preview"
+    shortVersionedName: "Skaldr OS"
+    bootloaderEntryName: "Skaldr OS"
+    supportUrl: "https://github.com/pomercier/Skaldr-OS"
+    knownIssuesUrl: "https://github.com/pomercier/Skaldr-OS/blob/master/docs/HARDWARE-TESTING.md"
+    releaseNotesUrl: "https://github.com/pomercier/Skaldr-OS/releases"
+images:
+    productLogo: "logo.png"
+    productIcon: "icon.png"
+    productWelcome: "welcome.svg"
+style:
+    SidebarBackground: "#10192f"
+    SidebarText: "#ffffff"
+    SidebarTextCurrent: "#10192f"
+    SidebarBackgroundCurrent: "#1ad7ef"
+slideshow: "show.qml"
+slideshowAPI: 1
+uploadServer:
+    type: "none"
+    sizeLimit: -1

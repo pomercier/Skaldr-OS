@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Skaldr OS Live Installer
+Comment=Install the Skaldr OS development preview
+Exec=/usr/local/bin/skaldr-live-installer
+TryExec=/usr/local/bin/skaldr-live-installer
+OnlyShowIn=KDE;
+Terminal=false
+X-KDE-autostart-phase=2

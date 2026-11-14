@@ -20,10 +20,8 @@ btrfs-assistant
 btrfs-progs
 cachy-chroot
 cachyos-calamares-next
-cachyos-cli-installer-new
 cachyos-drm-awaiter
 cachyos-fish-config
-cachyos-hello
 cachyos-hooks
 cachyos-kde-settings
 cachyos-keyring

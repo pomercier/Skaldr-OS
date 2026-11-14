@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Branded live-session installer: replaces CachyOS Hello.
+set -euo pipefail
+[[ -d /run/archiso ]] || exit 0
+if ! command -v kdialog >/dev/null 2>&1; then
+    exec /usr/local/bin/calamares-online.sh
+fi
+if kdialog --title "Skaldr OS — Development Preview" \
+    --yesno "Welcome to Skaldr OS.
+
+This development preview is for testing. It is not yet
+certified for installation on production hardware.
+
+Would you like to start the Skaldr OS installer?" \
+    --yes-label "Launch installer" --no-label "Not now"; then
+    exec /usr/local/bin/calamares-online.sh
+fi

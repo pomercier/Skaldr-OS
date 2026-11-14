@@ -58,37 +58,14 @@ function test_post_boot_grub() {
 }
 
 function test_launch_calamares() {
-    # Proven failure: KRunner does not open in this Quickemu live session.
-    # Use the visible "Launch installer" button in CachyOS Hello instead.
-    # QEMU HMP supports mouse_move and mouse_button, even though Quicktest
-    # has not implemented its own mouse-click helper yet.
+    # Skaldr's own KDE welcome replaces upstream CachyOS Hello and its
+    # unsupported generic "testing ISO" popup. Keep a visible UI assertion.
     qt_wait_for_seconds 90
     qt_wait_for_text "$FUNCNAME" "Launch installer" 8 5
     qt_screenshot_ppm "$FUNCNAME"
-
-    # Exact pointer position from the real 1408x792 VM screenshot.
-    # Absolute QMP tablet events avoid unreliable host/guest acceleration.
-    local snapshot width height target_x target_y
-    snapshot="$(find "$QT_RESULTS" -type f -name "screenshot_*.ppm" | sort | tail -n 1)"
-    [[ -f "$snapshot" ]] || qt_test_fail "No live desktop screenshot"
-    width="$(identify -format "%w" "$snapshot")"
-    height="$(identify -format "%h" "$snapshot")"
-    target_x=$((width / 2))
-    target_y=$((height * 76 / 100))
-    qt_echo "Click installer with QMP at $target_x,$target_y"
-    python3 scripts/skaldr-qmp-click.py --x "$target_x" --y "$target_y" --width "$width" --height "$height" || qt_test_fail "QMP click failed"
-    qt_wait_for_seconds 2
-    qt_screenshot_ppm "$FUNCNAME"
-    # The development ISO correctly displays a warning in CachyOS Hello.
-    # We verified its exact wording from the VM screenshots and OCR output.
-    # The modal has a focused OK button; accept it before asserting that
-    # Calamares is running. Never disable the warning for real users.
-    qt_wait_for_text "$FUNCNAME" "You are using a testing ISO" 6 4
     qt_send_key "return"
-    qt_wait_for_seconds 5
+    qt_wait_for_seconds 15
     qt_screenshot_ppm "$FUNCNAME"
-    # The next step must still find the real Calamares welcome screen.
-    qt_wait_for_seconds 10
 }
 
 function test_calamares_welcome() {

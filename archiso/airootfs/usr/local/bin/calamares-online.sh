@@ -4,13 +4,18 @@
 # never destroy the live keyring just to launch an installer window.
 set -Eeuo pipefail
 
-log="${HOME:-/home/liveuser}/cachy-install.log"
+log="${HOME:-/home/liveuser}/skaldr-install.log"
 stage="preflight"
 mkdir -p "$(dirname "$log")"
 exec >> "$log" 2>&1
 
 report_failure() {
     local status=$?
+    # Preserve diagnostics locally; do not publish installation logs to paste.
+    local session_log="${HOME:-/home/liveuser}/.cache/calamares/session.log"
+    if [[ -r "$session_log" ]]; then
+        cp -- "$session_log" "${HOME:-/home/liveuser}/skaldr-calamares-session.log" || true
+    fi
     if (( status == 0 )); then
         return
     fi
@@ -51,6 +56,9 @@ command -v sudo >/dev/null
 
 stage="select Calamares online configuration"
 sudo install -Dm0644 /usr/share/calamares/settings_online.conf /etc/calamares/settings.conf
+
+stage="prepare Skaldr KDE-only installer branding"
+sudo /usr/local/bin/skaldr-cal-config
 
 stage="integrate installed-system settings"
 sudo /usr/local/bin/skaldr-cal-inject

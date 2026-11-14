@@ -164,6 +164,7 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("sudo /usr/local/bin/skaldr-cal-inject", installer)
         self.assertIn("kdialog --title", installer)
         self.assertIn("logger -t skaldr-installer", installer)
+        self.assertIn("sudo /usr/local/bin/skaldr-cal-config", installer)
         self.assertIn("pacstrap.conf", installer)
         self.assertIn("shellprocess.conf", installer)
         for forbidden in ("sudo rm -rf /etc/pacman.d/gnupg",
@@ -250,8 +251,10 @@ class SkaldrChecks(unittest.TestCase):
             result = subprocess.run(["bash", str(REPO / "scripts/skaldr-make-wallpaper.sh"), str(root)],
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
-            wall = root / "usr/share/wallpapers/Skaldr/contents/images/1920x1080.svg"
-            self.assertIn("data:image/png;base64,", wall.read_text())
+            wall = root / "usr/share/wallpapers/Skaldr/contents/images/3840x2160.svg"
+            self.assertNotIn("data:image/png;base64,", wall.read_text())
+            self.assertIn('width="3840"', wall.read_text())
+            self.assertTrue((root / "usr/share/wallpapers/Skaldr/contents/images/5120x2160.svg").is_file())
             self.assertIn("Skaldr OS", wall.read_text())
             self.assertNotIn("https://", wall.read_text())
         t = (LIVE / "usr/local/bin/skaldr-theme").read_text()
@@ -304,9 +307,9 @@ class SkaldrChecks(unittest.TestCase):
         self.assertNotIn('qt_send_string_return "/usr/local/bin/calamares-online.sh"', qt)
         self.assertNotIn('qt_send_string_tab "CALAMARES_SKIP_GEOIP=1 sudo', qt)
         self.assertIn("qt_wait_for_seconds 90", qt)
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "You are using a testing ISO" 6 4', qt)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "You are using a testing ISO"', qt)
         self.assertIn('qt_send_key "return"', qt)
-        self.assertLess(qt.index('You are using a testing ISO'),
+        self.assertLess(qt.index('qt_wait_for_text "$FUNCNAME" "Launch installer"'),
                         qt.index('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome"'))
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_welcome" 12 15', qt)
         self.assertIn('test_ci_cpu_model', qt)

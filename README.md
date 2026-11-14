@@ -54,7 +54,7 @@ The preference for permanent performance settings is intentional, but compatibil
 
 ## The desktop
 
-**KDE Plasma comes first; other upstream desktop choices remain available.** Skaldr favors a clean desktop with NumLock enabled, normal authentication preserved, and a native toolbox for checking system health, GPU drivers and performance settings.
+**KDE Plasma is the only desktop environment offered by Skaldr OS.** Other environments can be installed manually later using the Arch package manager. Skaldr favors a clean desktop with NumLock enabled, normal authentication preserved, and a native toolbox for checking system health, GPU drivers and performance settings.
 
 - **Gaming:** Steam, GameMode, MangoHud, Gamescope and compatibility tools are part of the current package selection.
 - **Multimedia and work:** VLC, FFmpeg, LibreOffice Fresh, Brave and other native utilities.

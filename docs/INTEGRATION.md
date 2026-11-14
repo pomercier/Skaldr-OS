@@ -8,8 +8,11 @@ The Calamares target integration uses pacstrap.postInstallFiles and the
 shellprocess postinstall step. This integration must be validated with
 the exact runtime Calamares package before the ISO is released.
 
-The live ISO and target install use the same package manifest. Desktop
-selection remains under Calamares control with KDE as its existing default.
+The live ISO ships KDE Plasma only, and the installed system uses an
+independent local Calamares chooser with KDE Plasma as the only desktop.
+Non-KDE upstream choices are excluded from the local netinstall manifest.
+Underlying CachyOS package IDs remain unchanged for compatibility.
+Skaldr branding and diagnostics do not rely on CachyOS Hello or paste uploads.
 The Caps Lock helper works on X11; Wayland and the login manager need
 additional compositor-specific validation.
 

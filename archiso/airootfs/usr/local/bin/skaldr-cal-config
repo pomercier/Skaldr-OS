@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""Prepare a local, KDE-only, independently branded Calamares installation.
+
+The upstream installer package stays intact. Only its LIVE runtime settings
+are customized after package installation, without modifying upstream source.
+"""
+from pathlib import Path
+import re
+import shutil
+import sys
+
+ALLOWED = {
+    "CachyOS required (hidden)", "CachyOS kernels (hidden)",
+    "CachyOS kernels (hidden/handheld)", "CachyOS Packages",
+    "Skaldr OS base packages", "CachyOS shell configuration",
+    "Shell configuration", "Base-devel + Common packages",
+    "KDE-Desktop", "Printing-Support",
+    "Support for HP Printer/Scanner", "Accessibility Tools",
+}
+CHOOSER = """---
+mode: required
+method: netinstall-select
+labels:
+    step: "KDE Plasma"
+    step[fr]: "KDE Plasma"
+default: KDE-Desktop
+items:
+    - id: KDE-Desktop
+      name: "KDE Plasma"
+      description: "Skaldr OS uses KDE Plasma as its sole desktop environment."
+      screenshot: "/etc/calamares/images/kde.webp"
+"""
+GROUPS = """---
+groupsUrl:
+ - file:///etc/calamares/modules/netinstall.yaml
+
+required: true
+label:
+ sidebar: "Packages"
+ sidebar[fr]: "Paquets"
+ title: "Additional packages"
+"""
+
+
+def filter_groups(source):
+    chunks = re.split(r"(?m)(?=^- name:\s)", source)
+    selected, found = [], set()
+    for block in chunks:
+        match = re.match(r"""^- name:\s*["']?([^"'\n]+)""", block)
+        if not match:
+            continue
+        name = match.group(1).strip()
+        if name not in ALLOWED:
+            continue
+        found.add(name)
+        if name == "KDE-Desktop":
+            block, count = re.subn(r"(?m)^  selected:\s*(?:true|false)\s*$",
+                                   "  selected: true", block, count=1)
+            if count != 1:
+                raise ValueError("Missing KDE selection in netinstall")
+        if name == "CachyOS Packages":
+            block = block.replace('name: "CachyOS Packages"',
+                                  'name: "Skaldr OS base packages"')
+            block = block.replace('description: "needed CachyOS packages"',
+                                  'description: "Required distribution packages"')
+            # Remove the duplicate live welcome and upstream visual assets.
+            block = re.sub(r"(?m)^\s+- (?:cachyos-hello|cachyos-wallpapers)\s*\n",
+                           "", block)
+        if name == "CachyOS shell configuration":
+            block = block.replace('name: "CachyOS shell configuration"',
+                                  'name: "Shell configuration"')
+        selected.append(block)
+    required = {"CachyOS required (hidden)", "KDE-Desktop",
+                "Base-devel + Common packages"}
+    if not required.issubset(found) or not (
+        {"CachyOS Packages", "Skaldr OS base packages"} & found
+    ):
+        raise ValueError("Required netinstall groups were not found")
+    return "---\n" + "".join(selected)
+
+
+def prepare(root=Path("/")):
+    root = Path(root)
+    modules = root / "etc/calamares/modules"
+    installer = root / "etc/calamares/settings.conf"
+    original = root / "usr/share/calamares/settings_online.conf"
+    brand_source = root / "usr/share/skaldr/installer"
+    brand_target = root / "usr/share/calamares/branding/skaldr"
+    wallpaper = root / "usr/share/wallpapers/Skaldr/contents/images/3840x2160.svg"
+    logo = root / "usr/share/pixmaps/skaldr-logo.png"
+    mandatory = [original, installer, modules / "netinstall.yaml",
+                 modules / "netinstall.conf",
+                 modules / "packagechooser_desktop.conf",
+                 modules / "welcome_online.conf",
+                 brand_source / "branding.desc", brand_source / "show.qml",
+                 wallpaper, logo]
+    absent = [str(p) for p in mandatory if not p.is_file()]
+    if absent:
+        raise ValueError("Skaldr Calamares preflight: missing " + ", ".join(absent))
+    source_settings = original.read_text()
+    if not re.search(r"(?m)^branding:\s*(?:cachyos|skaldr)\s*$",
+                     source_settings):
+        raise ValueError("Unknown Calamares branding selector")
+    if "packagechooser@desktop" not in source_settings or "- netinstall" not in source_settings:
+        raise ValueError("Calamares desktop/netinstall integration missing")
+    # Validate *before* modifying the stock installer.
+    manifest = filter_groups((modules / "netinstall.yaml").read_text())
+    settings = re.sub(r"(?m)^branding:\s*(?:cachyos|skaldr)\s*$",
+                      "branding: skaldr", source_settings, count=1)
+    welcome = (modules / "welcome_online.conf").read_text()
+    welcome, hits = re.subn(r"(?m)^(\s*internetCheckUrl:\s*).*$",
+                            r"\g<1>https://github.com/pomercier/Skaldr-OS",
+                            welcome, count=1)
+    if hits != 1:
+        raise ValueError("Calamares welcome internet probe changed")
+    brand_target.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(brand_source / "branding.desc", brand_target / "branding.desc")
+    shutil.copyfile(brand_source / "show.qml", brand_target / "show.qml")
+    shutil.copyfile(wallpaper, brand_target / "welcome.svg")
+    shutil.copyfile(logo, brand_target / "logo.png")
+    shutil.copyfile(logo, brand_target / "icon.png")
+    updates = {
+        installer: settings,
+        modules / "packagechooser_desktop.conf": CHOOSER,
+        modules / "netinstall.conf": GROUPS,
+        modules / "netinstall.yaml": manifest,
+        modules / "welcome_online.conf": welcome,
+    }
+    for path, contents in updates.items():
+        if path.read_text() != contents:
+            path.write_text(contents)
+    print("Skaldr Calamares: branded, KDE-only and local log export", flush=True)
+
+
+if __name__ == "__main__":
+    try:
+        if len(sys.argv) == 1:
+            prepare()
+        elif len(sys.argv) == 3 and sys.argv[1] == "--root":
+            prepare(Path(sys.argv[2]))
+        else:
+            raise ValueError("Usage: skaldr-cal-config [--root TEST_ROOT]")
+    except (ValueError, OSError) as error:
+        sys.exit(f"ERROR: {error}")

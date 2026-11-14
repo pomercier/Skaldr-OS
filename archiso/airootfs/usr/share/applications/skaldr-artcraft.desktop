@@ -1,7 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=ArtCraft Launcher (Skaldr)
-Comment=Install the native ArtCraft suite
-Exec=konsole -e /usr/local/bin/skaldr-artcraft
+Name=ArtCraft Launcher
+Comment=Open the bundled native ArtCraft creative launcher
+Exec=/usr/local/bin/skaldr-artcraft
+TryExec=/usr/local/bin/skaldr-artcraft
 Terminal=false
 Categories=Graphics;Utility;
+Icon=skaldr

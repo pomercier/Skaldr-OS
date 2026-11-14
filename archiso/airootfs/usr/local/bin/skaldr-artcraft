@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# Launch an installed ArtCraft app, otherwise show the official source.
+# Open the verified official AppImage bundled by the Skaldr ISO builder.
 set -euo pipefail
-if command -v artcraft-launcher >/dev/null; then exec artcraft-launcher; fi
-if [[ -x "$HOME/Applications/ArtCraft/ArtCraft-Launcher.AppImage" ]]; then
-    exec "$HOME/Applications/ArtCraft/ArtCraft-Launcher.AppImage"
-fi
-printf '%s\n' "ArtCraft Launcher is not installed." \
-    "Official source: https://github.com/storytold/craft-launcher/releases"
-if command -v kdialog >/dev/null; then
-    if kdialog --yesno 'Open the official ArtCraft Launcher releases page to install a native AppImage?'; then
-        xdg-open 'https://github.com/storytold/craft-launcher/releases'
+app="/opt/skaldr/artcraft/artcraft-launcher.AppImage"
+if [[ ! -x "$app" ]]; then
+    if command -v kdialog >/dev/null 2>&1; then
+        kdialog --title "Skaldr OS — ArtCraft" --error \
+            "ArtCraft Launcher is missing from this ISO. Reinstall or verify the image."
     fi
+    echo "Missing ArtCraft Launcher: $app" >&2
+    exit 1
 fi
+exec "$app" "$@"

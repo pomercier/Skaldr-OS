@@ -10,12 +10,12 @@ text_console_gnu_grub="GNU GRUB"
 
 # Initial splash
 
-text_console_prompt_welcome="Welcome to CachyOS"
+text_console_prompt_welcome="Welcome to Skaldr OS"
 text_console_prompt_login="localhost login"
 
 # Calamares Welcome
 
-text_calamares_welcome="Welcome to the CachyOS installer"
+text_calamares_welcome="Welcome to the Skaldr OS"
 
 # Calamares Language
 

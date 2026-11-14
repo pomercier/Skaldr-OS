@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install Skaldr OS
+Comment=Install Skaldr OS with KDE Plasma
+Exec=/usr/local/bin/skaldr-live-installer
+TryExec=/usr/local/bin/skaldr-live-installer
+Terminal=false
+Categories=System;
+Icon=skaldr
