@@ -1,5 +1,5 @@
 NAME="Skaldr OS"
-PRETTY_NAME="Skaldr OS (CachyOS-based)"
+PRETTY_NAME="Skaldr OS"
 ID=arch
 ID_LIKE="arch"
 BUILD_ID=rolling

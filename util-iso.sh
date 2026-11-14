@@ -57,25 +57,20 @@ trap_exit() {
 
 generate_motd() {
     cat << 'EOF' > ${src_dir}/archiso/airootfs/etc/motd
-Skaldr OS is an independent, CachyOS-based Linux distribution.
-https://cachyos.org
+Skaldr OS — an independent, CachyOS-based Linux distribution.
 
-CachyOS Archiso Sources:
-https://github.com/cachyos/cachyos-live-iso
+Install and test Skaldr OS:
+https://github.com/pomercier/Skaldr-OS
 
-ArchLinux ISO Source:
-https://gitlab.archlinux.org/archlinux/archiso
+Release notes and support:
+https://github.com/pomercier/Skaldr-OS/releases
+https://github.com/pomercier/Skaldr-OS/blob/master/docs/HARDWARE-TESTING.md
 
-Calamares is used as GUI installer:
-https://github.com/calamares/calamares
+This is a development preview. Back up your data before installing.
+The live KDE Plasma environment will start shortly.
 
-The live environment will start now and let you install Skaldr OS.
-
-Getting help at the forum: https://discuss.cachyos.org
-
-Welcome to Skaldr OS!
-
-[41m [41m [41m [40m [44m [40m [41m [46m [45m [41m [46m [43m [41m [44m [45m [40m [44m [40m [41m [44m [41m [41m [46m [42m [41m [44m [43m [41m [45m [40m [40m [44m [40m [41m [44m [42m [41m [46m [44m [41m [46m [47m [0m
+Based on CachyOS and Arch Linux. Their upstream credits are retained
+in the project documentation and source repository.
 EOF
 }
 

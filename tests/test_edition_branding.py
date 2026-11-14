@@ -163,6 +163,24 @@ branding: cachyos
                 self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"))
                 self.assertEqual(struct.unpack(">II", data[16:24]), (640, 480))
 
+    def test_visible_boot_entries_are_skaldr_branded(self):
+        for filename in (
+            "archiso/grub/grub.cfg",
+            "archiso/grub/loopback.cfg",
+            "archiso/syslinux/archiso_sys-linux.cfg",
+            "archiso/syslinux/archiso_pxe-linux.cfg",
+            "archiso/efiboot/loader/entries/01-archiso-linux.conf",
+            "archiso/efiboot/loader/entries/02-archiso-linux-cachyos.conf",
+            "archiso/efiboot/loader/entries/fallback.conf",
+        ):
+            with self.subTest(filename=filename):
+                source = (REPO / filename).read_text()
+                self.assertNotIn("Welcome to CachyOS", source)
+                self.assertNotIn("MENU LABEL CachyOS", source)
+                self.assertNotIn("title   CachyOS", source)
+        self.assertIn('PRETTY_NAME="Skaldr OS"',
+                      (ROOT / "etc/os-release").read_text())
+
     def test_artcraft_bundled_with_pinned_hash_and_no_web_fallback(self):
         stage = (REPO / "scripts/skaldr-stage-artcraft.sh").read_text()
         self.assertIn("64197858d155f447ae323f905015116d848f1375675d731eb08d5708f8722e9b",
