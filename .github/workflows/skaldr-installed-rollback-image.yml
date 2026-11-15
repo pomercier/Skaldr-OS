@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - 'scripts/skaldr-ci-installed-rollback.sh'
+      - 'scripts/skaldr-find-btrfs-partition.py'
+      - 'tests/test_btrfs_partition_discovery.py'
       - 'scripts/skaldr-installed-rollback-image-smoke.sh'
       - 'tests/test_calamares_installed_rollback.py'
       - '.github/workflows/skaldr-installed-rollback-image.yml'

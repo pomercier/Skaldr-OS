@@ -25,6 +25,9 @@ on:
       - 'scripts/skaldr-release-assets.py'
       - 'scripts/skaldr-visual-evidence.py'
       - 'scripts/skaldr-qmp-click.py'
+      - 'scripts/skaldr-ci-installed-rollback.sh'
+      - 'scripts/skaldr-find-btrfs-partition.py'
+      - 'testcases/cachyos/dailylive/test_install_calamares'
   pull_request:
 
 concurrency:

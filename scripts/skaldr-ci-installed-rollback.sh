@@ -59,43 +59,21 @@ layout="$(sfdisk --json "$raw")" || {
     echo "Cannot inspect disposable GPT partition layout." >&2
     exit 1
 }
-specs="$(python3 -c '
-import json, sys
-table = json.load(sys.stdin)["partitiontable"]
-assert table.get("label") == "gpt"
-sector = table.get("sectorsize", 512)
-assert sector in (512, 4096)
-parts = table.get("partitions", [])
-assert 1 <= len(parts) <= 16
-for item in parts:
-    start, size = item["start"], item["size"]
-    assert isinstance(start, int) and isinstance(size, int)
-    assert start > 0 and size > 0
-    print(start * sector, size * sector)
-' <<< "$layout")" || {
-    echo "Invalid scratch GPT partition geometry." >&2
+# Parse the exact GPT bounds, then identify Btrfs by the documented
+# primary on-disk superblock signature. Direct raw-file inspection avoids
+# intermittent blkid/udev misses on size-limited loop mappings in CI.
+# Mount below is still required to validate the filesystem and its integrity.
+specs="$(python3 scripts/skaldr-find-btrfs-partition.py "$raw" <<< "$layout")" || {
+    echo "Expected exactly one installed Btrfs partition; refusing rollback." >&2
     exit 1
 }
-[[ -n "$specs" ]] || exit 1
-loopdev=""
-while read -r offset length; do
-    [[ "$offset" =~ ^[1-9][0-9]*$ && "$length" =~ ^[1-9][0-9]*$ ]] || exit 1
-    candidate="$(losetup --find --show --offset "$offset" --sizelimit "$length" "$raw")"
-    if [[ "$(blkid -s TYPE -o value "$candidate" 2>/dev/null || :)" == btrfs ]]; then
-        if [[ -n "$loopdev" ]]; then
-            losetup -d "$candidate"
-            echo "More than one Btrfs partition; refusing guessed root." >&2
-            exit 1
-        fi
-        loopdev="$candidate"
-    else
-        losetup -d "$candidate"
-    fi
-done <<< "$specs"
-[[ -n "$loopdev" ]] || {
-    echo "Expected exactly one installed Btrfs partition." >&2
+read -r offset length <<< "$specs"
+[[ "$offset" =~ ^[1-9][0-9]*$ && "$length" =~ ^[1-9][0-9]*$ ]] || {
+    echo "Invalid recovered Btrfs partition geometry; refusing." >&2
     exit 1
 }
+loopdev="$(losetup --find --show --offset "$offset" --sizelimit "$length" "$raw")"
+[[ -b "$loopdev" ]] || { echo "Disposable Btrfs loop device unavailable." >&2; exit 1; }
 mount -t btrfs -o subvolid=5 "$loopdev" "$top"
 root="$top/@"
 [[ -d "$root/etc" && -d "$root/usr" ]] || {

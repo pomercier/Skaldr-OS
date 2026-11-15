@@ -33,6 +33,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Validate offline rollback helper on a standalone synthetic GPT/Btrfs QCOW2 with real qemu-img, loop mounts and source snapshot (2026-11-15, isolated run 43752617397)
 - [x] Refuse a hardcoded numeric Btrfs rootflags with unchanged source QCOW2 SHA-256, then validate positive recovery and immutable snapshot (2026-11-15, isolated run 43752897173)
 - [x] Recover a real Calamares-installed Limine/Btrfs root on disposable QCOW2, cold reboot without installer ISO, authenticate KDE, verify restored guest marker and reopen Skaldr Control Center (2026-11-15, full independent probe 43753422214 using validated ISO 87)
+- [x] Diagnose the 2026-11-15 full-ISO Limine/Btrfs rollback failure: Calamares installation and KDE Control Center passed, but offline loop-backed `blkid` partition discovery found no Btrfs partition (run 43758327044)
+- [ ] Confirm deterministic, read-only GPT/Btrfs magic detection in isolated QCOW2 smoke and the next full ISO matrix (implementation pending CI validation)
 - [ ] Repeat the Calamares-installed rollback with an ISO built from the **exact current revision**, as part of a fully passing five-job desktop ISO matrix (preview release gate)
 - [ ] Verify recovery with other supported bootloaders, rootflags configurations, encrypted layouts and adverse reboot scenarios
 - [ ] LTS kernel recovery entry and bootloader verification
