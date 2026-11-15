@@ -75,3 +75,14 @@ cannot be assumed sufficient for recovery. Missing selectors remain an
 
 The scanner is bounded, recognizes common file locations, and is intentionally
 not an exhaustive interpretation of every custom bootloader configuration.
+
+## Kernel and bootloader generation sources
+
+In addition to generated GRUB, Limine and systemd-boot entries, the read-only
+scanner checks `/etc/default/grub`, `/etc/default/limine` and
+`/etc/kernel/cmdline`. Those sources may be used during future boot entry
+regeneration after a kernel update. Each report lists only the explicit
+Btrfs `subvol=` / `subvolid=` selector, never the complete kernel line.
+
+Absence of these flags still does **not** certify rollback, and even when
+detected they are diagnostic hints, not permission to rewrite boot entries.

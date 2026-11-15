@@ -78,12 +78,16 @@ def _entry_rootflags(line):
 def configured_boot_root_overrides(root):
     """Read hints from common boot entries; never claim exhaustive coverage."""
     sources = {
-        "grub": [root / "boot/grub/grub.cfg"],
+        "grub": [root / "boot/grub/grub.cfg",
+                 root / "etc/default/grub"],
         "limine": [root / "boot/limine.conf",
                    root / "boot/limine/limine.conf",
-                   root / "efi/limine.conf"],
+                   root / "efi/limine.conf",
+                   root / "etc/default/limine"],
         "systemd_boot": sorted((root / "boot/loader/entries").glob("*.conf"))[:64]
                         + sorted((root / "efi/loader/entries").glob("*.conf"))[:64],
+        # Kernel-install may generate new loader entries from this file.
+        "kernel_cmdline": [root / "etc/kernel/cmdline"],
     }
     output = {}
     checked = {}

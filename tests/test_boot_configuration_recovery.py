@@ -32,12 +32,25 @@ class BootConfigurationRecoveryTests(TestCase):
             (entries / "skaldr.conf").write_text(
                 "options root=/dev/vda rootflags=\"subvol=@safe\" quiet\n"
             )
+            (root / "etc/default").mkdir(parents=True)
+            (root / "etc/default/grub").write_text(
+                'GRUB_CMDLINE_LINUX_DEFAULT="quiet rootflags=subvol=@next,compress=zstd"\n'
+            )
+            (root / "etc/default/limine").write_text(
+                'KERNEL_CMDLINE[default]="quiet rootflags=subvolid=311"\n'
+            )
+            (root / "etc/kernel").mkdir(parents=True)
+            (root / "etc/kernel/cmdline").write_text(
+                "quiet rootflags=subvol=@future\n"
+            )
             values, checked = configured(root)
-        self.assertEqual(values["grub"], ["subvol=@"])
-        self.assertEqual(values["limine"], ["subvolid=258"])
+        self.assertEqual(values["grub"], ["subvol=@", "subvol=@next"])
+        self.assertEqual(values["limine"], ["subvolid=258", "subvolid=311"])
         self.assertEqual(values["systemd_boot"], ["subvol=@safe"])
+        self.assertEqual(values["kernel_cmdline"], ["subvol=@future"])
         self.assertEqual(checked, {
             "grub": True, "limine": True, "systemd_boot": True,
+            "kernel_cmdline": True,
         })
 
     def test_fstab_root_subvolume_and_other_mounts(self):
@@ -72,6 +85,7 @@ class BootConfigurationRecoveryTests(TestCase):
             with patch.dict(status.__globals__, {"command": lambda *a: None}):
                 report = status(root)
         self.assertEqual(report["boot_config_sources_checked"],
-                         {"grub": False, "limine": False, "systemd_boot": False})
+                         {"grub": False, "limine": False,
+                          "systemd_boot": False, "kernel_cmdline": False})
         self.assertIsNone(report["default_subvolume_change_sufficient_for_boot"])
         self.assertFalse(report["rollback_verified"])
