@@ -17,8 +17,8 @@ expected="$workspace/machines/cachyos-dailylive/disk.qcow2"
     echo "Refusing rollback: expected a regular disposable Quickemu QCOW2." >&2
     exit 2
 }
-for cmd in qemu-img losetup lsblk blkid mount umount mountpoint \
-           btrfs udevadm realpath python3 mktemp mv sync; do
+for cmd in qemu-img losetup sfdisk blkid mount umount mountpoint \
+           btrfs realpath python3 mktemp mv sync; do
     command -v "$cmd" >/dev/null 2>&1 || {
         echo "Missing isolated recovery dependency: $cmd" >&2
         exit 2
@@ -52,21 +52,51 @@ trap cleanup EXIT
 echo "Preparing temporary copy of real Calamares-installed disk."
 qemu-img convert -S 4k -O raw "$disk" "$raw"
 [[ -f "$raw" && ! -L "$raw" ]] || exit 2
-loopdev="$(losetup --find --show --partscan "$raw")"
-udevadm settle
-mapfile -t partitions < <(lsblk -rpn -o NAME "$loopdev" | grep -Fxv "$loopdev")
-btrfs_parts=()
-for part in "${partitions[@]}"; do
-    [[ -b "$part" ]] || continue
-    if [[ "$(blkid -s TYPE -o value "$part" 2>/dev/null || :)" == btrfs ]]; then
-        btrfs_parts+=("$part")
+# Container runners may not create /dev/loopNpN partition nodes.
+# Discover GPT boundaries in the scratch raw FILE, then probe each partition
+# through its own size-limited loop mapping. Never touch real disks.
+layout="$(sfdisk --json "$raw")" || {
+    echo "Cannot inspect disposable GPT partition layout." >&2
+    exit 1
+}
+specs="$(python3 -c '
+import json, sys
+table = json.load(sys.stdin)["partitiontable"]
+assert table.get("label") == "gpt"
+sector = table.get("sectorsize", 512)
+assert sector in (512, 4096)
+parts = table.get("partitions", [])
+assert 1 <= len(parts) <= 16
+for item in parts:
+    start, size = item["start"], item["size"]
+    assert isinstance(start, int) and isinstance(size, int)
+    assert start > 0 and size > 0
+    print(start * sector, size * sector)
+' <<< "$layout")" || {
+    echo "Invalid scratch GPT partition geometry." >&2
+    exit 1
+}
+[[ -n "$specs" ]] || exit 1
+loopdev=""
+while read -r offset length; do
+    [[ "$offset" =~ ^[1-9][0-9]*$ && "$length" =~ ^[1-9][0-9]*$ ]] || exit 1
+    candidate="$(losetup --find --show --offset "$offset" --sizelimit "$length" "$raw")"
+    if [[ "$(blkid -s TYPE -o value "$candidate" 2>/dev/null || :)" == btrfs ]]; then
+        if [[ -n "$loopdev" ]]; then
+            losetup -d "$candidate"
+            echo "More than one Btrfs partition; refusing guessed root." >&2
+            exit 1
+        fi
+        loopdev="$candidate"
+    else
+        losetup -d "$candidate"
     fi
-done
-[[ "${#btrfs_parts[@]}" -eq 1 ]] || {
+done <<< "$specs"
+[[ -n "$loopdev" ]] || {
     echo "Expected exactly one installed Btrfs partition." >&2
     exit 1
 }
-mount -t btrfs -o subvolid=5 "${btrfs_parts[0]}" "$top"
+mount -t btrfs -o subvolid=5 "$loopdev" "$top"
 root="$top/@"
 [[ -d "$root/etc" && -d "$root/usr" ]] || {
     echo "Installed @ root not found; refusing guessed rollback." >&2

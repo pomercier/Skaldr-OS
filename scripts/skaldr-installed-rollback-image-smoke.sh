@@ -35,14 +35,15 @@ unit: sectors
 start=2048,size=262144,type=c12a7328-f81f-11d2-ba4b-00a0c93ec93b
 start=264192,size=2097152,type=0fc63daf-8483-4772-8e79-3d69d8477de4
 GPT_PARTITIONS
-loopdev="$(losetup --find --show --partscan "$raw")"
-udevadm settle
-[[ -b "${loopdev}p2" ]] || { echo "Synthetic Btrfs partition unavailable." >&2; exit 1; }
-mkfs.btrfs -f -m single -d single "${loopdev}p2" >/dev/null
-mount "${loopdev}p2" "$mountpoint_dir"
+# No /dev/loopNp2 nodes are needed: this is an offset-mapped partition of
+# the newly generated scratch raw file, never a physical disk.
+loopdev="$(losetup --find --show --offset "$((264192 * 512))" \
+    --sizelimit "$((2097152 * 512))" "$raw")"
+mkfs.btrfs -f -m single -d single "$loopdev" >/dev/null
+mount "$loopdev" "$mountpoint_dir"
 btrfs subvolume create "$mountpoint_dir/@" >/dev/null
 mkdir -p "$mountpoint_dir/@/etc" "$mountpoint_dir/@/usr"
-printf 'synthetic-calamaras-fixture\n' > "$mountpoint_dir/@/etc/skaldr-ci-fixture"
+printf 'synthetic-calamares-fixture\n' > "$mountpoint_dir/@/etc/skaldr-ci-fixture"
 umount "$mountpoint_dir"
 losetup -d "$loopdev"
 loopdev=""
@@ -53,13 +54,13 @@ bash scripts/skaldr-ci-installed-rollback.sh "$disk"
 # Verify the resulting root was restored, the modified root was retained,
 # and the read-only source snapshot still contains the original marker.
 qemu-img convert -S 4k -O raw "$disk" "$verified_raw"
-loopdev="$(losetup --find --show --partscan "$verified_raw")"
-udevadm settle
-mount -t btrfs -o subvolid=5 "${loopdev}p2" "$mountpoint_dir"
+loopdev="$(losetup --find --show --offset "$((264192 * 512))" \
+    --sizelimit "$((2097152 * 512))" "$verified_raw")"
+mount -t btrfs -o subvolid=5 "$loopdev" "$mountpoint_dir"
 [[ "$(cat "$mountpoint_dir/@/etc/skaldr-ci-rollback-state")" == "original-before-rollback" ]]
 [[ "$(cat "$mountpoint_dir/@skaldr-ci-changed/etc/skaldr-ci-rollback-state")" == "modified-after-snapshot" ]]
 [[ "$(cat "$mountpoint_dir/@skaldr-ci-source-snapshot/etc/skaldr-ci-rollback-state")" == "original-before-rollback" ]]
-[[ "$(cat "$mountpoint_dir/@/etc/skaldr-ci-fixture")" == "synthetic-calamaras-fixture" ]]
+[[ "$(cat "$mountpoint_dir/@/etc/skaldr-ci-fixture")" == "synthetic-calamares-fixture" ]]
 btrfs property get -ts "$mountpoint_dir/@skaldr-ci-source-snapshot" ro | grep -qx 'ro=true'
 default_id="$(btrfs subvolume get-default "$mountpoint_dir" |
     sed -n -E 's/^ID ([0-9]+) .*/\1/p')"

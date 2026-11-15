@@ -55,3 +55,12 @@ This validates real `qemu-img`, GPT, loop mounting and Btrfs filesystem
 operations without requiring a multi-gigabyte ISO. It is intentionally
 not an installation or kernel boot test. The full installed KDE/Calamares
 scenario remains mandatory and separately gated.
+
+## Partition discovery in isolated containers
+
+GitHub's privileged runner may expose `/dev/loopN` but not
+`/dev/loopNpN` partition nodes. The helper reads the GPT geometry from the
+**temporary raw disk file**, creates a size-bounded loop mapping for each
+partition using `losetup --offset --sizelimit`, and detects the unique Btrfs
+filesystem. The synthetic test uses the same method with its known GPT
+partition offset. No physical disk is opened or formatted.
