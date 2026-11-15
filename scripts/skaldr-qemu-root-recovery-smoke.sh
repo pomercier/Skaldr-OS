@@ -81,6 +81,19 @@ case "$state" in
         /bin/busybox poweroff -f
         exit 1 ;;
 esac
+# Verify that the selected Btrfs root can persist a write across boots.
+# A read-only root will fail; the source snapshot must remain immutable.
+if ! /bin/busybox printf '%s\n' "$state" > /etc/skaldr-ci-boot-write; then
+    echo 'SKALDR_QEMU_ROOT_WRITE_FAILED'
+    /bin/busybox poweroff -f
+    exit 1
+fi
+if [ "$(/bin/busybox cat /etc/skaldr-ci-boot-write 2>/dev/null)" != "$state" ]; then
+    echo 'SKALDR_QEMU_ROOT_WRITE_MISMATCH'
+    /bin/busybox poweroff -f
+    exit 1
+fi
+printf 'SKALDR_QEMU_ROOT_WRITE_OK=%s\n' "$state"
 /bin/busybox sync
 /bin/busybox poweroff -f
 GUEST_INIT
@@ -123,6 +136,11 @@ boot_guest() {
         -append "console=ttyS0,115200 root=/dev/vda rootfstype=btrfs rw loglevel=4 $bootflags" \
         -drive "file=$image,format=raw,if=virtio,cache=none" >"$log" 2>&1 || {
         echo "QEMU failed to complete $description; last guest log lines:" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
+    grep -Fq "SKALDR_QEMU_ROOT_WRITE_OK=$expected" "$log" || {
+        echo "Guest root write verification failed for $expected" >&2
         tail -n 80 "$log" >&2
         exit 1
     }
@@ -174,6 +192,11 @@ GRUB_CONFIG
         tail -n 80 "$log" >&2
         exit 1
     }
+    grep -Fq "SKALDR_QEMU_ROOT_WRITE_OK=$expected" "$log" || {
+        echo "Guest root write verification failed for $expected" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
     grep -Fq "SKALDR_QEMU_ROOT_STATE=$expected" "$log" || {
         echo "GRUB BIOS did not boot the selected Btrfs root: $description" >&2
         tail -n 80 "$log" >&2
@@ -209,6 +232,11 @@ boot_uefi_guest() {
         -boot d -cdrom "$iso" \
         -drive "file=$image,format=raw,if=virtio,cache=none" >"$log" 2>&1 || {
         echo "UEFI GRUB QEMU boot failed: $label" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
+    grep -Fq "SKALDR_QEMU_ROOT_WRITE_OK=$expected" "$log" || {
+        echo "Guest root write verification failed for $expected" >&2
         tail -n 80 "$log" >&2
         exit 1
     }
@@ -292,6 +320,11 @@ LIMINE_CONFIG
                 exit 1
             }
         fi
+        grep -Fq "SKALDR_QEMU_ROOT_WRITE_OK=$expected" "$log" || {
+            echo "Guest root write verification failed for $expected" >&2
+            tail -n 80 "$log" >&2
+            exit 1
+        }
         grep -Fq "SKALDR_QEMU_ROOT_STATE=$expected" "$log" || {
             echo "Limine $firmware did not reach expected Btrfs root: $label" >&2
             tail -n 80 "$log" >&2
@@ -360,6 +393,11 @@ LIMINE_CONFIG
         tail -n 80 "$log" >&2
         exit 1
     }
+    grep -Fq "SKALDR_QEMU_ROOT_WRITE_OK=$expected" "$log" || {
+        echo "Guest root write verification failed for $expected" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
     grep -Fq "SKALDR_QEMU_ROOT_STATE=$expected" "$log" || {
         echo "Installed-disk Limine selected the wrong Btrfs root: $label" >&2
         tail -n 80 "$log" >&2
@@ -374,6 +412,13 @@ boot_installed_limine_case "restored" "" "original-before-snapshot"
 mount -o loop,subvolid=5 "$image" "$mnt"
 [[ "$(cat "$mnt/@/etc/skaldr-ci-state")" == "modified-after-snapshot" ]] || exit 1
 [[ "$(cat "$mnt/@restored/etc/skaldr-ci-state")" == "original-before-snapshot" ]] || exit 1
+[[ "$(cat "$mnt/@/etc/skaldr-ci-boot-write")" == "modified-after-snapshot" ]] || exit 1
+[[ "$(cat "$mnt/@restored/etc/skaldr-ci-boot-write")" == "original-before-snapshot" ]] || exit 1
+[[ ! -e "$mnt/@snapshot/etc/skaldr-ci-boot-write" ]] || {
+    echo "Read-only source snapshot was unexpectedly modified." >&2
+    exit 1
+}
+btrfs property get -ts "$mnt/@snapshot" ro | grep -qx 'ro=true'
 umount "$mnt"
-echo "PASS: twelve QEMU boots including two disk-backed Limine UEFI boots, with both Btrfs roots verified."
+echo "PASS: twelve QEMU boots with writable independent roots and unchanged read-only Btrfs source snapshot."
 echo "NOT TESTED: Calamares-installed KDE, its generated Limine entries, Secure Boot or physical recovery."
