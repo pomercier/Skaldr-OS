@@ -20,17 +20,17 @@ class BootConfigurationRecoveryTests(TestCase):
             root = Path(directory)
             (root / "boot/grub").mkdir(parents=True)
             (root / "boot/grub/grub.cfg").write_text(
-                "# rootflags=subvol=ignore\\n"
-                "linux /vmlinuz root=UUID=1234 rootflags=subvol=@,compress=zstd\\n"
+                "# rootflags=subvol=ignore\n"
+                "linux /vmlinuz root=UUID=1234 rootflags=subvol=@,compress=zstd\n"
             )
             (root / "boot").mkdir(exist_ok=True)
             (root / "boot/limine.conf").write_text(
-                "cmdline: quiet rootflags=subvolid=258\\n"
+                "cmdline: quiet rootflags=subvolid=258\n"
             )
             entries = root / "boot/loader/entries"
             entries.mkdir(parents=True)
             (entries / "skaldr.conf").write_text(
-                "options root=/dev/vda rootflags=\"subvol=@safe\" quiet\\n"
+                "options root=/dev/vda rootflags=\"subvol=@safe\" quiet\n"
             )
             values, checked = configured(root)
         self.assertEqual(values["grub"], ["subvol=@"])
@@ -45,9 +45,9 @@ class BootConfigurationRecoveryTests(TestCase):
             root = Path(directory)
             (root / "etc").mkdir()
             (root / "etc/fstab").write_text(
-                "# UUID=old / btrfs subvol=ignore 0 0\\n"
-                "UUID=home /home btrfs subvol=@home 0 0\\n"
-                "UUID=root / btrfs rw,compress=zstd,subvol=@ 0 0\\n"
+                "# UUID=old / btrfs subvol=ignore 0 0\n"
+                "UUID=home /home btrfs subvol=@home 0 0\n"
+                "UUID=root / btrfs rw,compress=zstd,subvol=@ 0 0\n"
             )
             self.assertEqual(fstab_override(root), "subvol=@")
 
@@ -56,7 +56,7 @@ class BootConfigurationRecoveryTests(TestCase):
             root = Path(directory)
             (root / "etc").mkdir()
             fstab = root / "etc/fstab"
-            fstab.write_text("UUID=root / btrfs rw,subvol=@ 0 0\\n")
+            fstab.write_text("UUID=root / btrfs rw,subvol=@ 0 0\n")
             original = fstab.read_bytes()
             with patch.dict(status.__globals__, {"command": lambda *a: None}):
                 report = status(root)
