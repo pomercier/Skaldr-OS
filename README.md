@@ -138,17 +138,17 @@ release assets on a second machine is still pending.
 
 ## Project status
 
-**Published preview versus development source:** the downloadable
-`v0.1.0-preview.1` remains the tested November 13 image. The `master`
-branch has newer work that **is not included in that published ISO**,
-including the pinned ArtCraft Launcher v0.19.2 and a tested Btrfs recovery
-workflow. An independent test on an earlier validated ISO proved a real
-Calamares-installed Limine/Btrfs rollback with an ISO-detached reboot,
-authenticated Plasma login and restored system marker
-([VM run 43753422214](https://github.com/pomercier/Skaldr-OS/actions/runs/43753422214)).
-A release from the latest sources requires **all five ISO jobs on the exact
-revision** to pass. The current development changes are not yet a
-hardware-certified stable release.
+**Published preview versus validated candidate:** `v0.1.0-preview.1`
+remains the public download from November 13, 2026. A newer exact-source
+development image from commit `a0198f8` passed **134 source tests**, all
+**five Desktop ISO jobs**, and the independent QCOW2 rollback test on
+November 15, 2026. The Limine/Btrfs test installed Skaldr via Calamares,
+restored a disposable root snapshot, booted the restored system without
+the installer ISO and verified the original data inside authenticated KDE.
+[Full ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315)
+and [preview.2 candidate notes](docs/RELEASE-CANDIDATE-PREVIEW-2.md)
+document this result. **Preview.2 is not published;** physical hardware and
+non-tested storage layouts are not certified.
 
 | Area | Current state |
 | --- | --- |
@@ -159,7 +159,7 @@ hardware-certified stable release.
 | Version provenance | Implemented in build tooling and first-login welcome |
 | CI source validation | Automated on `master` |
 | Public preview | **Published** [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1), seven verified-release assets from `b391fc35` |
-| Full ISO build and Calamares installation | **Passed** the updated KDE-only/Skaldr-branded ISO for GRUB/ext4 and Limine/Btrfs, including cold reboot, password-protected KDE login and first-run welcome, plus legacy BIOS live boot ([2026-11-14, run 43556906661](https://github.com/pomercier/Skaldr-OS/actions/runs/43556906661)). Physical hardware and legacy BIOS **installation** remain untested |
+| Full ISO build, installation and rollback | **Passed 5/5** on source `a0198f8`, including GRUB/ext4 and Limine/Btrfs installed KDE, restored Btrfs root cold boot, Control Center, legacy BIOS live boot and full ISO SHA-256 reassembly ([2026-11-15, run 43768508315](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315)). Physical hardware, encrypted storage and legacy BIOS **installation** remain untested |
 | Wallpaper, final boot splash and hardware certification | Work in progress |
 
 The project's priorities and gaps are tracked in [the development roadmap](docs/ROADMAP.md). Use [safe update, power and diagnostic controls](docs/SAFE-CONTROLS.md), the [hardware test checklist](docs/HARDWARE-TESTING.md) and the [community compatibility report template](docs/HARDWARE-COMPATIBILITY.md).

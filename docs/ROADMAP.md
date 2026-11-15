@@ -34,8 +34,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Refuse a hardcoded numeric Btrfs rootflags with unchanged source QCOW2 SHA-256, then validate positive recovery and immutable snapshot (2026-11-15, isolated run 43752897173)
 - [x] Recover a real Calamares-installed Limine/Btrfs root on disposable QCOW2, cold reboot without installer ISO, authenticate KDE, verify restored guest marker and reopen Skaldr Control Center (2026-11-15, full independent probe 43753422214 using validated ISO 87)
 - [x] Diagnose the 2026-11-15 full-ISO Limine/Btrfs rollback failure: Calamares installation and KDE Control Center passed, but offline loop-backed `blkid` partition discovery found no Btrfs partition (run 43758327044)
-- [ ] Confirm deterministic, read-only GPT/Btrfs magic detection in isolated QCOW2 smoke and the next full ISO matrix (implementation pending CI validation)
-- [ ] Repeat the Calamares-installed rollback with an ISO built from the **exact current revision**, as part of a fully passing five-job desktop ISO matrix (preview release gate)
+- [x] Confirm deterministic GPT/Btrfs magic detection in isolated QCOW2 smoke (run 43768508288) and in the exact-source Limine/Btrfs full ISO matrix (run 43768508315; November 15, 2026)
+- [x] Complete Calamares-installed Limine/Btrfs rollback from the exact source revision `a0198f8`, cold-boot the restored guest into KDE and pass all five ISO jobs (run 43768508315)
 - [ ] Verify recovery with other supported bootloaders, rootflags configurations, encrypted layouts and adverse reboot scenarios
 - [ ] LTS kernel recovery entry and bootloader verification
 - [ ] LACT validation and thermal diagnostics
@@ -77,6 +77,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
 - [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)
 - [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)
+- [x] Prepare [preview.2 candidate release notes](RELEASE-CANDIDATE-PREVIEW-2.md) for exact source `a0198f8`, with 134 source tests and 5/5 ISO jobs passed; **not published**
+- [ ] Publish v0.1.0-preview.2 only via the existing manual release workflow with explicit `source_sha`, then independently verify publicly downloadable parts
 - [ ] Independently download and reassemble all public release assets on a second machine
 - [x] Authorize development preview only after source checks and all five ISO tests passed for commit b391fc35
 - [ ] Publish a stable release only after physical hardware tests and a release-mode ISO build
