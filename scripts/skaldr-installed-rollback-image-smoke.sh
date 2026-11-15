@@ -42,11 +42,43 @@ loopdev="$(losetup --find --show --offset "$((264192 * 512))" \
 mkfs.btrfs -f -m single -d single "$loopdev" >/dev/null
 mount "$loopdev" "$mountpoint_dir"
 btrfs subvolume create "$mountpoint_dir/@" >/dev/null
-mkdir -p "$mountpoint_dir/@/etc" "$mountpoint_dir/@/usr"
+mkdir -p "$mountpoint_dir/@/etc/default" "$mountpoint_dir/@/usr"
 printf 'synthetic-calamares-fixture\n' > "$mountpoint_dir/@/etc/skaldr-ci-fixture"
+printf 'KERNEL_CMDLINE[default]="rootflags=subvolid=256"\n' > "$mountpoint_dir/@/etc/default/limine"
 umount "$mountpoint_dir"
 losetup -d "$loopdev"
 loopdev=""
+qemu-img convert -S 4k -O qcow2 "$raw" "$disk"
+qemu-img check "$disk" >/dev/null
+# A hard-coded numeric root ID must be refused WITHOUT modifying the source
+# QCOW2, because moving @ cannot redirect a bootloader pinned to that ID.
+before="$(sha256sum "$disk" | cut -d' ' -f1)"
+if bash scripts/skaldr-ci-installed-rollback.sh "$disk" > "$scratch/refusal.log" 2>&1; then
+    echo "Unsafe numeric Btrfs rootflags were unexpectedly accepted." >&2
+    exit 1
+fi
+grep -Fq "Numeric Btrfs rootflags detected" "$scratch/refusal.log" || {
+    echo "Rollback refused, but for the wrong reason." >&2
+    cat "$scratch/refusal.log" >&2
+    exit 1
+}
+after="$(sha256sum "$disk" | cut -d' ' -f1)"
+[[ "$before" == "$after" ]] || {
+    echo "Rejected rollback unexpectedly changed the original QCOW2." >&2
+    exit 1
+}
+echo "PASS: pinned numeric Btrfs rootflags refused with unchanged QCOW2."
+
+# Remove the deliberately unsafe selector from the private synthetic RAW
+# fixture; the same helper must now succeed on a valid supported layout.
+loopdev="$(losetup --find --show --offset "$((264192 * 512))" \
+    --sizelimit "$((2097152 * 512))" "$raw")"
+mount "$loopdev" "$mountpoint_dir"
+rm -- "$mountpoint_dir/@/etc/default/limine"
+umount "$mountpoint_dir"
+losetup -d "$loopdev"
+loopdev=""
+rm -f -- "$disk"
 qemu-img convert -S 4k -O qcow2 "$raw" "$disk"
 qemu-img check "$disk" >/dev/null
 bash scripts/skaldr-ci-installed-rollback.sh "$disk"

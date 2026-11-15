@@ -64,3 +64,12 @@ GitHub's privileged runner may expose `/dev/loopN` but not
 partition using `losetup --offset --sizelimit`, and detects the unique Btrfs
 filesystem. The synthetic test uses the same method with its known GPT
 partition offset. No physical disk is opened or formatted.
+
+## Explicit numeric-rootflags refusal
+
+The synthetic image workflow additionally creates a temporary boot config
+with `rootflags=subvolid=256`. It requires the rollback helper to refuse
+the operation for that specific reason and verifies the original QCOW2
+retains its exact SHA-256 digest. After removing that intentionally unsafe
+option from the **synthetic fixture**, the workflow must then complete the
+normal rollback. This negative test is separate from KDE boot validation.

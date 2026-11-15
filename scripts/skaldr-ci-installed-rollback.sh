@@ -143,5 +143,5 @@ if ! mv "$restored" "$disk"; then
     echo "Failed to stage the recovered CI disk." >&2
     exit 1
 fi
-echo "PASS: recovered a Calamares-installed Btrfs root in a new QCOW2 image."
+echo "PASS: restored a disposable Btrfs root in a newly verified QCOW2 image."
 echo "NOT YET VERIFIED: bootloader, KDE or VM reboot (tested by Quicktest next)."

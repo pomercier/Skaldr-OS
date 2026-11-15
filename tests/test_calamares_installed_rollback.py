@@ -109,6 +109,8 @@ class CalamaresInstalledRollbackTests(unittest.TestCase):
             '"original-before-rollback"',
             '"modified-after-snapshot"',
             'btrfs property get -ts',
+            'Numeric Btrfs rootflags detected',
+            '[[ "$before" == "$after" ]]',
             'default_id=',
             'root_id=',
         ):
