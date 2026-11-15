@@ -1,0 +1,40 @@
+name: Skaldr installed Btrfs image recovery smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'scripts/skaldr-ci-installed-rollback.sh'
+      - 'scripts/skaldr-installed-rollback-image-smoke.sh'
+      - 'tests/test_calamares_installed_rollback.py'
+      - '.github/workflows/skaldr-installed-rollback-image.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-image:
+    name: Restore GPT/Btrfs QCOW2 copy without any installed devices
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+    steps:
+      - name: Install QEMU and Btrfs filesystem tools inside disposable container
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -Syu --noconfirm --needed git python qemu-img btrfs-progs util-linux systemd
+      - name: Check out Skaldr source
+        uses: actions/checkout@v4
+      - name: Exercise offline rollback on a synthetic GPT/Btrfs QCOW2 file
+        shell: bash
+        env:
+          SKALDR_CI_INSTALLED_ROLLBACK: disposable-calamares-qcow2
+          RUNNER_TEMP: /tmp
+        run: |
+          set -euo pipefail
+          bash -n scripts/skaldr-ci-installed-rollback.sh
+          bash -n scripts/skaldr-installed-rollback-image-smoke.sh
+          bash scripts/skaldr-installed-rollback-image-smoke.sh

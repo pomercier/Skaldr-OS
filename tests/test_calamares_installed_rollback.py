@@ -79,6 +79,49 @@ class CalamaresInstalledRollbackTests(unittest.TestCase):
         )
         self.assertIn(order, content)
 
+    def test_synthetic_disk_rehearsal_is_isolated_and_real(self):
+        smoke = ROOT / "scripts/skaldr-installed-rollback-image-smoke.sh"
+        proc = subprocess.run(
+            ["bash", "-n", str(smoke)], capture_output=True,
+            text=True, timeout=10, check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        env = os.environ.copy()
+        env.pop("GITHUB_ACTIONS", None)
+        env.pop("SKALDR_CI_INSTALLED_ROLLBACK", None)
+        blocked = subprocess.run(
+            ["bash", str(smoke)], env=env,
+            capture_output=True, text=True, timeout=10, check=False,
+        )
+        self.assertEqual(blocked.returncode, 2)
+        self.assertIn("Refusing image rehearsal", blocked.stderr)
+        source = smoke.read_text()
+        for item in (
+            '[[ ! -e "$disk" && ! -L "$disk" ]]',
+            'truncate -s 8G "$raw"',
+            'sfdisk "$raw"',
+            'mkfs.btrfs -f -m single -d single',
+            'qemu-img convert -S 4k -O qcow2 "$raw" "$disk"',
+            'bash scripts/skaldr-ci-installed-rollback.sh "$disk"',
+            '"original-before-rollback"',
+            '"modified-after-snapshot"',
+            'btrfs property get -ts',
+            'default_id=',
+            'root_id=',
+        ):
+            self.assertIn(item, source)
+        self.assertNotIn('mkfs.btrfs /dev/', source)
+        self.assertNotIn('qemu-img convert -O raw /dev/', source)
+
+    def test_synthetic_rehearsal_workflow_keeps_real_iso_ci_separate(self):
+        wf = (ROOT / ".github/workflows/skaldr-installed-rollback-image.yml").read_text()
+        self.assertIn("image: archlinux:base-devel", wf)
+        self.assertIn("options: --privileged", wf)
+        self.assertIn("SKALDR_CI_INSTALLED_ROLLBACK: disposable-calamares-qcow2", wf)
+        self.assertIn("bash scripts/skaldr-installed-rollback-image-smoke.sh", wf)
+        self.assertNotIn("workflow_run:", wf)
+        self.assertNotIn("release:", wf)
+
     def test_workflow_depends_on_real_qemu_and_btrfs_tools(self):
         workflow = WORKFLOW.read_text()
         self.assertIn('qemu-desktop socat btrfs-progs', workflow)

@@ -40,3 +40,18 @@ The test is gated on `TEST_BOOTLOADER=limine` and
 `TEST_FILESYSTEM=btrfs`; other ISO matrix jobs are unchanged.
 Never mark this check complete until its **five-job Desktop ISO workflow**
 passes and its Limine/Btrfs job includes the guest marker/KDE assertions.
+
+## Independent synthetic-image rehearsal
+
+A separate, inexpensive CI job runs
+`scripts/skaldr-installed-rollback-image-smoke.sh`. It creates a sparse
+8 GiB GPT disk **file** with a real 1 GiB Btrfs partition and `@` root,
+converts the disk to a disposable QCOW2, and runs the **same offline helper**
+used by the full Calamares test. It reopens the restored QCOW2 through a
+loop device to verify the restored root, the preserved modified root,
+the default Btrfs subvolume and the immutable source snapshot.
+
+This validates real `qemu-img`, GPT, loop mounting and Btrfs filesystem
+operations without requiring a multi-gigabyte ISO. It is intentionally
+not an installation or kernel boot test. The full installed KDE/Calamares
+scenario remains mandatory and separately gated.
