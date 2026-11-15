@@ -75,7 +75,7 @@ class QemuRootRecoveryTests(unittest.TestCase):
             'btrfs subvolume snapshot -r "$root" "$mnt/@snapshot"',
             'btrfs subvolume snapshot "$mnt/@snapshot" "$mnt/@restored"',
             'btrfs subvolume set-default "$restored_id" "$mnt"',
-            'NOT TESTED: full installed KDE',
+            'NOT TESTED: Calamares-installed KDE',
         ):
             self.assertIn(required, source)
 
