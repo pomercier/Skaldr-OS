@@ -60,3 +60,18 @@ restoring a writable root snapshot, an ISO-detached restart and KDE login.
 
 References: [Btrfs mount options](https://btrfs.readthedocs.io/en/stable/btrfs-man5.html),
 [ArchWiki Btrfs](https://wiki.archlinux.org/title/Btrfs).
+
+## Installed boot entry diagnostics
+
+`skaldr-recovery` now reports subvolume selectors found in the currently
+running kernel arguments, commonly used GRUB/Limine/systemd-boot configuration
+paths, and the root `/etc/fstab` entry. It does not print complete kernel
+arguments or change any boot configuration.
+
+A detected `rootflags=subvol=`, `rootflags=subvolid=`, or root fstab
+`subvol=` forces a warning: switching the Btrfs default subvolume alone
+cannot be assumed sufficient for recovery. Missing selectors remain an
+**unknown**, not a successful rollback certification.
+
+The scanner is bounded, recognizes common file locations, and is intentionally
+not an exhaustive interpretation of every custom bootloader configuration.

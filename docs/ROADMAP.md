@@ -23,7 +23,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Validate real Snapper snapshot creation and independent Btrfs data restoration in a disposable 512 MiB image (2026-11-15, run 43683236789)
 - [x] Validate restored default-subvolume root selection after remount of the disposable Btrfs image (2026-11-15, run 43736814304)
 - [x] Verify explicit `subvol=` mount precedence in disposable CI and add read-only installed rootflags diagnostics (2026-11-15, recovery run 43738627267; source run 43738627201)
-- [ ] Boot real Linux guest with a switched Btrfs root in independent disposable QEMU CI (implementation committed; runtime validation pending)
+- [x] Boot a real Linux kernel with modified and restored Btrfs roots in independent disposable QEMU CI (2026-11-15, run 43740331490, both boots passed)
+- [ ] Audit installed GRUB, Limine, systemd-boot and fstab root-subvolume selectors in read-only recovery report (CI tests pending)
 - [ ] Verify full installed-root rollback with real QEMU reboot, KDE and bootloader integration
 - [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs
 - [ ] Verify bootloader snapshot restore with supported loaders

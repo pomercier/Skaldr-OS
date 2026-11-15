@@ -2,6 +2,7 @@
 """Read-only Skaldr recovery readiness; never performs rollback or boot edits."""
 import argparse
 import json
+import re
 import shlex
 from pathlib import Path
 import shutil
@@ -49,6 +50,67 @@ def kernel_command_line(root):
         return None
 
 
+
+def _noncomment_lines(path, limit=12000):
+    """Read a bounded portion of a known boot file; never execute its content."""
+    try:
+        with path.open("r", encoding="utf-8", errors="replace") as source:
+            for index, line in enumerate(source):
+                if index >= limit:
+                    break
+                if line.strip() and not line.lstrip().startswith("#"):
+                    yield line
+    except OSError:
+        return
+
+
+def _entry_rootflags(line):
+    # The raw kernel command line can contain other confidential options.
+    # Only the bounded subvolume selector is retained in our JSON report.
+    for match in re.finditer(
+        r"(?:^|[\s'\"=])rootflags=['\"]?([^\s'\"\\]+)", line
+    ):
+        value = root_subvolume_override("rootflags=" + match.group(1))
+        if value is not None:
+            yield value[:256]
+
+
+def configured_boot_root_overrides(root):
+    """Read hints from common boot entries; never claim exhaustive coverage."""
+    sources = {
+        "grub": [root / "boot/grub/grub.cfg"],
+        "limine": [root / "boot/limine.conf",
+                   root / "boot/limine/limine.conf",
+                   root / "efi/limine.conf"],
+        "systemd_boot": sorted((root / "boot/loader/entries").glob("*.conf"))[:64]
+                        + sorted((root / "efi/loader/entries").glob("*.conf"))[:64],
+    }
+    output = {}
+    checked = {}
+    for loader, candidates in sources.items():
+        existing = [p for p in candidates if p.is_file()]
+        checked[loader] = bool(existing)
+        selectors = set()
+        for path in existing:
+            for line in _noncomment_lines(path):
+                selectors.update(_entry_rootflags(line))
+        output[loader] = sorted(selectors)
+    return output, checked
+
+
+def fstab_root_subvolume_override(root):
+    """Detect explicit subvol selection for / in a Btrfs /etc/fstab."""
+    for line in _noncomment_lines(root / "etc/fstab"):
+        columns = line.split()
+        if len(columns) < 4 or columns[1] != "/" or columns[2] != "btrfs":
+            continue
+        for option in columns[3].split(","):
+            key, delimiter, value = option.partition("=")
+            if delimiter and key in ("subvol", "subvolid") and value:
+                return f"{key}={value[:256]}"
+    return None
+
+
 def status(root=Path("/")):
     # No snapshot or bootloader modification is made.
     filesystem = command("findmnt", "-n", "-o", "FSTYPE", "/") or "unknown"
@@ -56,6 +118,9 @@ def status(root=Path("/")):
     snapper_present = shutil.which("snapper") is not None
     cmdline = kernel_command_line(root)
     override = root_subvolume_override(cmdline)
+    configured, checked = configured_boot_root_overrides(root)
+    fstab_override = fstab_root_subvolume_override(root)
+    any_override = bool(override or fstab_override or any(configured.values()))
     kernels = sorted({p.name for p in (root / "boot").glob("vmlinuz-*")})
     config_files = {
         "grub": (root / "boot/grub/grub.cfg").is_file(),
@@ -70,20 +135,22 @@ def status(root=Path("/")):
         "available_kernel_filenames": kernels[:30],
         "kernel_root_subvolume_override": override,
         "kernel_rootflags_checked": cmdline is not None,
+        "boot_config_root_subvolume_overrides": configured,
+        "boot_config_sources_checked": checked,
+        "fstab_root_subvolume_override": fstab_override,
+        "boot_subvolume_override_detected": any_override,
         "default_subvolume_change_sufficient_for_boot": (
-            False if override is not None else None
+            False if any_override else None
         ),
         "boot_subvolume_note": (
-            "The active kernel explicitly selects a Btrfs root subvolume. "
-            "Changing the Btrfs default subvolume alone will not redirect "
-            "boots that use this rootflags option."
-            if override is not None else
-            "No explicit Btrfs root subvolume option was found in the current "
-            "kernel command line. Bootloader entries, initramfs and fstab "
-            "still require independent recovery testing."
-            if cmdline is not None else
-            "Kernel command line unavailable; root-subvolume boot behavior "
-            "cannot be assessed."
+            "An explicit Btrfs subvolume was found in the active kernel "
+            "arguments, a detected boot entry, or the root fstab entry. "
+            "Switching the default subvolume alone does not guarantee "
+            "reboot into the restored system."
+            if any_override else
+            "No explicit Btrfs subvolume was detected in the checked files. "
+            "This is NOT evidence that switching the default root is safe; "
+            "other boot entries, initramfs and recovery paths remain untested."
         ),
         "bootloader_config_present": config_files,
         "rollback_verified": False,
