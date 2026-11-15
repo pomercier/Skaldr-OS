@@ -32,11 +32,9 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Audit known GRUB, Limine, systemd-boot and fstab root-subvolume selectors in read-only recovery report (source run 43741230183; not exhaustive)
 - [x] Validate offline rollback helper on a standalone synthetic GPT/Btrfs QCOW2 with real qemu-img, loop mounts and source snapshot (2026-11-15, isolated run 43752617397)
 - [x] Refuse a hardcoded numeric Btrfs rootflags with unchanged source QCOW2 SHA-256, then validate positive recovery and immutable snapshot (2026-11-15, isolated run 43752897173)
-- [ ] Verify real Calamares-installed Limine/Btrfs rollback and KDE login using separately validated ISO 87 (independent integration probe pending)
-- [ ] Verify actual Calamares-installed Limine/Btrfs rollback from an independently restored QCOW2 copy, cold reboot without ISO, guest root marker and authenticated KDE Plasma login (new CI pending)
-- [ ] Verify full installed-root rollback with real QEMU reboot, KDE and bootloader integration
-- [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs
-- [ ] Verify bootloader snapshot restore with supported loaders
+- [x] Recover a real Calamares-installed Limine/Btrfs root on disposable QCOW2, cold reboot without installer ISO, authenticate KDE, verify restored guest marker and reopen Skaldr Control Center (2026-11-15, full independent probe 43753422214 using validated ISO 87)
+- [ ] Repeat the Calamares-installed rollback with an ISO built from the **exact current revision**, as part of a fully passing five-job desktop ISO matrix (preview release gate)
+- [ ] Verify recovery with other supported bootloaders, rootflags configurations, encrypted layouts and adverse reboot scenarios
 - [ ] LTS kernel recovery entry and bootloader verification
 - [ ] LACT validation and thermal diagnostics
 - [ ] Complete the [physical hardware test matrix](HARDWARE-TESTING.md), including NVIDIA/AMD/Intel coverage
@@ -59,6 +57,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Add read-only recovery readiness report (Snapper, kernel filenames, bootloader presence)
 - [x] Create contributor hardware test-report template (no privacy-sensitive identifiers)
 - [ ] Validate GPU decoding, HDR/VRR, suspend and recovery on physical machines
+- [x] Update the locally bundled ArtCraft Launcher to upstream v0.19.2 with published SHA-256, local diagnostics and no web redirect in the wrapper (2026-11-15, source checks run 43758327030)
 - [ ] Validate bundled checksum-verified official ArtCraft Launcher AppImage on the live and installed KDE desktop
 - [ ] Expand the safe update workflow into a complete distribution-first update frontend and rollback UX
 

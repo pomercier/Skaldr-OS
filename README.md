@@ -138,6 +138,18 @@ release assets on a second machine is still pending.
 
 ## Project status
 
+**Published preview versus development source:** the downloadable
+`v0.1.0-preview.1` remains the tested November 13 image. The `master`
+branch has newer work that **is not included in that published ISO**,
+including the pinned ArtCraft Launcher v0.19.2 and a tested Btrfs recovery
+workflow. An independent test on an earlier validated ISO proved a real
+Calamares-installed Limine/Btrfs rollback with an ISO-detached reboot,
+authenticated Plasma login and restored system marker
+([VM run 43753422214](https://github.com/pomercier/Skaldr-OS/actions/runs/43753422214)).
+A release from the latest sources requires **all five ISO jobs on the exact
+revision** to pass. The current development changes are not yet a
+hardware-certified stable release.
+
 | Area | Current state |
 | --- | --- |
 | Base | Public CachyOS Live ISO fork, upstream-compatible |
