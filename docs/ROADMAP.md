@@ -20,6 +20,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Guard scx_loader boot service when the running kernel lacks sched_ext; verify the diagnostic report in isolated tests (2026-11-13)
 - [ ] Verify scheduler failures and built-in kernel fallback on real Intel/AMD hardware
 - [x] Conditional Snapper root configuration and cleanup/timeline timers
+- [x] Add disposable GitHub Actions smoke test for Btrfs + Snapper snapshot creation, read-only verification and independent data restoration (implementation; CI execution pending)
+- [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs
 - [ ] Verify bootloader snapshot restore with supported loaders
 - [ ] LTS kernel recovery entry and bootloader verification
 - [ ] LACT validation and thermal diagnostics

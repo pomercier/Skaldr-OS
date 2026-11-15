@@ -1,0 +1,39 @@
+name: Skaldr Btrfs recovery smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'scripts/skaldr-btrfs-recovery-smoke.sh'
+      - 'tests/test_btrfs_recovery_smoke.py'
+      - '.github/workflows/skaldr-btrfs-recovery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scratch-snapshot:
+    name: Disposable Btrfs / Snapper recovery
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+    steps:
+      - name: Install Git and Btrfs utilities in disposable CI container
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -Syu --noconfirm --needed git btrfs-progs snapper util-linux
+
+      - name: Check out Skaldr sources
+        uses: actions/checkout@v4
+
+      - name: Verify disposable filesystem snapshot and independent recovery
+        shell: bash
+        env:
+          SKALDR_BTRFS_CI_EXPLICIT: disposable-ci-image
+          RUNNER_TEMP: /tmp
+        run: |
+          set -euo pipefail
+          bash -n scripts/skaldr-btrfs-recovery-smoke.sh
+          bash scripts/skaldr-btrfs-recovery-smoke.sh
