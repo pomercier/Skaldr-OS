@@ -300,6 +300,79 @@ function test_installed_native_control_center() {
     # No privileged operation is selected or executed by this smoke test.
 }
 
+function test_installed_btrfs_snapshot_rollback() {
+    # This is a REAL Calamares-installed VM rollback, not the smaller
+    # independent BusyBox Btrfs test. Keep the other matrix jobs unchanged.
+    if [[ "${TEST_BOOTLOADER:-}" != "limine" ||
+          "${TEST_FILESYSTEM:-}" != "btrfs" ]]; then
+        return 0
+    fi
+    qt_echo "Power down the installed Limine/Btrfs VM for offline rollback"
+    qt_poweroff_vm
+    qt_wait_for_seconds 5
+
+    local qcow2="${QUICKEMU_VM_DIR}/cachyos-dailylive/disk.qcow2"
+    [[ -s "$qcow2" ]] || qt_test_fail "Calamares-installed Btrfs disk missing"
+    local absolute_qcow2
+    absolute_qcow2="$(realpath -e "$qcow2")" ||
+        qt_test_fail "Could not resolve disposable VM disk"
+    # The helper accepts only the absolute CI Quickemu disk path and modifies
+    # ONLY a QCOW2 copy; no real drives or host bootloaders are touched.
+    SKALDR_CI_INSTALLED_ROLLBACK=disposable-calamares-qcow2 \
+        bash scripts/skaldr-ci-installed-rollback.sh "$absolute_qcow2" ||
+        qt_test_fail "Offline Btrfs recovery of installed VM failed"
+    qt_echo "Reboot restored Calamares installation without the installer ISO"
+    qt_launch_quickemu || qt_test_fail "Could not boot restored installed disk"
+    qt_wait_for_seconds 8
+    qt_get_qemu_socket || qt_test_fail "Restored VM QEMU monitor missing"
+    test_ci_cpu_model
+
+    local pid_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/cachyos-dailylive.pid"
+    [[ -s "$pid_file" ]] || qt_test_fail "Restored VM QEMU PID missing"
+    local qemu_pid
+    qemu_pid="$(cat "$pid_file")"
+    [[ -r "/proc/$qemu_pid/cmdline" ]] ||
+        qt_test_fail "Restored VM process absent"
+    if grep -aFq '.iso' "/proc/$qemu_pid/cmdline"; then
+        qt_test_fail "Restored VM still depends on installer ISO"
+    fi
+
+    qt_wait_for_text "$FUNCNAME" "Show On-Screen Keyboard" 30 10
+    qt_screenshot_ppm "$FUNCNAME"
+    local snapshot width height
+    snapshot="$(find "$QT_RESULTS" -type f -name 'screenshot_*.ppm' | sort | tail -n 1)"
+    [[ -f "$snapshot" ]] || qt_test_fail "Restored KDE greeter screenshot missing"
+    width="$(identify -format '%w' "$snapshot")"
+    height="$(identify -format '%h' "$snapshot")"
+    python3 scripts/skaldr-qmp-click.py \
+        --x "$((width / 2))" --y "$((height * 60 / 100))" \
+        --width "$width" --height "$height" ||
+        qt_test_fail "Could not focus restored KDE login"
+    qt_wait_for_seconds 1
+    qt_send_string_return "$test_password"
+    qt_wait_for_seconds 12
+
+    # Actual guest filesystem evidence: the output comes from a command run
+    # AFTER Plasma login, not from the host's Btrfs snapshot directory.
+    qt_echo "Prove the logged-in restored guest has the original root marker"
+    qt_send_key_combo "alt-f2"
+    qt_wait_for_seconds 2
+    qt_send_string_return "konsole --hold -e cat /etc/skaldr-ci-rollback-state"
+    qt_wait_for_text "$FUNCNAME" "original-before-rollback" 20 5
+    qt_screenshot_ppm "$FUNCNAME"
+
+    qt_echo "Validate the native Skaldr dashboard after Btrfs restoration"
+    qt_send_key_combo "alt-f4"
+    qt_wait_for_seconds 2
+    qt_send_key_combo "alt-f2"
+    qt_wait_for_seconds 2
+    qt_send_string_return "skaldr-center"
+    qt_wait_for_text "$FUNCNAME" "System overview" 18 6
+    qt_wait_for_text "$FUNCNAME" "Kernel:" 8 5
+    qt_screenshot_ppm "$FUNCNAME"
+    qt_echo "PASS: real Calamares-installed Limine/Btrfs rollback, cold boot and KDE"
+}
+
 function test_power_off_vm() {
     qt_poweroff_vm
 }
@@ -364,6 +437,7 @@ function test_install_calamares() {
     test_installed_system_cold_boot
     test_installed_plasma_first_login
     test_installed_native_control_center
+    test_installed_btrfs_snapshot_rollback
     test_power_off_vm
 }
 

@@ -1,0 +1,42 @@
+# Calamares-installed Btrfs rollback: real VM integration
+
+This is the next validation after the isolated 12/12 QEMU kernel and
+bootloader smoke tests. The separate smoke tests use a minimal root; this
+test exercises the **actual installed Skaldr OS**, installed by Calamares.
+
+The full Desktop ISO Quicktest Limine/Btrfs matrix job:
+
+1. Installs Skaldr through Calamares into a 48 GiB sparse Quickemu QCOW2
+   disk using the usual GUI and real package installation.
+2. Cold-boots the installed system **with no ISO**, logs in with the
+   password-protected CI account and opens the native Skaldr Control Center.
+3. Powers off QEMU, then calls the CI-only offline rollback helper. It
+   refuses all targets other than the fixed disposable Quickemu QCOW2 path.
+4. Converts the VM disk to a **separate temporary raw image**, mounts only
+   its Btrfs partition with a loop device and locates the Calamares-created
+   `@` root subvolume; unexpected layouts fail rather than being guessed.
+5. Creates a read-only root snapshot with a pre-change marker, changes the
+   working `@` marker, and creates a separate writable restored snapshot.
+6. Retains the original changed `@` under a different name, renames the
+   restored root into `@`, and changes the disposable image's Btrfs default.
+   A hardcoded numeric `rootflags=subvolid=` detected in the installed
+   files causes a fail-closed refusal; existing boot files aren't rewritten.
+7. Converts the verified raw disk back to a *new* QCOW2 and replaces the
+   disposable Quickemu disk only after validation, keeping the original
+   safely isolated during conversion.
+8. Boots **without the installation ISO**, verifies KDE's real login
+   greeter, authenticates, opens Konsole and reads
+   `/etc/skaldr-ci-rollback-state` from inside the guest.
+9. Requires the restored original marker and launches the Skaldr Control
+   Center, requiring a populated system overview and kernel field.
+
+This is a test for a manually prepared rollback on a temporary CI image,
+**not** an automatic end-user rollback feature. It does not certify
+unexpected storage layouts, different bootloaders, Secure Boot, encrypted
+root partitions, physical hardware or power-loss recovery. No user's
+real disk, partition table, or bootloader is modified.
+
+The test is gated on `TEST_BOOTLOADER=limine` and
+`TEST_FILESYSTEM=btrfs`; other ISO matrix jobs are unchanged.
+Never mark this check complete until its **five-job Desktop ISO workflow**
+passes and its Limine/Btrfs job includes the guest marker/KDE assertions.

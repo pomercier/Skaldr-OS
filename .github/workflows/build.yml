@@ -152,7 +152,7 @@ jobs:
           # A single Arch mirror/signature CDN outage must not invalidate
           # the already-built ISO or hide a genuine package error.
           for attempt in 1 2 3; do
-            if pacman -Syu --noconfirm git ffmpeg imagemagick tesseract-data-eng qemu-desktop socat; then
+            if pacman -Syu --noconfirm git ffmpeg imagemagick tesseract-data-eng qemu-desktop socat btrfs-progs util-linux qemu-img; then
               exit 0
             fi
             if [ "$attempt" -eq 3 ]; then
