@@ -73,3 +73,17 @@ the operation for that specific reason and verifies the original QCOW2
 retains its exact SHA-256 digest. After removing that intentionally unsafe
 option from the **synthetic fixture**, the workflow must then complete the
 normal rollback. This negative test is separate from KDE boot validation.
+
+## Independent integration probe using validated ISO 87
+
+The separate
+[`skaldr-installed-rollback-probe.yml`](../.github/workflows/skaldr-installed-rollback-probe.yml)
+workflow runs **the new current CI rollback code** against a previously
+validated and independently checksum-verified ISO from Desktop ISO run
+`43745598535`. That older ISO already passed Calamares installation,
+Limine/Btrfs cold reboot and KDE login. The probe reuses it to avoid waiting
+for a full new image build before diagnosing the newly added rollback stage.
+
+This is an *integration debugging probe*, not proof that the ISO built from
+the latest source commit passes. Release authorization continues to require
+successful source and full Desktop ISO workflows for the exact same revision.

@@ -1,0 +1,115 @@
+name: Probe installed Skaldr rollback with validated ISO
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/skaldr-installed-rollback-probe.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  installed-limine-btrfs:
+    name: Real Calamares install, Btrfs rollback, Limine reboot and KDE login
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+    steps:
+      - name: Install Git before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -Syu --noconfirm --needed git
+      - name: Checkout current Quicktest and recovery sources
+        uses: actions/checkout@v6
+      - name: Install isolated VM test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if pacman -Syu --noconfirm --needed git ffmpeg imagemagick \
+                 tesseract-data-eng qemu-desktop socat btrfs-progs util-linux qemu-img; then
+              exit 0
+            fi
+            if [[ "$attempt" == 3 ]]; then exit 1; fi
+            sleep "$((attempt * 10))"
+          done
+      - name: Prepare disposable VM build account
+        shell: bash
+        run: |
+          set -euo pipefail
+          useradd builder -m
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          chmod -R a+rw .
+      - name: Build standard Quickemu from AUR
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -u builder git clone https://aur.archlinux.org/quickemu.git
+          cd quickemu
+          sudo -H -E -u builder makepkg --syncdeps --noconfirm
+          pacman -U --noconfirm quickemu*.pkg.tar.zst
+      - name: Clone upstream Quicktest harness
+        uses: actions/checkout@v6
+        with:
+          repository: quickemu-project/quicktest
+          path: quicktest
+      - name: Download previously validated Skaldr ISO (run 43745598535)
+        uses: actions/download-artifact@v4
+        with:
+          name: skaldr-os-x86_64-261115
+          run-id: 43745598535
+          github-token: ${{ github.token }}
+          path: machines/cachyos-dailylive
+      - name: Verify source ISO checksum before installation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find machines/cachyos-dailylive -maxdepth 1 -name '*.iso' | wc -l)" -eq 1
+          (cd machines/cachyos-dailylive && sha256sum --check SHA256SUMS)
+      - name: Install, restore and boot real Plasma VM from recovered disk
+        shell: bash
+        env:
+          QT_NOTIFY: "false"
+          QT_OPEN_RESULTS: "false"
+          QT_QUICKGET_SKIP: "true"
+          QT_TESTCASES_DIR: "./testcases"
+          QUICKEMU_DISPLAY: "none"
+          QUICKEMU_VM_DIR: "./machines"
+          TEST_BOOTLOADER: "limine"
+          TEST_FILESYSTEM: "btrfs"
+        run: |
+          set -euo pipefail
+          bash -n scripts/skaldr-ci-installed-rollback.sh
+          bash -n testcases/cachyos/dailylive/test_install_calamares
+          log_file="${RUNNER_TEMP:-/tmp}/skaldr-installed-rollback-serial.log"
+          : > "$log_file"
+          (
+            socket="machines/cachyos-dailylive/cachyos-dailylive-serial.socket"
+            while [[ ! -S "$socket" ]]; do sleep 1; done
+            socat -u "UNIX-CONNECT:$socket" STDOUT >> "$log_file"
+          ) &
+          serial_pid=$!
+          trap 'kill "$serial_pid" 2>/dev/null || :; mkdir -p results/ci; cp "$log_file" results/ci/installer-serial.log || :' EXIT
+          ./quicktest/quicktest test_install_calamares cachyos dailylive
+          grep -Fq "Skaldr target packages and system preferences installed" "$log_file"
+          grep -Fq "Skaldr: Btrfs snapshot configuration is available." "$log_file"
+      - name: Index installed desktop screenshot/video evidence
+        if: always()
+        shell: bash
+        run: |
+          python3 scripts/skaldr-visual-evidence.py \
+            --results-dir results \
+            --output results/ci/visual-evidence.json \
+            --frames-per-video 3
+      - name: Upload independent rollback test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skaldr-installed-rollback-iso87-probe
+          path: results/*
+          if-no-files-found: warn

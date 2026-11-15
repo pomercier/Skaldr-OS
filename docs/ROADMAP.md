@@ -32,6 +32,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Audit known GRUB, Limine, systemd-boot and fstab root-subvolume selectors in read-only recovery report (source run 43741230183; not exhaustive)
 - [x] Validate offline rollback helper on a standalone synthetic GPT/Btrfs QCOW2 with real qemu-img, loop mounts and source snapshot (2026-11-15, isolated run 43752617397)
 - [x] Refuse a hardcoded numeric Btrfs rootflags with unchanged source QCOW2 SHA-256, then validate positive recovery and immutable snapshot (2026-11-15, isolated run 43752897173)
+- [ ] Verify real Calamares-installed Limine/Btrfs rollback and KDE login using separately validated ISO 87 (independent integration probe pending)
 - [ ] Verify actual Calamares-installed Limine/Btrfs rollback from an independently restored QCOW2 copy, cold reboot without ISO, guest root marker and authenticated KDE Plasma login (new CI pending)
 - [ ] Verify full installed-root rollback with real QEMU reboot, KDE and bootloader integration
 - [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs

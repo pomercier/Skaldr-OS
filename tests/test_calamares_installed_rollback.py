@@ -127,6 +127,28 @@ class CalamaresInstalledRollbackTests(unittest.TestCase):
         self.assertNotIn("workflow_run:", wf)
         self.assertNotIn("release:", wf)
 
+    def test_reused_validated_iso_probe_is_not_a_release_gate(self):
+        workflow = (
+            ROOT / ".github/workflows/skaldr-installed-rollback-probe.yml"
+        ).read_text()
+        for required in (
+            "run-id: 43745598535",
+            "skaldr-os-x86_64-261115",
+            "sha256sum --check SHA256SUMS",
+            'TEST_BOOTLOADER: "limine"',
+            'TEST_FILESYSTEM: "btrfs"',
+            "test_install_calamares cachyos dailylive",
+            "SKALDR_CI_INSTALLED_ROLLBACK",
+        ):
+            # Authorization is established inside the called helper;
+            # the Quicktest wrapper executes the authorized helper.
+            if required == "SKALDR_CI_INSTALLED_ROLLBACK":
+                self.assertIn(required, SCRIPT.read_text())
+            else:
+                self.assertIn(required, workflow)
+        self.assertNotIn("gh release", workflow)
+        self.assertNotIn("workflow_run:", workflow)
+
     def test_workflow_depends_on_real_qemu_and_btrfs_tools(self):
         workflow = WORKFLOW.read_text()
         self.assertIn('qemu-desktop socat btrfs-progs', workflow)
