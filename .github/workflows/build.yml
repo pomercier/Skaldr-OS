@@ -9,6 +9,7 @@ on:
     # use workflow_dispatch to explicitly request another full ISO matrix.
     paths:
       - 'VERSION'
+      - '.github/workflows/build.yml'
       - 'assets/**'
       - 'archiso/**'
       - 'buildiso.sh'
