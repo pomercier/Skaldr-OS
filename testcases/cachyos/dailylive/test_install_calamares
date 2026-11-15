@@ -288,8 +288,14 @@ function test_installed_native_control_center() {
     qt_send_key_combo "alt-f2"
     qt_wait_for_seconds 2
     qt_send_string_return "skaldr-center"
+    # Real QEMU captures from both UEFI installs (run 43648608032) show a
+    # fully loaded native Control Center and live kernel data. Tesseract
+    # consistently reads "Live system heaith", causing a false failure.
+    # The next two independent cues were legible in 9/10 archived OCR frames
+    # for EACH VM. Require the UI header, refresh control AND populated data.
     qt_wait_for_text "$FUNCNAME" "System overview" 18 6
-    qt_wait_for_text "$FUNCNAME" "Live system health" 8 5
+    qt_wait_for_text "$FUNCNAME" "Refresh information" 8 5
+    qt_wait_for_text "$FUNCNAME" "Kernel:" 8 5
     qt_screenshot_ppm "$FUNCNAME"
     # No privileged operation is selected or executed by this smoke test.
 }

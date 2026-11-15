@@ -22,7 +22,9 @@ class NativeInstalledKDEUITests(unittest.TestCase):
         self.assertIn('qt_send_key_combo "alt-f2"', stage)
         self.assertIn('qt_send_string_return "skaldr-center"', stage)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "System overview"', stage)
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "Live system health"', stage)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Refresh information"', stage)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Kernel:"', stage)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Live system health"', stage)
         self.assertIn('qt_screenshot_ppm "$FUNCNAME"', stage)
         self.assertNotIn("pkexec", stage)
         self.assertLess(script.index("    test_installed_system_cold_boot\n"),
@@ -34,7 +36,7 @@ class NativeInstalledKDEUITests(unittest.TestCase):
 
     def test_tested_gui_labels_match_installed_native_app(self):
         ui = GUI.read_text()
-        for phrase in ("System overview", "Live system health"):
+        for phrase in ("System overview", "Live system health", "Refresh information"):
             self.assertIn(phrase, ui)
         self.assertIn("from PySide6.QtWidgets import", ui)
         self.assertIn("/usr/local/bin/skaldr-control-center", WRAPPER.read_text())

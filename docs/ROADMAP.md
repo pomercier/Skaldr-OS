@@ -36,7 +36,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [ ] Validate snapshot creation, updates and power modes on real hardware
 - [x] Implement native PySide6/Qt6 Control Center with six pages, polkit-gated actions, explicit confirmations and kdialog fallback (initial source/CI validation)
 - [x] Add installed-KDE GUI launch with KRunner and screenshot/OCR assertion to both UEFI Quicktest installation paths (real ISO execution pending)
-- [ ] Validate the Control Center's live and installed GUI against new QEMU screenshots; add accessibility checks, long-term monitoring and a guided setup wizard
+- [x] Confirm installed Qt6 Control Center opens and shows live system/kernel diagnostics on both UEFI VMs (run 43648608032; visual evidence verified; exact OCR check pending revalidation)
+- [ ] Pass full 5/5 ISO CI with resilient Qt6 UI OCR cues, then assess accessibility and build a guided setup wizard
 - [x] Add read-only GPU/Vulkan/FFmpeg/display inventory with isolated unit tests
 - [x] Add read-only recovery readiness report (Snapper, kernel filenames, bootloader presence)
 - [x] Create contributor hardware test-report template (no privacy-sensitive identifiers)

@@ -16,25 +16,25 @@ available="$(chwd --list 2>/dev/null || true)"
 message="Detected graphics hardware:
 $gpu_info
 
-CachyOS will detect compatible drivers for your hardware.
+Skaldr OS can detect compatible drivers for your hardware.
 NVIDIA can use proprietary components; AMD and Intel normally use
 open-source Mesa drivers. No brand-specific driver is imposed."
 
 if printf '%s\n' "$gpu_info" | grep -Eiq 'NVIDIA|\[10de:' &&
    printf '%s\n' "$available" | grep -Fq nouveau; then
     selection="$(kdialog --title "Skaldr OS graphics drivers" --menu "$message" \
-        recommended "Install compatible CachyOS drivers (default)" \
+        recommended "Install recommended compatible drivers (default)" \
         nouveau "Install the supported open-source Nouveau profile" \
         keep "Keep existing drivers" || true)"
 else
     selection="$(kdialog --title "Skaldr OS graphics drivers" --menu "$message" \
-        recommended "Install compatible CachyOS drivers (default)" \
+        recommended "Install recommended compatible drivers (default)" \
         keep "Keep existing drivers" || true)"
 fi
 
 case "$selection" in
     recommended)
-        kdialog --yesno "Allow CachyOS to install compatible hardware drivers? A reboot may be required." || exit 0
+        kdialog --yesno "Allow Skaldr OS to install compatible hardware drivers? A reboot may be required." || exit 0
         pkexec chwd -a || exit 1
         ;;
     nouveau)
