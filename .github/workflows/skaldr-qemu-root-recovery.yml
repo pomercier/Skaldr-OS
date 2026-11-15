@@ -15,7 +15,7 @@ jobs:
   boot-recovered-root:
     name: Boot original and restored disposable Btrfs roots
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     container:
       image: archlinux:base-devel
       options: --privileged
@@ -24,10 +24,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pacman -Syu --noconfirm --needed git linux mkinitcpio busybox btrfs-progs util-linux qemu-system-x86 grub xorriso mtools dosfstools
+          pacman -Syu --noconfirm --needed git linux mkinitcpio busybox btrfs-progs util-linux qemu-system-x86 grub xorriso mtools dosfstools edk2-ovmf
       - name: Check out Skaldr sources
         uses: actions/checkout@v4
-      - name: Boot and verify two disposable Btrfs roots
+      - name: Verify six direct, BIOS and UEFI root boots
         shell: bash
         env:
           RUNNER_TEMP: /tmp

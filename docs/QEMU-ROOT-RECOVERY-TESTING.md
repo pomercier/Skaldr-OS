@@ -23,7 +23,11 @@ The test then:
    then boots that ISO twice: once with explicit `rootflags=subvol=@`, once
    using the restored Btrfs default. These are **real GRUB-to-kernel boot
    chains**, but GRUB is on a disposable ISO rather than installed to the disk.
-7. Confirms the original and restored subvolumes are still separate and
+7. Boots those two GRUB rescue ISOs through genuine OVMF UEFI firmware,
+   keeping firmware code read-only and using a fresh writable NVRAM copy
+   for each guest boot. This checks the rescue ISO's UEFI chainload, **not**
+   an installed Limine configuration or Secure Boot.
+8. Confirms the original and restored subvolumes are still separate and
    their contents are unchanged by the two boots.
 
 Guest root state markers are produced only after the initramfs switches to

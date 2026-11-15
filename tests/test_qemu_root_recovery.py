@@ -43,6 +43,11 @@ class QemuRootRecoveryTests(unittest.TestCase):
             '-machine accel=tcg',
             '-kernel "$kernel" -initrd "$initrd"',
             'rootflags=subvol=@',
+            'boot_uefi_guest "explicit" "modified-after-snapshot"',
+            'boot_uefi_guest "restored" "original-before-snapshot"',
+            "OVMF_CODE.4m.fd",
+            "OVMF_VARS.4m.fd",
+            "if=pflash,format=raw,readonly=on",
             'grub-mkrescue -o "$iso"',
             'boot_grub_guest "explicit rootflags"',
             'boot_grub_guest "restored default root"',
@@ -63,7 +68,7 @@ class QemuRootRecoveryTests(unittest.TestCase):
         self.assertIn("SKALDR_QEMU_CI_EXPLICIT: disposable-qemu-root-image", workflow)
         self.assertIn("qemu-system-x86", workflow)
         self.assertIn("linux mkinitcpio", workflow)
-        self.assertIn("grub xorriso mtools dosfstools", workflow)
+        self.assertIn("grub xorriso mtools dosfstools edk2-ovmf", workflow)
         self.assertNotIn("git push", workflow)
         self.assertNotIn("release:", workflow)
         self.assertNotIn("workflow_run:", workflow)

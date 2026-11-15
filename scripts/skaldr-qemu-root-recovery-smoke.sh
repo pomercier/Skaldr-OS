@@ -179,10 +179,46 @@ boot_grub_guest "explicit rootflags" "rootflags=subvol=@" \
 boot_grub_guest "restored default root" "" \
     "original-before-snapshot" "restored"
 
+# Boot the same GRUB rescue ISOs through genuine UEFI firmware. Keep the
+# packaged firmware code read-only and isolate NVRAM to this disposable VM.
+boot_uefi_guest() {
+    local label="$1" expected="$2"
+    local iso="$workdir/grub-$label.iso"
+    local log="$log_dir/uefi-grub-$label.log"
+    local ovmf_code="/usr/share/edk2/x64/OVMF_CODE.4m.fd"
+    local ovmf_template="/usr/share/edk2/x64/OVMF_VARS.4m.fd"
+    local ovmf_vars="$workdir/ovmf-$label-vars.fd"
+    [[ -f "$iso" && -f "$ovmf_code" && -f "$ovmf_template" ]] || {
+        echo "UEFI rescue ISO or matching 4 MiB OVMF firmware missing." >&2
+        exit 2
+    }
+    cp -- "$ovmf_template" "$ovmf_vars"
+    echo "Booting disposable GRUB UEFI guest: $label"
+    timeout -k 5s 150s qemu-system-x86_64 \
+        -machine q35,accel=tcg -cpu max -m 1024M -smp 2 \
+        -display none -monitor none -serial stdio -no-reboot \
+        -drive "if=pflash,format=raw,readonly=on,file=$ovmf_code" \
+        -drive "if=pflash,format=raw,file=$ovmf_vars" \
+        -boot d -cdrom "$iso" \
+        -drive "file=$image,format=raw,if=virtio,cache=none" >"$log" 2>&1 || {
+        echo "UEFI GRUB QEMU boot failed: $label" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
+    grep -Fq "SKALDR_QEMU_ROOT_STATE=$expected" "$log" || {
+        echo "UEFI GRUB boot did not reach expected Btrfs root: $label" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
+    echo "PASS: GRUB UEFI $label ($expected)"
+}
+boot_uefi_guest "explicit" "modified-after-snapshot"
+boot_uefi_guest "restored" "original-before-snapshot"
+
 # Confirm the same disk still contains both branches; never replace the source.
 mount -o loop,subvolid=5 "$image" "$mnt"
 [[ "$(cat "$mnt/@/etc/skaldr-ci-state")" == "modified-after-snapshot" ]] || exit 1
 [[ "$(cat "$mnt/@restored/etc/skaldr-ci-state")" == "original-before-snapshot" ]] || exit 1
 umount "$mnt"
-echo "PASS: four real QEMU boots: two direct kernels and two GRUB BIOS chainloads, explicit and restored Btrfs roots."
-echo "NOT TESTED: full installed KDE, installed bootloader files, UEFI/Limine entries or physical recovery."
+echo "PASS: six real QEMU boots: direct kernel, GRUB BIOS and GRUB UEFI with explicit and restored Btrfs roots."
+echo "NOT TESTED: full installed KDE, installed bootloader files, Limine UEFI, Secure Boot or physical recovery."
