@@ -120,6 +120,14 @@ mount -o loop "$image" "$mnt"
     exit 1
 }
 umount "$mnt"
+# A kernel rootflags=subvol= mount overrides set-default. Demonstrate that
+# blindly switching the default cannot recover such an installed boot path.
+mount -o loop,subvol=@skaldr-test "$image" "$mnt"
+[[ "$(cat "$mnt/state.txt")" == "modified-after-snapshot" ]] || {
+    echo "Explicit subvol= unexpectedly followed the restored default root." >&2
+    exit 1
+}
+umount "$mnt"
 mount -o loop,subvolid=5 "$image" "$mnt"
 [[ "$(cat "$mnt/@skaldr-test/state.txt")" == "modified-after-snapshot" ]] || {
     echo "Original scratch root unexpectedly changed during root selection." >&2
@@ -127,5 +135,5 @@ mount -o loop,subvolid=5 "$image" "$mnt"
 }
 btrfs subvolume set-default 5 "$mnt"
 root_changed=0
-echo "PASS: Btrfs Snapper snapshot, independent data recovery and remounted default-root selection."
+echo "PASS: Btrfs Snapper snapshot, independent recovery, default-root selection and explicit subvol override."
 echo "NOT TESTED: real QEMU boot, installed-root rollback, KDE restart or bootloader integration."

@@ -55,6 +55,8 @@ class BtrfsRecoverySmokeTests(unittest.TestCase):
         source = SCRIPT.read_text()
         self.assertIn('mount -o loop "$image" "$mnt"', source)
         self.assertIn('[[ "$(cat "$mnt/state.txt")" == "original-skaldr-ci-state" ]]', source)
+        self.assertIn('mount -o loop,subvol=@skaldr-test "$image" "$mnt"', source)
+        self.assertIn('Explicit subvol= unexpectedly followed the restored default root.', source)
         self.assertIn('mount -o loop,subvolid=5 "$image" "$mnt"', source)
         self.assertIn('[[ "$(cat "$mnt/@skaldr-test/state.txt")" == "modified-after-snapshot" ]]', source)
         self.assertIn('root_changed=1', source)

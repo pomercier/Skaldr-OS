@@ -2,6 +2,7 @@
 """Read-only Skaldr recovery readiness; never performs rollback or boot edits."""
 import argparse
 import json
+import shlex
 from pathlib import Path
 import shutil
 import subprocess
@@ -18,11 +19,43 @@ def command(*args):
         return None
 
 
+def root_subvolume_override(cmdline):
+    """Extract the active kernel's explicit Btrfs root subvolume, if supplied.
+
+    A mount with subvol= or subvolid= overrides the Btrfs default subvolume.
+    This read-only probe does not attempt to interpret future boot entries.
+    """
+    if cmdline is None:
+        return None
+    try:
+        arguments = shlex.split(cmdline)
+    except ValueError:
+        arguments = cmdline.split()
+    override = None
+    for argument in arguments:
+        if not argument.startswith("rootflags="):
+            continue
+        for option in argument.partition("=")[2].split(","):
+            name, separator, value = option.strip().partition("=")
+            if separator and name in ("subvol", "subvolid") and value:
+                override = f"{name}={value}"
+    return override
+
+
+def kernel_command_line(root):
+    try:
+        return (root / "proc/cmdline").read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+
+
 def status(root=Path("/")):
     # No snapshot or bootloader modification is made.
     filesystem = command("findmnt", "-n", "-o", "FSTYPE", "/") or "unknown"
     snapper_conf = command("snapper", "--no-dbus", "-c", "root", "get-config")
     snapper_present = shutil.which("snapper") is not None
+    cmdline = kernel_command_line(root)
+    override = root_subvolume_override(cmdline)
     kernels = sorted({p.name for p in (root / "boot").glob("vmlinuz-*")})
     config_files = {
         "grub": (root / "boot/grub/grub.cfg").is_file(),
@@ -35,6 +68,23 @@ def status(root=Path("/")):
         "snapper_installed": snapper_present,
         "snapper_root_configured": snapper_conf is not None,
         "available_kernel_filenames": kernels[:30],
+        "kernel_root_subvolume_override": override,
+        "kernel_rootflags_checked": cmdline is not None,
+        "default_subvolume_change_sufficient_for_boot": (
+            False if override is not None else None
+        ),
+        "boot_subvolume_note": (
+            "The active kernel explicitly selects a Btrfs root subvolume. "
+            "Changing the Btrfs default subvolume alone will not redirect "
+            "boots that use this rootflags option."
+            if override is not None else
+            "No explicit Btrfs root subvolume option was found in the current "
+            "kernel command line. Bootloader entries, initramfs and fstab "
+            "still require independent recovery testing."
+            if cmdline is not None else
+            "Kernel command line unavailable; root-subvolume boot behavior "
+            "cannot be assessed."
+        ),
         "bootloader_config_present": config_files,
         "rollback_verified": False,
         "note": ("No rollback or boot entries were changed. File presence "
