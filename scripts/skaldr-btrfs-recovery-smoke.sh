@@ -24,10 +24,24 @@ image="$workdir/disposable.img"
 mnt="$workdir/mnt"
 config="skaldr-ci-$$"
 config_created=0
+root_changed=0
 mkdir "$mnt"
 
 cleanup() {
     trap - EXIT
+    # On early failure, recover access to the original test subvolume and
+    # Snapper configuration, even if the image default subvolume has changed.
+    if [[ "$root_changed" -eq 1 ]]; then
+        if mountpoint -q "$mnt"; then
+            umount "$mnt" || { echo "Unable to unmount disposable test." >&2; exit 1; }
+        fi
+        if mount -o loop,subvolid=5 "$image" "$mnt"; then
+            btrfs subvolume set-default 5 "$mnt" ||
+                echo "Warning: scratch default subvolume could not be reset." >&2
+        else
+            echo "Warning: scratch top-level mount could not be restored." >&2
+        fi
+    fi
     if [[ "$config_created" -eq 1 ]]; then
         # Only the named configuration inside this disposable container.
         snapper --no-dbus -c "$config" delete-config >/dev/null 2>&1 ||
@@ -88,5 +102,30 @@ cmp -s "$snapshot/state.txt" "$mnt/@restored-test/state.txt"
     echo "Recovery unexpectedly altered the original subvolume." >&2
     exit 1
 }
-echo "PASS: Btrfs Snapper create, immutable snapshot, independent recovery copy."
-echo "NOT TESTED: installed-root or bootloader rollback."
+# Test the root-selection semantics used by a boot path without
+# pretending this checks a bootloader or installed KDE. This affects ONLY
+# the newly created 512 MiB loopback image, never the host root.
+restored_id="$(btrfs subvolume show "$mnt/@restored-test" |
+               sed -n -E 's/^[[:space:]]*Subvolume ID:[[:space:]]*([0-9]+).*$/\1/p')"
+[[ "$restored_id" =~ ^[1-9][0-9]*$ && "$restored_id" != "5" ]] || {
+    echo "Cannot identify the restored scratch subvolume safely." >&2
+    exit 1
+}
+btrfs subvolume set-default "$restored_id" "$mnt"
+root_changed=1
+umount "$mnt"
+mount -o loop "$image" "$mnt"
+[[ "$(cat "$mnt/state.txt")" == "original-skaldr-ci-state" ]] || {
+    echo "Restored scratch root was not selected after remount." >&2
+    exit 1
+}
+umount "$mnt"
+mount -o loop,subvolid=5 "$image" "$mnt"
+[[ "$(cat "$mnt/@skaldr-test/state.txt")" == "modified-after-snapshot" ]] || {
+    echo "Original scratch root unexpectedly changed during root selection." >&2
+    exit 1
+}
+btrfs subvolume set-default 5 "$mnt"
+root_changed=0
+echo "PASS: Btrfs Snapper snapshot, independent data recovery and remounted default-root selection."
+echo "NOT TESTED: real QEMU boot, installed-root rollback, KDE restart or bootloader integration."

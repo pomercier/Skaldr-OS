@@ -18,11 +18,17 @@ It validates the following sequence:
 5. Modify the active scratch subvolume, create a **separate** writable
    restored subvolume from the snapshot and verify that original data is
    recovered without changing the modified live scratch subvolume.
-6. Unmount the scratch filesystem before deleting the temporary image. A
+6. Select the restored Btrfs subvolume as the **default** root of the same
+   disposable image; unmount and remount it without a `subvol=` override to
+   confirm that the recovered file is now visible at the mount root.
+7. Remount the Btrfs top-level (`subvolid=5`), confirm the original modified
+   subvolume is untouched, and restore the default subvolume to ID 5.
+8. Unmount the scratch filesystem before deleting the temporary image. A
    failed unmount prevents deletion; the disposable CI container is destroyed.
 
 **Scope of this check:** Snapper setup, snapshot creation, read-only
-verification and Btrfs data restoration. **Not proven:** the correctness of
+verification, Btrfs data restoration and default-root selection after remount.
+**Not proven:** the correctness of
 an actual system-root rollback, bootloader entries, installed-drive recovery,
 power-loss recovery or physical hardware. Those remain independent future
 tests and must never be asserted from this scratch test alone.

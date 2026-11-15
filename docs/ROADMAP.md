@@ -20,7 +20,9 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Guard scx_loader boot service when the running kernel lacks sched_ext; verify the diagnostic report in isolated tests (2026-11-13)
 - [ ] Verify scheduler failures and built-in kernel fallback on real Intel/AMD hardware
 - [x] Conditional Snapper root configuration and cleanup/timeline timers
-- [x] Add disposable GitHub Actions smoke test for Btrfs + Snapper snapshot creation, read-only verification and independent data restoration (implementation; CI execution pending)
+- [x] Validate real Snapper snapshot creation and independent Btrfs data restoration in a disposable 512 MiB image (2026-11-15, run 43683236789)
+- [ ] Validate restored default-subvolume root selection after unmount/remount of the disposable Btrfs image (new CI run pending)
+- [ ] Verify full installed-root rollback with real QEMU reboot, KDE and bootloader integration
 - [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs
 - [ ] Verify bootloader snapshot restore with supported loaders
 - [ ] LTS kernel recovery entry and bootloader verification
@@ -39,7 +41,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Implement native PySide6/Qt6 Control Center with six pages, polkit-gated actions, explicit confirmations and kdialog fallback (initial source/CI validation)
 - [x] Add installed-KDE GUI launch with KRunner and screenshot/OCR assertion to both UEFI Quicktest installation paths (real ISO execution pending)
 - [x] Confirm installed Qt6 Control Center opens and shows live system/kernel diagnostics on both UEFI VMs (run 43648608032; visual evidence verified; exact OCR check pending revalidation)
-- [ ] Pass full 5/5 ISO CI with resilient Qt6 UI OCR cues, then assess accessibility and build a guided setup wizard
+- [x] Pass full 5/5 ISO CI including native Qt6 dashboard verification (2026-11-15, run 43683236835)
+- [ ] Audit Qt6 accessibility and build a guided setup wizard
 - [x] Add read-only GPU/Vulkan/FFmpeg/display inventory with isolated unit tests
 - [x] Add read-only recovery readiness report (Snapper, kernel filenames, bootloader presence)
 - [x] Create contributor hardware test-report template (no privacy-sensitive identifiers)
@@ -57,7 +60,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Replace cropped Calamares productWelcome 4K wallpaper with a dedicated 880x340 SVG and QML fallback (source tests; full ISO validation pending)
 - [ ] Verify vector KDE wallpaper, Calamares and BIOS/GRUB splash branding in live VM screenshots after new ISO build
 - [x] Replace rate-limited unauthenticated REST default-branch discovery with official Git symbolic HEAD and fail-closed regression tests
-- [ ] Verify the repaired upstream synchronization in a live GitHub Actions run before claiming automatic merging is restored
+- [x] Verify repaired upstream synchronization in GitHub Actions (2026-11-15, run 43669141527)
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
 - [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)
 - [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)

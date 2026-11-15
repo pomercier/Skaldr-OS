@@ -33,7 +33,9 @@ class BtrfsRecoverySmokeTests(unittest.TestCase):
         self.assertNotIn('mkfs.btrfs /dev/', source)
         self.assertNotIn('mount /dev/', source)
         self.assertNotIn("snapper rollback", source)
-        self.assertNotIn("btrfs subvolume set-default", source)
+        self.assertIn('btrfs subvolume set-default "$restored_id" "$mnt"', source)
+        self.assertIn('btrfs subvolume set-default 5 "$mnt"', source)
+        self.assertNotIn('btrfs subvolume set-default "$restored_id" /', source)
         self.assertNotIn("grub-mkconfig", source)
 
     def test_real_snapper_and_data_recovery_are_mandatory(self):
@@ -48,6 +50,18 @@ class BtrfsRecoverySmokeTests(unittest.TestCase):
             'modified-after-snapshot',
         ):
             self.assertIn(line, source)
+
+    def test_remount_observes_restored_root_and_preserves_original(self):
+        source = SCRIPT.read_text()
+        self.assertIn('mount -o loop "$image" "$mnt"', source)
+        self.assertIn('[[ "$(cat "$mnt/state.txt")" == "original-skaldr-ci-state" ]]', source)
+        self.assertIn('mount -o loop,subvolid=5 "$image" "$mnt"', source)
+        self.assertIn('[[ "$(cat "$mnt/@skaldr-test/state.txt")" == "modified-after-snapshot" ]]', source)
+        self.assertIn('root_changed=1', source)
+        self.assertIn('root_changed=0', source)
+        self.assertIn('if [[ "$root_changed" -eq 1 ]]; then', source)
+        self.assertIn('umount "$mnt"', source)
+        self.assertIn('NOT TESTED: real QEMU boot', source)
 
     def test_ci_runs_in_privileged_disposable_container_only(self):
         content = WORKFLOW.read_text()
