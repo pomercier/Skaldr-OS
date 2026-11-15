@@ -31,6 +31,8 @@ class QemuRootRecoveryTests(unittest.TestCase):
         self.assertIn('[[ "$image" == "$workdir/disposable-root.img" && ! -e "$image" ]]', source)
         self.assertIn('mkfs.btrfs -f -m single -d single "$image"', source)
         self.assertNotIn('mkfs.btrfs /dev/', source)
+        self.assertNotIn('mkfs.fat /dev/', source)
+        self.assertNotIn('sfdisk /dev/', source)
         self.assertNotIn('btrfs subvolume set-default "$restored_id" /', source)
         self.assertNotIn('grub-mkconfig', source)
         self.assertNotIn('limine-update', source)
@@ -46,6 +48,14 @@ class QemuRootRecoveryTests(unittest.TestCase):
             'boot_uefi_guest "explicit" "modified-after-snapshot"',
             'boot_uefi_guest "restored" "original-before-snapshot"',
             'limine bios-install "$iso"',
+            'boot_installed_limine_case "explicit" "rootflags=subvol=@"',
+            'boot_installed_limine_case "restored" ""',
+            'mkfs.fat -F32 "$esp_image"',
+            'sfdisk --no-reread "$boot_limine_esp_disk"',
+            'if="$esp_image" of="$boot_limine_esp_disk"',
+            '"file=$boot_limine_esp_disk,format=raw,if=virtio,cache=none"',
+            '"file=$image,format=raw,if=virtio,cache=none"',
+            'if mountpoint -q "$esp_mnt"; then',
             'boot_limine_case "explicit" "rootflags=subvol=@"',
             'boot_limine_case "restored" ""',
             'limine-uefi-cd.bin',
