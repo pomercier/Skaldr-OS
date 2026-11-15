@@ -19,7 +19,11 @@ The test then:
 5. Powers off that guest; cold-boots the same disk without `rootflags`. Its
    `/sbin/init` must now print `original-before-snapshot`, showing the
    restored default subvolume was entered by an actual kernel and initramfs.
-6. Confirms the original and restored subvolumes are still separate and
+6. Builds a separate GRUB BIOS rescue ISO from the same CI kernel and initramfs,
+   then boots that ISO twice: once with explicit `rootflags=subvol=@`, once
+   using the restored Btrfs default. These are **real GRUB-to-kernel boot
+   chains**, but GRUB is on a disposable ISO rather than installed to the disk.
+7. Confirms the original and restored subvolumes are still separate and
    their contents are unchanged by the two boots.
 
 Guest root state markers are produced only after the initramfs switches to

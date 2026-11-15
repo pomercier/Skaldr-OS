@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pacman -Syu --noconfirm --needed git linux mkinitcpio busybox btrfs-progs util-linux qemu-system-x86
+          pacman -Syu --noconfirm --needed git linux mkinitcpio busybox btrfs-progs util-linux qemu-system-x86 grub xorriso mtools dosfstools
       - name: Check out Skaldr sources
         uses: actions/checkout@v4
       - name: Boot and verify two disposable Btrfs roots

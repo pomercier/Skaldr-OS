@@ -134,10 +134,55 @@ boot_guest "explicit original rootflags" "rootflags=subvol=@" \
 boot_guest "restored default root" "" \
     "original-before-snapshot" "$log_dir/restored-root.log"
 
+# GRUB is independently exercised as a BIOS rescue ISO (not installed into
+# the test disk). The raw Btrfs image remains untouched by grub-mkrescue.
+grub_iso_tree="$workdir/grub-cd"
+mkdir -p "$grub_iso_tree/boot/grub"
+cp -- "$kernel" "$grub_iso_tree/boot/vmlinuz-linux"
+cp -- "$initrd" "$grub_iso_tree/boot/initramfs.img"
+
+boot_grub_guest() {
+    local description="$1" bootflags="$2" expected="$3" label="$4"
+    local iso="$workdir/grub-$label.iso"
+    local log="$log_dir/grub-$label.log"
+    cat > "$grub_iso_tree/boot/grub/grub.cfg" <<GRUB_CONFIG
+set default=0
+set timeout=0
+serial --unit=0 --speed=115200
+terminal_input serial
+terminal_output serial
+menuentry 'Skaldr disposable Btrfs recovery root' {
+    linux /boot/vmlinuz-linux console=ttyS0,115200 root=/dev/vda rootfstype=btrfs rw loglevel=4 $bootflags
+    initrd /boot/initramfs.img
+}
+GRUB_CONFIG
+    grub-mkrescue -o "$iso" "$grub_iso_tree" >/dev/null
+    echo "Booting GRUB BIOS guest: $description"
+    timeout -k 5s 120s qemu-system-x86_64 \
+        -machine accel=tcg -cpu max -m 768M -smp 2 \
+        -nodefaults -display none -monitor none -serial stdio -no-reboot \
+        -boot d -cdrom "$iso" \
+        -drive "file=$image,format=raw,if=virtio,cache=none" >"$log" 2>&1 || {
+        echo "GRUB BIOS QEMU failed: $description" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
+    grep -Fq "SKALDR_QEMU_ROOT_STATE=$expected" "$log" || {
+        echo "GRUB BIOS did not boot the selected Btrfs root: $description" >&2
+        tail -n 80 "$log" >&2
+        exit 1
+    }
+    echo "PASS: GRUB BIOS $description ($expected)"
+}
+boot_grub_guest "explicit rootflags" "rootflags=subvol=@" \
+    "modified-after-snapshot" "explicit"
+boot_grub_guest "restored default root" "" \
+    "original-before-snapshot" "restored"
+
 # Confirm the same disk still contains both branches; never replace the source.
 mount -o loop,subvolid=5 "$image" "$mnt"
 [[ "$(cat "$mnt/@/etc/skaldr-ci-state")" == "modified-after-snapshot" ]] || exit 1
 [[ "$(cat "$mnt/@restored/etc/skaldr-ci-state")" == "original-before-snapshot" ]] || exit 1
 umount "$mnt"
-echo "PASS: two real QEMU kernel boots, explicit Btrfs subvol override, restored default root and switch_root."
-echo "NOT TESTED: full Skaldr installed KDE, UEFI/GRUB/Limine entries or physical recovery."
+echo "PASS: four real QEMU boots: two direct kernels and two GRUB BIOS chainloads, explicit and restored Btrfs roots."
+echo "NOT TESTED: full installed KDE, installed bootloader files, UEFI/Limine entries or physical recovery."

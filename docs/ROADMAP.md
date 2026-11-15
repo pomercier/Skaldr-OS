@@ -24,6 +24,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Validate restored default-subvolume root selection after remount of the disposable Btrfs image (2026-11-15, run 43736814304)
 - [x] Verify explicit `subvol=` mount precedence in disposable CI and add read-only installed rootflags diagnostics (2026-11-15, recovery run 43738627267; source run 43738627201)
 - [x] Boot a real Linux kernel with modified and restored Btrfs roots in independent disposable QEMU CI (2026-11-15, run 43740331490, both boots passed)
+- [ ] Boot real GRUB BIOS rescue media into both modified and restored disposable Btrfs roots (implementation pending CI verification)
 - [ ] Audit installed GRUB, Limine, systemd-boot and fstab root-subvolume selectors in read-only recovery report (CI tests pending)
 - [ ] Verify full installed-root rollback with real QEMU reboot, KDE and bootloader integration
 - [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs

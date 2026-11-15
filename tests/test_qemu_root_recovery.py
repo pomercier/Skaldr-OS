@@ -43,6 +43,9 @@ class QemuRootRecoveryTests(unittest.TestCase):
             '-machine accel=tcg',
             '-kernel "$kernel" -initrd "$initrd"',
             'rootflags=subvol=@',
+            'grub-mkrescue -o "$iso"',
+            'boot_grub_guest "explicit rootflags"',
+            'boot_grub_guest "restored default root"',
             '"modified-after-snapshot" "$log_dir/explicit-root.log"',
             '"original-before-snapshot" "$log_dir/restored-root.log"',
             'SKALDR_QEMU_ROOT_STATE=',
@@ -60,6 +63,7 @@ class QemuRootRecoveryTests(unittest.TestCase):
         self.assertIn("SKALDR_QEMU_CI_EXPLICIT: disposable-qemu-root-image", workflow)
         self.assertIn("qemu-system-x86", workflow)
         self.assertIn("linux mkinitcpio", workflow)
+        self.assertIn("grub xorriso mtools dosfstools", workflow)
         self.assertNotIn("git push", workflow)
         self.assertNotIn("release:", workflow)
         self.assertNotIn("workflow_run:", workflow)
