@@ -78,6 +78,13 @@ jobs:
           python3 scripts/skaldr-version.py --json
           test "$(python3 scripts/skaldr-version.py --field project_commit_count)" -gt 0
 
+      - name: Run Skaldr source regressions before expensive ISO compilation
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -S --noconfirm --needed python python-yaml
+          python -m unittest discover -s tests -p 'test_*.py' -v
+
       - name: Create build user
         id: user-archiso
         run: |
