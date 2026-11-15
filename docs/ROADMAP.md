@@ -25,7 +25,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Verify explicit `subvol=` mount precedence in disposable CI and add read-only installed rootflags diagnostics (2026-11-15, recovery run 43738627267; source run 43738627201)
 - [x] Boot a real Linux kernel with modified and restored Btrfs roots in independent disposable QEMU CI (2026-11-15, run 43740331490, both boots passed)
 - [x] Boot real GRUB BIOS rescue media into both modified and restored disposable Btrfs roots (2026-11-15, run 43741230197)
-- [ ] Boot GRUB rescue ISO through OVMF UEFI into both Btrfs roots (CI pending)
+- [x] Boot GRUB rescue ISO through OVMF UEFI into both Btrfs roots (2026-11-15, run 43745598361)
+- [ ] Boot Limine hybrid BIOS/UEFI rescue media into original and restored Btrfs roots (CI pending)
 - [x] Audit known GRUB, Limine, systemd-boot and fstab root-subvolume selectors in read-only recovery report (source run 43741230183; not exhaustive)
 - [ ] Verify full installed-root rollback with real QEMU reboot, KDE and bootloader integration
 - [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs

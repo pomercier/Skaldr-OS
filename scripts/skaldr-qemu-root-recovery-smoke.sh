@@ -215,10 +215,91 @@ boot_uefi_guest() {
 boot_uefi_guest "explicit" "modified-after-snapshot"
 boot_uefi_guest "restored" "original-before-snapshot"
 
+# Limine v12 hybrid rescue ISOs are built from the distribution's official
+# packaged binaries. These files exist ONLY in the newly allocated CI scratch
+# directory; no host disk or installed bootloader is ever written.
+boot_limine_case() {
+    local label="$1" rootflags="$2" expected="$3"
+    local iso_tree="$workdir/limine-$label"
+    local iso="$workdir/limine-$label.iso"
+    local source="/usr/share/limine"
+    mkdir -p "$iso_tree/EFI/BOOT"
+    for name in limine-uefi-cd.bin limine-bios-cd.bin limine-bios.sys BOOTX64.EFI; do
+        [[ -f "$source/$name" ]] || {
+            echo "Missing packaged Limine hybrid ISO file: $name" >&2
+            exit 2
+        }
+    done
+    cp -- "$source/limine-uefi-cd.bin" "$source/limine-bios-cd.bin" \
+       "$source/limine-bios.sys" "$iso_tree/"
+    cp -- "$source/BOOTX64.EFI" "$iso_tree/EFI/BOOT/BOOTX64.EFI"
+    cp -- "$kernel" "$iso_tree/vmlinuz-linux"
+    cp -- "$initrd" "$iso_tree/initramfs.img"
+    cat > "$iso_tree/limine.conf" <<LIMINE_CONFIG
+timeout: 0
+serial: yes
+/Skaldr disposable restored root
+    protocol: linux
+    path: boot():/vmlinuz-linux
+    module_path: boot():/initramfs.img
+    cmdline: console=ttyS0,115200 root=/dev/vda rootfstype=btrfs rw loglevel=4 $rootflags
+LIMINE_CONFIG
+    xorriso -as mkisofs -R -r -J -b limine-bios-cd.bin \
+        -no-emul-boot -boot-load-size 4 -boot-info-table -hfsplus \
+        -apm-block-size 2048 --efi-boot limine-uefi-cd.bin \
+        -efi-boot-part --efi-boot-image --protective-msdos-label \
+        "$iso_tree" -o "$iso" >/dev/null 2>&1 || {
+        echo "Could not build disposable Limine rescue ISO: $label" >&2
+        exit 1
+    }
+    # This writes ONLY the newly created, temporary Limine ISO.
+    [[ "$iso" == "$workdir/limine-$label.iso" && -f "$iso" ]] || exit 2
+    limine bios-install "$iso" >/dev/null
+
+    local firmware log vars code="/usr/share/edk2/x64/OVMF_CODE.4m.fd"
+    for firmware in bios uefi; do
+        log="$log_dir/limine-$firmware-$label.log"
+        echo "Booting disposable Limine $firmware root: $label"
+        if [[ "$firmware" == "uefi" ]]; then
+            vars="$workdir/limine-$label-vars.fd"
+            cp -- /usr/share/edk2/x64/OVMF_VARS.4m.fd "$vars"
+            timeout -k 5s 150s qemu-system-x86_64 \
+                -machine q35,accel=tcg -cpu max -m 1024M -smp 2 \
+                -display none -monitor none -serial stdio -no-reboot \
+                -drive "if=pflash,format=raw,readonly=on,file=$code" \
+                -drive "if=pflash,format=raw,file=$vars" \
+                -boot d -cdrom "$iso" \
+                -drive "file=$image,format=raw,if=virtio,cache=none" >"$log" 2>&1 || {
+                echo "Limine UEFI guest failed for $label" >&2
+                tail -n 80 "$log" >&2
+                exit 1
+            }
+        else
+            timeout -k 5s 120s qemu-system-x86_64 \
+                -machine accel=tcg -cpu max -m 768M -smp 2 \
+                -nodefaults -display none -monitor none -serial stdio -no-reboot \
+                -boot d -cdrom "$iso" \
+                -drive "file=$image,format=raw,if=virtio,cache=none" >"$log" 2>&1 || {
+                echo "Limine BIOS guest failed for $label" >&2
+                tail -n 80 "$log" >&2
+                exit 1
+            }
+        fi
+        grep -Fq "SKALDR_QEMU_ROOT_STATE=$expected" "$log" || {
+            echo "Limine $firmware did not reach expected Btrfs root: $label" >&2
+            tail -n 80 "$log" >&2
+            exit 1
+        }
+        echo "PASS: Limine $firmware $label ($expected)"
+    done
+}
+boot_limine_case "explicit" "rootflags=subvol=@" "modified-after-snapshot"
+boot_limine_case "restored" "" "original-before-snapshot"
+
 # Confirm the same disk still contains both branches; never replace the source.
 mount -o loop,subvolid=5 "$image" "$mnt"
 [[ "$(cat "$mnt/@/etc/skaldr-ci-state")" == "modified-after-snapshot" ]] || exit 1
 [[ "$(cat "$mnt/@restored/etc/skaldr-ci-state")" == "original-before-snapshot" ]] || exit 1
 umount "$mnt"
-echo "PASS: six real QEMU boots: direct kernel, GRUB BIOS and GRUB UEFI with explicit and restored Btrfs roots."
-echo "NOT TESTED: full installed KDE, installed bootloader files, Limine UEFI, Secure Boot or physical recovery."
+echo "PASS: ten QEMU boots: direct kernel, GRUB BIOS/UEFI and Limine BIOS/UEFI against both Btrfs roots."
+echo "NOT TESTED: full installed KDE, installed Limine entries, Secure Boot, physical hardware or power-loss recovery."

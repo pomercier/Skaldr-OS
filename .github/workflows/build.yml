@@ -4,6 +4,16 @@ on:
   push:
     branches:
     - master
+    # A recovery smoke script or documentation change must not rebuild the
+    # multi-gigabyte desktop ISO. Relevant source and installer changes still
+    # trigger the complete build and five-job VM verification.
+    paths-ignore:
+      - 'docs/**'
+      - 'tests/**'
+      - 'scripts/skaldr-qemu-root-recovery-smoke.sh'
+      - 'scripts/skaldr-btrfs-recovery-smoke.sh'
+      - '.github/workflows/skaldr-qemu-root-recovery.yml'
+      - '.github/workflows/skaldr-btrfs-recovery.yml'
   pull_request:
 
 concurrency:

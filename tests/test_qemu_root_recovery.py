@@ -45,6 +45,14 @@ class QemuRootRecoveryTests(unittest.TestCase):
             'rootflags=subvol=@',
             'boot_uefi_guest "explicit" "modified-after-snapshot"',
             'boot_uefi_guest "restored" "original-before-snapshot"',
+            'limine bios-install "$iso"',
+            'boot_limine_case "explicit" "rootflags=subvol=@"',
+            'boot_limine_case "restored" ""',
+            'limine-uefi-cd.bin',
+            'limine-bios-cd.bin',
+            'limine-bios.sys',
+            'BOOTX64.EFI',
+            'SKALDR_QEMU_ROOT_STATE=',
             "OVMF_CODE.4m.fd",
             "OVMF_VARS.4m.fd",
             "if=pflash,format=raw,readonly=on",
@@ -68,7 +76,7 @@ class QemuRootRecoveryTests(unittest.TestCase):
         self.assertIn("SKALDR_QEMU_CI_EXPLICIT: disposable-qemu-root-image", workflow)
         self.assertIn("qemu-system-x86", workflow)
         self.assertIn("linux mkinitcpio", workflow)
-        self.assertIn("grub xorriso mtools dosfstools edk2-ovmf", workflow)
+        self.assertIn("grub xorriso mtools dosfstools edk2-ovmf limine", workflow)
         self.assertNotIn("git push", workflow)
         self.assertNotIn("release:", workflow)
         self.assertNotIn("workflow_run:", workflow)

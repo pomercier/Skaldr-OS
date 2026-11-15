@@ -27,7 +27,12 @@ The test then:
    keeping firmware code read-only and using a fresh writable NVRAM copy
    for each guest boot. This checks the rescue ISO's UEFI chainload, **not**
    an installed Limine configuration or Secure Boot.
-8. Confirms the original and restored subvolumes are still separate and
+8. Builds two new hybrid BIOS/UEFI Limine v12 rescue ISOs from official
+   Arch binaries, with no installation to a host disk. Each ISO uses the
+   same test kernel and Btrfs image and is booted through both firmware
+   modes. The Linux init marker verifies a real Limine-to-kernel handoff
+   with either the explicit original or restored default root.
+9. Confirms the original and restored subvolumes are still separate and
    their contents are unchanged by the two boots.
 
 Guest root state markers are produced only after the initramfs switches to
