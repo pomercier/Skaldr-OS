@@ -232,13 +232,16 @@ branding: cachyos
 
     def test_artcraft_bundled_with_pinned_hash_and_no_web_fallback(self):
         stage = (REPO / "scripts/skaldr-stage-artcraft.sh").read_text()
-        self.assertIn("64197858d155f447ae323f905015116d848f1375675d731eb08d5708f8722e9b",
+        self.assertIn("0218089916d60b4d288825d1542f13cb2ca5fb691418f4102201f43a84d1be7b",
                       stage)
         self.assertIn("sha256sum --check --status", stage)
         for name in ("LICENSE-APACHE", "LICENSE-MIT", "NOTICE"):
             self.assertIn(name, stage)
         launch = (ROOT / "usr/local/bin/skaldr-artcraft").read_text()
-        self.assertIn('exec "$app" "$@"', launch)
+        self.assertIn('"$app" "$@"', launch)
+        self.assertIn('exit "$result"', launch)
+        self.assertIn('APPIMAGE_EXTRACT_AND_RUN=1', launch)
+        self.assertIn('--diagnose', launch)
         self.assertNotIn("xdg-open", launch)
         self.assertNotIn("releases", launch)
         injected = (ROOT / "usr/local/bin/skaldr-cal-inject").read_text()
