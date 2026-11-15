@@ -6,4 +6,4 @@ Exec=/usr/local/bin/skaldr-artcraft
 TryExec=/usr/local/bin/skaldr-artcraft
 Terminal=false
 Categories=Graphics;Utility;
-Icon=skaldr
+Icon=applications-graphics

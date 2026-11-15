@@ -4,8 +4,8 @@ set -euo pipefail
 [[ $# -eq 1 ]] || { echo "Usage: skaldr-stage-artcraft.sh AIROOTFS" >&2; exit 2; }
 root="$1"
 dest="$root/opt/skaldr/artcraft/artcraft-launcher.AppImage"
-url="https://github.com/storytold/craft-launcher/releases/download/v0.19.0/artcraft-launcher-0.19.0-linux-x86_64.AppImage"
-checksum="64197858d155f447ae323f905015116d848f1375675d731eb08d5708f8722e9b"
+url="https://github.com/storytold/craft-launcher/releases/download/v0.19.2/artcraft-launcher-0.19.2-linux-x86_64.AppImage"
+checksum="0218089916d60b4d288825d1542f13cb2ca5fb691418f4102201f43a84d1be7b"
 mkdir -p "$(dirname "$dest")"
 tmp="$dest.download"
 trap 'rm -f "$tmp"' EXIT
@@ -21,9 +21,9 @@ license_dir="$root/usr/share/licenses/skaldr-artcraft"
 mkdir -p "$license_dir"
 for filename in LICENSE-APACHE LICENSE-MIT NOTICE; do
     curl --fail --location --show-error --silent --retry 4 --retry-delay 4 \
-         "https://raw.githubusercontent.com/storytold/craft-launcher/v0.19.0/$filename" \
+         "https://raw.githubusercontent.com/storytold/craft-launcher/v0.19.2/$filename" \
          --output "$license_dir/$filename"
     test -s "$license_dir/$filename"
 done
-echo "Bundled verified ArtCraft Launcher v0.19.0 with licensing notices"
+echo "Bundled verified ArtCraft Launcher v0.19.2 with licensing notices"
 

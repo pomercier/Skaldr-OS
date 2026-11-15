@@ -1,13 +1,56 @@
 #!/usr/bin/env bash
-# Open the verified official AppImage bundled by the Skaldr ISO builder.
+# Start the bundled, checksum-verified ArtCraft application locally.
 set -euo pipefail
 app="/opt/skaldr/artcraft/artcraft-launcher.AppImage"
-if [[ ! -x "$app" ]]; then
-    if command -v kdialog >/dev/null 2>&1; then
-        kdialog --title "Skaldr OS — ArtCraft" --error \
-            "ArtCraft Launcher is missing from this ISO. Reinstall or verify the image."
+expected_sha="0218089916d60b4d288825d1542f13cb2ca5fb691418f4102201f43a84d1be7b"
+
+if [[ "${1:-}" == "--diagnose" ]]; then
+    echo "Skaldr ArtCraft — local diagnostics"
+    echo "Bundled AppImage: $app"
+    if [[ ! -x "$app" ]]; then
+        echo "Status: missing or non-executable"
+        exit 1
     fi
-    echo "Missing ArtCraft Launcher: $app" >&2
+    actual_sha="$(sha256sum "$app" | cut -d' ' -f1)"
+    echo "Bundled SHA-256: $actual_sha"
+    echo "Expected SHA-256: $expected_sha"
+    [[ "$actual_sha" == "$expected_sha" ]] || {
+        echo "Status: checksum mismatch; verify or reinstall Skaldr." >&2
+        exit 1
+    }
+    if [[ -e /dev/fuse ]]; then
+        echo "FUSE: available"
+    else
+        echo "FUSE: unavailable; AppImage extraction fallback enabled"
+    fi
+    echo "Log: $HOME/.local/share/artcraft-launcher/logs/artcraft-launcher.log"
+    echo "Status: executable verified; GUI startup not tested"
+    exit 0
+fi
+
+if [[ ! -x "$app" ]]; then
+    detail="ArtCraft Launcher is missing from Skaldr. Verify or reinstall the ISO."
+    if command -v kdialog >/dev/null 2>&1; then
+        kdialog --title "Skaldr OS — ArtCraft" --error "$detail" || :
+    fi
+    echo "$detail" >&2
     exit 1
 fi
-exec "$app" "$@"
+
+# Standard AppImage mounts via FUSE; extraction works in VMs without /dev/fuse.
+if [[ ! -e /dev/fuse ]]; then
+    export APPIMAGE_EXTRACT_AND_RUN=1
+fi
+
+set +e
+"$app" "$@"
+result=$?
+set -e
+if (( result != 0 )); then
+    detail="ArtCraft exited with code $result. Review ~/.local/share/artcraft-launcher/logs/artcraft-launcher.log for details."
+    echo "$detail" >&2
+    if command -v kdialog >/dev/null 2>&1 && [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+        kdialog --title "Skaldr OS — ArtCraft" --error "$detail" || :
+    fi
+fi
+exit "$result"
