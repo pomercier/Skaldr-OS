@@ -38,6 +38,26 @@ class ReleaseAssetsTests(unittest.TestCase):
         self.assertNotIn('gh run download "$VERIFIED_RUN_ID" --dir ci-artifacts', workflow)
         self.assertIn('Stable publishing requires a release-mode ISO', workflow)
 
+    def test_release_selects_exact_tested_ancestor_not_unvalidated_head(self):
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github/workflows/skaldr-release.yml").read_text()
+        for requirement in (
+            "source_sha:",
+            "REQUESTED_SOURCE_SHA:",
+            "git cat-file -e",
+            'git merge-base --is-ancestor "$candidate" HEAD',
+            'git show "$candidate:VERSION"',
+            'echo "RELEASE_SHA=$candidate"',
+            'git checkout --detach "$RELEASE_SHA"',
+            'git rev-parse HEAD',
+            'gh run list --workflow build.yml --commit "$RELEASE_SHA"',
+            'gh run list --workflow skaldr-checks.yml --commit "$RELEASE_SHA"',
+            '--target "$RELEASE_SHA"',
+        ):
+            self.assertIn(requirement, workflow)
+        self.assertIn('^v([0-9]+\\.[0-9]+\\.[0-9]+)-preview\\.', workflow)
+        self.assertIn("Only previews are permitted.", workflow)
+
     def test_full_size_preview_validation_requires_iso_and_all_boot_tests(self):
         workflow = (Path(__file__).resolve().parents[1] /
                     ".github/workflows/build.yml").read_text()

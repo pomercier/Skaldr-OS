@@ -12,6 +12,10 @@ on:
         required: true
         default: false
         type: boolean
+      source_sha:
+        description: 'Optional exact 40-character commit SHA of a fully validated ISO; defaults to master HEAD'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -36,6 +40,7 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
           RELEASE_STABLE: ${{ inputs.stable }}
+          REQUESTED_SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
           if [[ "$RELEASE_STABLE" == true ]]; then
@@ -46,15 +51,27 @@ jobs:
             echo "::error::Use vMAJOR.MINOR.PATCH-preview.N, for example v0.1.0-preview.1"
             exit 1
           fi
-          if [[ "${BASH_REMATCH[1]}" != "$(cat VERSION)" ]]; then
-            echo "::error::Preview base version does not match VERSION"
+          release_base="${BASH_REMATCH[1]}"
+          # A documentation-only master commit can follow a validated ISO.
+          # Require an exact SHA and strict ancestry, never use an untested
+          # branch name or arbitrary revision to select release assets.
+          candidate="${REQUESTED_SOURCE_SHA:-$(git rev-parse HEAD)}"
+          if [[ ! "$candidate" =~ ^[0-9a-f]{40}$ ]] ||
+             ! git cat-file -e "$candidate^{commit}" ||
+             ! git merge-base --is-ancestor "$candidate" HEAD; then
+            echo "::error::source_sha must be a 40-character commit SHA reachable from master."
+            exit 1
+          fi
+          if [[ "$release_base" != "$(git show "$candidate:VERSION")" ]]; then
+            echo "::error::Preview base version does not match VERSION at the tested source SHA."
             exit 1
           fi
           if git rev-parse -q --verify "refs/tags/$RELEASE_VERSION" >/dev/null; then
             echo "::error::The release tag already exists."
             exit 1
           fi
-          echo "RELEASE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "RELEASE_SHA=$candidate" >> "$GITHUB_ENV"
+          echo "Selected exact tested release revision: $candidate"
 
       - name: Require successful ISO build and installation tests
         shell: bash
@@ -79,6 +96,13 @@ jobs:
             exit 1
           fi
           echo "Verified source checks: $source_run"
+
+      - name: Checkout the exact source tree that produced the validated ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout --detach "$RELEASE_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
 
       - name: Retrieve verified ISO and checksum
         shell: bash
