@@ -28,7 +28,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Boot GRUB rescue ISO through OVMF UEFI into both Btrfs roots (2026-11-15, run 43745598361)
 - [x] Boot Limine hybrid BIOS/UEFI rescue media into original and restored Btrfs roots (2026-11-15, run 43746110884)
 - [x] Boot Limine from a separate disposable GPT/FAT EFI disk (without ISO) into both Btrfs roots (2026-11-15, run 43747048553)
-- [ ] Verify guest writes persist separately on original and recovered Btrfs roots, preserving source snapshot (CI pending)
+- [x] Verify guest writes persist separately on original and recovered Btrfs roots, preserving the read-only source snapshot (2026-11-15, QEMU run 43747657935; 12/12 boots passed)
 - [x] Audit known GRUB, Limine, systemd-boot and fstab root-subvolume selectors in read-only recovery report (source run 43741230183; not exhaustive)
 - [ ] Verify full installed-root rollback with real QEMU reboot, KDE and bootloader integration
 - [ ] Validate full installed-root rollback, bootloader entries and recovery after reboot on disposable VMs
