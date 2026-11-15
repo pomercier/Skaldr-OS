@@ -1,0 +1,45 @@
+name: Skaldr QEMU Btrfs root boot smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'scripts/skaldr-qemu-root-recovery-smoke.sh'
+      - 'tests/test_qemu_root_recovery.py'
+      - '.github/workflows/skaldr-qemu-root-recovery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boot-recovered-root:
+    name: Boot original and restored disposable Btrfs roots
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+    steps:
+      - name: Install guest boot and Btrfs utilities inside disposable container
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -Syu --noconfirm --needed git linux mkinitcpio busybox btrfs-progs util-linux qemu-system-x86
+      - name: Check out Skaldr sources
+        uses: actions/checkout@v4
+      - name: Boot and verify two disposable Btrfs roots
+        shell: bash
+        env:
+          RUNNER_TEMP: /tmp
+          SKALDR_QEMU_CI_EXPLICIT: disposable-qemu-root-image
+        run: |
+          set -euo pipefail
+          bash -n scripts/skaldr-qemu-root-recovery-smoke.sh
+          bash scripts/skaldr-qemu-root-recovery-smoke.sh
+      - name: Preserve isolated QEMU serial evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skaldr-qemu-root-recovery-serial
+          path: results/qemu-root-recovery/*.log
+          if-no-files-found: warn
