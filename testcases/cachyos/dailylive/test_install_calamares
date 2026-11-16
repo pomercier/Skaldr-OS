@@ -7,7 +7,7 @@ EOF
 }
 
 function test_setup() {
-    test_user="cachyos"
+    test_user="skaldr"
     test_password="ILoveCandy"
 }
 
@@ -338,6 +338,9 @@ function test_installed_btrfs_snapshot_rollback() {
     fi
 
     qt_wait_for_text "$FUNCNAME" "Show On-Screen Keyboard" 30 10
+    # The installed greeter must display Skaldr's own branding, not KDE's
+    # generic login background. Test on a booted and installed guest.
+    qt_wait_for_text "$FUNCNAME" "SKALDR OS" 8 3
     qt_screenshot_ppm "$FUNCNAME"
     local snapshot width height
     snapshot="$(find "$QT_RESULTS" -type f -name 'screenshot_*.ppm' | sort | tail -n 1)"

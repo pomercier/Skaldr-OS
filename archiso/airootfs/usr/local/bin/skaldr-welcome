@@ -29,8 +29,8 @@ def main():
     commit_sha = metadata.get("git_revision", "unknown")[:12]
     content = (
         f"Welcome to Skaldr OS {version}\n\n"
-        "An independent, CachyOS-based Linux project built for performance "
-        "and shared publicly to help others.\n\n"
+        "An independent Linux distribution built for performance, "
+        "freedom and an open community.\n\n"
         f"Skaldr changes since the fork: {metadata.get('project_commit_count', '?')}\n"
         f"Built: {build}\n"
         f"Source revision: {commit_sha}\n\n"

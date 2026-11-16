@@ -237,6 +237,7 @@ jobs:
             # The GUI alone is not proof that target packages and policies
             # were installed; preserve the mandatory serial assertions.
             grep -Fq "Skaldr target packages and system preferences installed" "$log_file"
+            grep -Fq "Skaldr login wallpaper configured." "$log_file"
             if [ "${{ matrix.filesystem }}" = "btrfs" ]; then
               grep -Fq "Skaldr: Btrfs snapshot configuration is available." "$log_file"
             fi

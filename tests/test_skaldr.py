@@ -88,6 +88,53 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("--startup", (LIVE / "etc/xdg/autostart/skaldr-welcome.desktop").read_text())
         self.assertIn("time.sleep(8)", (LIVE / "usr/local/bin/skaldr-welcome").read_text())
 
+    def test_plasmalogin_branding_preserves_authentication(self):
+        postinstall = LIVE / "usr/local/bin/skaldr-postinstall"
+        configure = runpy.run_path(str(postinstall), run_name="skaldr_test")[
+            "configure_installed_login_wallpaper"]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            wallpaper = root / "share" / "skaldr.svg"
+            wallpaper.parent.mkdir(parents=True)
+            wallpaper.write_text("<svg/>")
+            config = root / "etc" / "plasmalogin.conf"
+            config.parent.mkdir(parents=True)
+            original = "[Autologin]\nUser=\nSession=plasma.desktop\n"
+            config.write_text(original)
+            with patch("shutil.which", return_value="/usr/bin/kwriteconfig6"), \
+                    patch("subprocess.run") as invoke:
+                self.assertTrue(configure(config, wallpaper))
+                self.assertEqual(invoke.call_count, 2)
+                commands = [call.args[0] for call in invoke.call_args_list]
+                self.assertEqual(commands[0], (
+                    "kwriteconfig6", "--file", str(config), "--group", "Greeter",
+                    "--key", "WallpaperPluginId", "org.kde.image"))
+                self.assertEqual(commands[1], (
+                    "kwriteconfig6", "--file", str(config), "--group", "Greeter",
+                    "--group", "Wallpaper", "--group", "org.kde.image",
+                    "--group", "General", "--key", "Image", wallpaper.as_uri()))
+                self.assertEqual(config.read_text(), original,
+                                 "Our helper must delegate only exact greeter keys")
+            with patch("shutil.which", return_value=None), \
+                    patch("subprocess.run") as invoke:
+                self.assertFalse(configure(config, wallpaper))
+                invoke.assert_not_called()
+            config.unlink()
+            config.symlink_to(root / "arbitrary-target")
+            with self.assertRaisesRegex(RuntimeError, "symlinked"):
+                configure(config, wallpaper)
+
+        self.assertIn('configure_installed_login_wallpaper()', postinstall.read_text())
+        live_config = (LIVE / "etc/plasmalogin.conf").read_text()
+        self.assertIn("User=liveuser", live_config)
+        installer = (LIVE / "usr/local/bin/skaldr-cal-inject").read_text()
+        self.assertNotIn('"/etc/plasmalogin.conf"', installer)
+        welcome = (LIVE / "usr/local/bin/skaldr-welcome").read_text()
+        self.assertNotIn("CachyOS-based", welcome)
+        quicktest = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "SKALDR OS" 8 3', quicktest)
+        self.assertIn('test_user="skaldr"', quicktest)
+
     def test_quicktest_shell_syntax(self):
         script = REPO / "testcases/cachyos/dailylive/test_install_calamares"
         result = subprocess.run(["bash", "-n", str(script)],

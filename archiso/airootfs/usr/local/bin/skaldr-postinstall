@@ -3,6 +3,7 @@
 from pathlib import Path
 import os
 import pwd
+import shutil
 import subprocess
 import sys
 
@@ -48,6 +49,34 @@ def configure_installed_users():
             setup_user_autostart(home, account.pw_uid, account.pw_gid, source)
 
 
+def configure_installed_login_wallpaper(
+    config=Path("/etc/plasmalogin.conf"),
+    wallpaper=Path("/usr/share/wallpapers/Skaldr/contents/images/3840x2160.svg"),
+):
+    """Apply Skaldr login art through KDE's own KConfig editor.
+
+    The live ISO autologin file is NEVER copied into the installed system.
+    Only the wallpaper plugin and Image keys change. The login user's
+    password, session and autologin settings remain owned by the installer.
+    End users can subsequently change the wallpaper in System Settings.
+    """
+    if not wallpaper.is_file() or wallpaper.is_symlink():
+        print("Skaldr: login wallpaper missing; original greeter kept.", flush=True)
+        return False
+    if config.is_symlink():
+        raise RuntimeError("Refusing to modify symlinked login manager configuration")
+    if not shutil.which("kwriteconfig6"):
+        print("Skaldr: kwriteconfig6 unavailable; original greeter kept.", flush=True)
+        return False
+    call("kwriteconfig6", "--file", str(config), "--group", "Greeter",
+         "--key", "WallpaperPluginId", "org.kde.image")
+    call("kwriteconfig6", "--file", str(config), "--group", "Greeter",
+         "--group", "Wallpaper", "--group", "org.kde.image",
+         "--group", "General", "--key", "Image", wallpaper.as_uri())
+    print("Skaldr login wallpaper configured.", flush=True)
+    return True
+
+
 def main():
     pkg = Path("/usr/share/skaldr/packages.txt")
     if not pkg.exists():
@@ -61,6 +90,7 @@ def main():
     call("/usr/local/bin/skaldr-numlock")
     call("/usr/local/bin/skaldr-profile", "install")
     configure_installed_users()
+    configure_installed_login_wallpaper()
     print("Skaldr target packages and system preferences installed")
 
 if __name__ == "__main__":
