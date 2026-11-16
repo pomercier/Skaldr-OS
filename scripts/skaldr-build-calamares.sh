@@ -9,9 +9,9 @@ local_repo="$repo/.skaldr-local"
 pkgbuild_revision="a7b305845d9f530db134d8a2cf94220e737beb9d"
 calamares_revision="42a91ab23334483ff3cd761d120dec9efea67c53"
 
-# Verify the ISO package list selects the rebuilt installer, not a stale variant.
-if [[ "$(grep -xc 'cachyos-calamares-staging' "$repo/archiso/packages_desktop.x86_64")" -ne 1 ]] ||
-   grep -qx 'cachyos-calamares-next' "$repo/archiso/packages_desktop.x86_64"; then
+# Require exactly one installer package, matching the pinned local rebuild.
+installer_packages="$(grep -E '^cachyos-calamares-' "$repo/archiso/packages_desktop.x86_64" || true)"
+if [[ "$installer_packages" != "cachyos-calamares-staging" ]]; then
     echo "ISO Calamares package selection does not match the pinned staging rebuild" >&2
     exit 1
 fi
