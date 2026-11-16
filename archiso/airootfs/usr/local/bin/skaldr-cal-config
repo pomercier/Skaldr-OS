@@ -54,6 +54,14 @@ def filter_groups(source):
             continue
         found.add(name)
         if name == "KDE-Desktop":
+            # Upstream Haruna depends on mpvqt/mpv/libplacebo. The 2026-11-16
+            # repository mix ships an incompatible libplacebo SONAME, which
+            # makes Calamares fail before user creation on both GRUB and
+            # Limine. Skaldr already installs VLC from its own package list,
+            # so avoid this optional, broken dependency chain instead of
+            # bypassing pacman integrity or skipping the whole KDE desktop.
+            # Only remove the exact package entry in KDE's selected group.
+            block = re.sub(r"(?m)^    - haruna[ \t]*\r?\n", "", block)
             block, count = re.subn(r"(?m)^  selected:\s*(?:true|false)\s*$",
                                    "  selected: true", block, count=1)
             if count != 1:

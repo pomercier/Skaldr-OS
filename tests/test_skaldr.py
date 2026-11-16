@@ -37,6 +37,10 @@ class SkaldrChecks(unittest.TestCase):
         for package in ("brave-bin", "libreoffice-fresh", "libreoffice-fresh-fr",
                         "cmake", "make", "fakeroot", "yay", "kcalc", "lact"):
             self.assertIn(package, live)
+        # Retain a supported video player; avoid the externally broken
+        # mpvqt -> mpv -> libplacebo chain in online KDE installation.
+        self.assertIn("vlc", installed)
+        self.assertIn("vlc", live)
         for forbidden in ("firefox", "flatpak", "snapd", "docker", "preload", "prelink"):
             self.assertNotIn(forbidden, live)
             self.assertNotIn(forbidden, installed)

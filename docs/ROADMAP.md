@@ -4,6 +4,7 @@ The phases below are ordered to minimize regression risk. An item is complete
 only when tested; the existence of code is not evidence of successful boot.
 
 ## Phase A — boot and installation reliability
+- [ ] Validate November 16, 2026 Calamares online package resolution after filtering upstream KDE Haruna (mpvqt/mpv requires missing libplacebo.so=387-64); GRUB/ext4 and Limine/Btrfs installation both failed before user setup in run 43909885359. VLC is retained. New full ISO test required.
 - [x] Correct NumLock and the collision with `cachyos-kde-settings`
 - [x] Replace cascade-removal of dependencies with guarded cleanup
 - [x] Successful ISO build, generated checksum and UEFI installation smoke tests (2026-11-13; run 43367190468)
