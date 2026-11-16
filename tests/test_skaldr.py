@@ -139,8 +139,14 @@ class SkaldrChecks(unittest.TestCase):
 
     def test_pinned_calamares_rebuild_and_local_repo(self):
         script = (REPO / "scripts/skaldr-build-calamares.sh").read_text()
-        self.assertIn("199d71543db805fac2cc649ced72ad01dcb2c362", script)
-        self.assertIn("288a24812b36c68bf16657e8131d00351878f3e0", script)
+        self.assertIn("42a91ab23334483ff3cd761d120dec9efea67c53", script)
+        self.assertIn("a7b305845d9f530db134d8a2cf94220e737beb9d", script)
+        self.assertIn("cachyos-calamares-staging/PKGBUILD", script)
+        self.assertIn("cachyos-calamares-staging-*.pkg.tar.zst", script)
+        self.assertNotIn("cachyos-calamares-next", script)
+        packages = (REPO / "archiso/packages_desktop.x86_64").read_text().splitlines()
+        self.assertIn("cachyos-calamares-staging", packages)
+        self.assertNotIn("cachyos-calamares-next", packages)
         self.assertIn("makepkg --config", script)
         self.assertIn('CFLAGS+=" -march=x86-64 -mtune=generic"', script)
         self.assertIn('CXXFLAGS+=" -march=x86-64 -mtune=generic"', script)
