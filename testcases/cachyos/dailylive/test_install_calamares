@@ -339,8 +339,11 @@ function test_installed_btrfs_snapshot_rollback() {
 
     qt_wait_for_text "$FUNCNAME" "Show On-Screen Keyboard" 30 10
     # The installed greeter must display Skaldr's own branding, not KDE's
-    # generic login background. Test on a booted and installed guest.
-    qt_wait_for_text "$FUNCNAME" "SKALDR OS" 8 3
+    # generic login background. Actual QEMU frames (run 43902261411) show
+    # the full SKALDR OS logo, but Tesseract truncates its stylized letters
+    # to "KALDR O"; the independent wallpaper motto is read verbatim in
+    # seven successive captures. Require that stable, branded visual cue.
+    qt_wait_for_text "$FUNCNAME" "PERFORMANCE BY INTENTION" 8 3
     qt_screenshot_ppm "$FUNCNAME"
     local snapshot width height
     snapshot="$(find "$QT_RESULTS" -type f -name 'screenshot_*.ppm' | sort | tail -n 1)"

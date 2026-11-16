@@ -132,7 +132,8 @@ class SkaldrChecks(unittest.TestCase):
         welcome = (LIVE / "usr/local/bin/skaldr-welcome").read_text()
         self.assertNotIn("CachyOS-based", welcome)
         quicktest = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "SKALDR OS" 8 3', quicktest)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "PERFORMANCE BY INTENTION" 8 3', quicktest)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "SKALDR OS" 8 3', quicktest)
         self.assertIn('test_user="skaldr"', quicktest)
 
     def test_quicktest_shell_syntax(self):

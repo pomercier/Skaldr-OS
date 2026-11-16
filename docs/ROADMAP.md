@@ -71,7 +71,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Add a Quicktest video SHA-256 index and bounded screenshot extraction, since archived recordings replace temporary PPM screenshots; source-level regression tests added
 - [ ] Approve visual appearance using new CI frame samples and a documented known-good baseline (manual review still required)
 - [x] Replace cropped Calamares productWelcome 4K wallpaper with a dedicated 880x340 SVG and QML fallback (source tests; full ISO validation pending)
-- [ ] Verify vector KDE wallpaper, Calamares, BIOS/GRUB splash and installed Plasma Login branding in a NEW full ISO (greeter test and wallpaper policy implemented; CI pending)
+- [ ] Verify vector KDE wallpaper, Calamares, BIOS/GRUB splash and installed Plasma Login branding in a complete new ISO. Build, GRUB/ext4, and BIOS/live passed in run 43902261411; Limine/Btrfs installed rollback passed but the final visual assertion had an OCR false negative (full logo rendered as `KALDR O`). The new assertion uses the independently readable Skaldr motto; full matrix rerun pending.
 - [x] Replace rate-limited unauthenticated REST default-branch discovery with official Git symbolic HEAD and fail-closed regression tests
 - [x] Verify repaired upstream synchronization in GitHub Actions (2026-11-15, run 43669141527)
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
