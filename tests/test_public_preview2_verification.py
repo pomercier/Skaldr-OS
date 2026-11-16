@@ -130,7 +130,7 @@ class PreviewTwoReleaseIntegrityTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/skaldr-release.yml").read_text()
         self.assertIn('if [[ "$RELEASE_VERSION" == "v0.1.0-preview.2" ]]; then', workflow)
         self.assertIn('docs/PUBLIC-PREVIEW-2-LOCK.json', workflow)
-        self.assertIn('scripts/skaldr-verify-public-release.py assets', workflow)
+        self.assertIn('skaldr-release-gate/skaldr-verify-public-release.py" assets', workflow)
         self.assertIn('sha256sum --check SHA256SUMS.parts', workflow)
         self.assertIn('Preserve trusted preview.2 lock and prepublication verifier', workflow)
         self.assertIn('skaldr-release-gate/skaldr-verify-public-release.py', workflow)
