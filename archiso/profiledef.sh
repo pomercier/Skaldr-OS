@@ -7,7 +7,6 @@ iso_publisher="Skaldr OS <https://github.com/pomercier/Skaldr-OS>"
 iso_application="Skaldr OS Live/Rescue System"
 iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
 install_dir="arch"
-buildmodes=('iso')
 ## GRUB
 bootmodes=('bios.syslinux' 'uefi.grub')
 ## systemd-boot
