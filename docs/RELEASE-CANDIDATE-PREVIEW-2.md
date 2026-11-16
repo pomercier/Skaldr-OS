@@ -91,6 +91,32 @@ The release workflow itself must reject non-validated commits or stable
 releases. A later documentation-only commit on master must **not** replace
 `source_sha`: artifacts correspond to the exact tested revision.
 
+### Independent verification immediately after publication
+
+The release workflow now pins `v0.1.0-preview.2` to
+`docs/PUBLIC-PREVIEW-2-LOCK.json` **before** publishing. A **separate runner
+job**, gated on successful release publication, downloads all seven GitHub
+Release assets, validates their exact source commit and checksums against the
+original five-job ISO CI, then reconstructs the complete ISO.
+
+This post-publication job belongs to the **same release workflow**. GitHub
+normally suppresses follow-on workflow triggers from an event created by
+`GITHUB_TOKEN`, so relying only on `release: published` would not reliably
+start the verifier. The optional
+[`preview.2 standalone checker`](../.github/workflows/skaldr-preview2-public-verification.yml)
+also supports manual dispatch and releases published with non-workflow
+credentials. Neither checker edits repository branches, tags, or releases.
+
+The original CI manifest pinned all three part SHA-256 values and the four
+helper-file SHA-256 values. It did not record the exact byte length of the
+last ISO part in the small verification ZIP; the checker therefore requires
+its SHA-256, expected filename, and a size strictly below 2 GiB, rather
+than inventing a byte length. The reconstructed full ISO SHA-256 is always
+required.
+
+**Status: prepared, not yet executed against a public preview.2.** Do not
+mark the public download test complete until the new job reports success.
+
 ## Known limits
 
 Physical NVIDIA/AMD/Intel GPU coverage, HDR/VRR/audio/suspend on specific

@@ -1,0 +1,70 @@
+name: Verify public Skaldr preview.2 after publication
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skaldr-public-preview2-integrity
+  cancel-in-progress: false
+
+jobs:
+  independent-download:
+    name: Download and cryptographically reconstruct preview.2
+    # A release event for any other version must never verify the wrong ISO.
+    if: github.event_name == 'workflow_dispatch' || github.event.release.tag_name == 'v0.1.0-preview.2'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: v0.1.0-preview.2
+      SOURCE_LOCK: docs/PUBLIC-PREVIEW-2-LOCK.json
+    steps:
+      - name: Check out trusted verification code (not code from the release)
+        uses: actions/checkout@v4
+
+      - name: Verify exact published tag and validated source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/pomercier/Skaldr-OS/releases/tags/${RELEASE_TAG}" \
+            > "${RUNNER_TEMP}/skaldr-preview2-release.json"
+          python3 scripts/skaldr-verify-public-release.py metadata \
+            --lock "${SOURCE_LOCK}" \
+            --metadata "${RUNNER_TEMP}/skaldr-preview2-release.json"
+
+      - name: Download all seven published files from GitHub Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/skaldr-public-preview2"
+          gh release download "${RELEASE_TAG}" \
+            --repo pomercier/Skaldr-OS \
+            --dir "${RUNNER_TEMP}/skaldr-public-preview2"
+          du -sh "${RUNNER_TEMP}/skaldr-public-preview2"
+
+      - name: Reassemble and hash-check entire public ISO against original CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p results/ci
+          python3 scripts/skaldr-verify-public-release.py verify \
+            --lock "${SOURCE_LOCK}" \
+            --metadata "${RUNNER_TEMP}/skaldr-preview2-release.json" \
+            --directory "${RUNNER_TEMP}/skaldr-public-preview2" \
+            --report results/ci/preview2-public-integrity.json
+          cat results/ci/preview2-public-integrity.json
+          echo "Public preview.2 matches validated source a0198f8, five-job Desktop ISO run 43768508315, and original CI checksums." >> "${GITHUB_STEP_SUMMARY}"
+          echo "The downloaded reassembler was integrity-checked but never executed." >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Archive only the small public-release verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skaldr-public-preview2-independent-verification
+          path: results/ci/preview2-public-integrity.json
+          if-no-files-found: ignore

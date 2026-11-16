@@ -1,0 +1,43 @@
+{
+  "tag": "v0.1.0-preview.2",
+  "source_sha": "a0198f8bb864d9774d6118e7fc42ccc58b610a5a",
+  "validated_iso_run_id": 43768508315,
+  "source_checks_run_id": 43768508332,
+  "independent_rollback_run_id": 43768508288,
+  "iso_name": "skaldr-0.1.0-dev.114-x86_64.iso",
+  "iso_sha256": "b31d0a3ce45f6d75e5dbe790218a044523b92a82cc56e4a211be881976b53610",
+  "parts": [
+    {
+      "name": "skaldr-0.1.0-dev.114-x86_64.iso.part001",
+      "sha256": "1c9e94104fa7b580b548eff6ee89d00c54d7a964c4a24a3007950470538876c1",
+      "bytes": 1992294400
+    },
+    {
+      "name": "skaldr-0.1.0-dev.114-x86_64.iso.part002",
+      "sha256": "2d777245c9f70068e7755b2790d98919afdeab59bb69486c23c493ce6d6593b3",
+      "bytes": 1992294400
+    },
+    {
+      "name": "skaldr-0.1.0-dev.114-x86_64.iso.part003",
+      "sha256": "1b9e7e85bb4d8a13d70414a82a235a3c73e6b05bb5bba79f44d913df66fa4aa3"
+    }
+  ],
+  "small_assets": {
+    "SHA256SUMS": {
+      "sha256": "d242fb183136748df98accada23c031eaa098e15175274ea6898010c51c7ff7c",
+      "bytes": 98
+    },
+    "SHA256SUMS.parts": {
+      "sha256": "66d82cf892930a9fcd947d8ad6763a79e62036569056bc47eb8e80999ad516e5",
+      "bytes": 318
+    },
+    "ASSEMBLE.txt": {
+      "sha256": "79fb5b64f2eb2c2fbfa0898ddf62b76090a08802529571c2adf82fe6489db546",
+      "bytes": 529
+    },
+    "reassemble-skaldr-iso.py": {
+      "sha256": "ec36c98e6943d3326e38353ced40a470943de29f85f09ac96ffa2de322de9b26",
+      "bytes": 8035
+    }
+  }
+}

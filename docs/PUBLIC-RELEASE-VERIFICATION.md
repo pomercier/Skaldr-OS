@@ -65,5 +65,18 @@ A verified download says the public files reconstruct correctly and match
 the original source-validated ISO. It does not certify real-world GPU,
 Suspend/Resume, encrypted disks, Secure Boot, or physical hardware.
 
-Preview.2 remains a separate manually authorized release candidate; this
-workflow validates only the currently published preview.1.
+Preview.2 remains a manually authorized release candidate. Its
+[separate pinned lock](PUBLIC-PREVIEW-2-LOCK.json) records all three ISO
+part SHA-256 hashes and the helper files extracted from its original
+fully-validated [ISO run 43768508315](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315).
+The [preview.2 checker](../.github/workflows/skaldr-preview2-public-verification.yml)
+can be run manually and listens to release publications made outside
+`GITHUB_TOKEN`.
+
+**Important GitHub Actions behavior:** a release published by
+the repository's `GITHUB_TOKEN` does not trigger an independent
+`release: published` workflow automatically. To avoid that gap, the
+[manual release workflow](../.github/workflows/skaldr-release.yml)
+now schedules an independent Ubuntu post-publication verification job
+**directly in the same release workflow** after the publish job succeeds.
+No public preview.2 release exists yet; its verification remains pending.

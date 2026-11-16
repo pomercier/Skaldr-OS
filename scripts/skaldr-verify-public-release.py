@@ -38,7 +38,7 @@ def sha256_file(path):
 
 
 def expected_assets(lock):
-    names = {x["name"]: x["bytes"] for x in lock["parts"]}
+    names = {x["name"]: x.get("bytes") for x in lock["parts"]}
     names.update({k: v["bytes"] for k, v in lock["small_assets"].items()})
     return names
 
@@ -62,8 +62,13 @@ def validate_lock(lock):
                 "Parts are not sequentially named")
         require(isinstance(item.get("sha256"), str) and
                 HEX_SHA.fullmatch(item["sha256"]), "Invalid locked part SHA-256")
-        require(type(item.get("bytes")) is int and 0 < item["bytes"] < MAX_ASSET,
-                "Invalid locked part size")
+        # The validated CI checksum manifest locks each part's hash. Its final
+        # part length may not be recorded in the original CI metadata. An
+        # omitted length is permitted only for an ISO part with pinned SHA256;
+        # all downloaded assets still have an enforced <2 GiB bound.
+        if "bytes" in item:
+            require(type(item["bytes"]) is int and 0 < item["bytes"] < MAX_ASSET,
+                    "Invalid locked part size")
     small = lock.get("small_assets")
     require(isinstance(small, dict) and
             set(small) == {"SHA256SUMS", "SHA256SUMS.parts",
@@ -99,7 +104,8 @@ def validate_release_metadata(metadata, lock):
         require(isinstance(name, str) and name not in seen and name in allowed,
                 "Unknown or duplicate published release asset")
         seen.add(name)
-        require(type(item.get("size")) is int and item["size"] == allowed[name],
+        require(type(item.get("size")) is int and 0 < item["size"] < MAX_ASSET
+                and (allowed[name] is None or item["size"] == allowed[name]),
                 f"Unexpected public asset size: {name}")
         require(item.get("state") in (None, "uploaded"),
                 f"Public asset not fully uploaded: {name}")
@@ -119,7 +125,9 @@ def validate_downloaded_assets(directory, lock):
     require(actual == set(expected), "Downloaded release assets differ from pinned list")
     for name, length in expected.items():
         path = directory / name
-        require(path.is_file() and not path.is_symlink() and path.stat().st_size == length,
+        require(path.is_file() and not path.is_symlink()
+                and 0 < path.stat().st_size < MAX_ASSET
+                and (length is None or path.stat().st_size == length),
                 f"Downloaded public release asset missing or wrong size: {name}")
     for name, info in lock["small_assets"].items():
         require(sha256_file(directory / name) == info["sha256"],
@@ -145,7 +153,10 @@ def verify_reassembly(directory, lock, packer=PACKER):
             f"Downloaded release did not reassemble: {completed.stderr[-1100:]}")
     iso = directory / lock["iso_name"]
     require(iso.is_file() and not iso.is_symlink(), "Verified ISO was not created")
-    expected_bytes = sum(item["bytes"] for item in lock["parts"])
+    # All per-part cryptographic hashes are verified by the trusted packer
+    # before this size is calculated; optional lengths never skip SHA-256.
+    expected_bytes = sum((directory / item["name"]).stat().st_size
+                         for item in lock["parts"])
     require(iso.stat().st_size == expected_bytes, "Reassembled ISO size differs")
     # The trusted packer has already SHA-256-verified each part and the ISO.
     return {"tag": lock["tag"], "source_sha": lock["source_sha"],
