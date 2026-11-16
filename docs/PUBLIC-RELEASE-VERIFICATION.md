@@ -68,7 +68,7 @@ Suspend/Resume, encrypted disks, Secure Boot, or physical hardware.
 Preview.2 remains a manually authorized release candidate. Its
 [separate pinned lock](PUBLIC-PREVIEW-2-LOCK.json) records all three ISO
 part SHA-256 hashes and the helper files extracted from its original
-fully-validated [ISO run 43801626684](https://github.com/pomercier/Skaldr-OS/actions/runs/43801626684), whose five jobs passed for source `4bf13febf464e95f452406ed98cd3fc30cd3c77c`.
+fully-validated [ISO run 43924758899](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899), whose five jobs passed for source `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.
 The [preview.2 checker](../.github/workflows/skaldr-preview2-public-verification.yml)
 can be run manually and listens to release publications made outside
 `GITHUB_TOKEN`.

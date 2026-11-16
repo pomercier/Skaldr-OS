@@ -4,7 +4,7 @@ The phases below are ordered to minimize regression risk. An item is complete
 only when tested; the existence of code is not evidence of successful boot.
 
 ## Phase A — boot and installation reliability
-- [ ] Validate November 16, 2026 Calamares online package resolution after filtering upstream KDE Haruna (mpvqt/mpv requires missing libplacebo.so=387-64); GRUB/ext4 and Limine/Btrfs installation both failed before user setup in run 43909885359. VLC is retained. New full ISO test required.
+- [x] Fix real Calamares package resolution by excluding optional Haruna (mpvqt/mpv/libplacebo ABI incompatibility); VLC retained, GRUB/ext4 and Limine/Btrfs installations both passed in run 43924758899.
 - [x] Correct NumLock and the collision with `cachyos-kde-settings`
 - [x] Replace cascade-removal of dependencies with guarded cleanup
 - [x] Successful ISO build, generated checksum and UEFI installation smoke tests (2026-11-13; run 43367190468)
@@ -72,13 +72,13 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Add a Quicktest video SHA-256 index and bounded screenshot extraction, since archived recordings replace temporary PPM screenshots; source-level regression tests added
 - [ ] Approve visual appearance using new CI frame samples and a documented known-good baseline (manual review still required)
 - [x] Replace cropped Calamares productWelcome 4K wallpaper with a dedicated 880x340 SVG and QML fallback (source tests; full ISO validation pending)
-- [ ] Verify vector KDE wallpaper, Calamares, BIOS/GRUB splash and installed Plasma Login branding in a complete new ISO. Build, GRUB/ext4, and BIOS/live passed in run 43902261411; Limine/Btrfs installed rollback passed but the final visual assertion had an OCR false negative (full logo rendered as `KALDR O`). The new assertion uses the independently readable Skaldr motto; full matrix rerun pending.
+- [x] Validate installed Plasma Login Skaldr wallpaper in real QEMU after Limine/Btrfs rollback (run 43924758899); full five-job ISO suite passed, including KDE, installer, BIOS boot, rollback and identical ISO reassembly. Physical hardware validation is still separate.
 - [x] Replace rate-limited unauthenticated REST default-branch discovery with official Git symbolic HEAD and fail-closed regression tests
 - [x] Verify repaired upstream synchronization in GitHub Actions (2026-11-15, run 43669141527)
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
 - [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)
 - [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)
-- [x] Update [preview.2 candidate release notes](RELEASE-CANDIDATE-PREVIEW-2.md) for validated source `4bf13feb` after the CachyOS 26.11 merge; 147 source tests and 5/5 ISO jobs passed on November 16, 2026; **not published**
+- [x] Update [preview.2 candidate release notes](RELEASE-CANDIDATE-PREVIEW-2.md) for validated source `e37fdd25` after the CachyOS 26.11 merge; 148 source tests and 5/5 ISO jobs passed on November 16, 2026; **not published**
 - [x] Pin preview.2 release checksums to original 5/5 ISO run, gate publication on matching exact source and CI asset hashes, and configure independent post-publication and optional release-event verification; source regression tests required
 - [ ] Publish v0.1.0-preview.2 only via the existing manual release workflow with explicit `source_sha`; require the follow-up public reassembly job to pass
 - [x] Independently download all seven public v0.1.0-preview.1 assets on an Ubuntu CI runner, compare to the original five-job ISO manifests, and reassemble the full ISO with SHA-256 verified (2026-11-15, [run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882))

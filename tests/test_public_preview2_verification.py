@@ -27,13 +27,12 @@ class PreviewTwoReleaseIntegrityTests(unittest.TestCase):
     def test_candidate_is_exact_successful_five_job_iso(self):
         self.assertEqual(self.lock["tag"], "v0.1.0-preview.2")
         self.assertEqual(self.lock["source_sha"],
-                         "4bf13febf464e95f452406ed98cd3fc30cd3c77c")
-        self.assertEqual(self.lock["validated_iso_run_id"], 43801626684)
-        self.assertEqual(self.lock["source_checks_run_id"], 43801626727)
-        self.assertEqual(self.lock["source_checks_run_id"], 43801626727)
-        self.assertEqual(self.lock["iso_name"], "skaldr-0.1.0-dev.123-x86_64.iso")
+                         "e37fdd25e01e9564223f426c3ff4000dbdd5ef5b")
+        self.assertEqual(self.lock["validated_iso_run_id"], 43924758899)
+        self.assertEqual(self.lock["source_checks_run_id"], 43924758916)
+        self.assertEqual(self.lock["iso_name"], "skaldr-0.1.0-dev.129-x86_64.iso")
         self.assertEqual(self.lock["iso_sha256"],
-                         "07be14cdf59a37cafd1068801fd99ab9cd1b9c7af98a4acd12ce1975d57ab47a")
+                         "177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e")
         self.assertEqual(len(self.lock["parts"]), 3)
         self.assertEqual(len(self.expected), 7)
         self.assertEqual(self.lock["small_assets"]["ASSEMBLE.txt"]["bytes"], 529)

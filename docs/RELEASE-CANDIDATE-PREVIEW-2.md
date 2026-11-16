@@ -9,17 +9,20 @@ stable release or silently replace v0.1.0-preview.1.
 | Field | Value |
 | --- | --- |
 | Proposed tag | `v0.1.0-preview.2` |
-| Git source SHA | `4bf13febf464e95f452406ed98cd3fc30cd3c77c` |
-| Embedded ISO version | `0.1.0-dev.123` |
-| ISO filename | `skaldr-0.1.0-dev.123-x86_64.iso` |
-| ISO original SHA-256 | `07be14cdf59a37cafd1068801fd99ab9cd1b9c7af98a4acd12ce1975d57ab47a` |
-| Source tests | [43801626727](https://github.com/pomercier/Skaldr-OS/actions/runs/43801626727) — 147/147 PASS |
-| Full ISO validation | [43801626684](https://github.com/pomercier/Skaldr-OS/actions/runs/43801626684) — 5/5 jobs PASS |
+| Git source SHA | `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b` |
+| Embedded ISO version | `0.1.0-dev.129` |
+| ISO filename | `skaldr-0.1.0-dev.129-x86_64.iso` |
+| ISO original SHA-256 | `177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e` |
+| Source tests | [43924758916](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758916) — 148/148 PASS |
+| Full ISO validation | [43924758899](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899) — 5/5 jobs PASS |
 | Earlier isolated Btrfs rollback evidence | [43768508288](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508288) — PASS on the preceding source revision; the new ISO also passed its Limine/Btrfs installed-rollback matrix |
 | Previous public preview | [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) — all seven public assets independently downloaded and SHA-256-reassembled ([run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882)) |
 
 This candidate includes the November 16, 2026 CachyOS upstream merge and the
-pinned Calamares staging rebuild. Its five-job ISO matrix passed for the exact
+pinned Calamares staging rebuild. It also includes Skaldr branding at the
+installed KDE Plasma login screen, and a targeted exclusion of optional
+Haruna to avoid a verified broken KDE dependency chain (`mpvqt` / `mpv` /
+`libplacebo`). VLC remains included. Its five-job ISO matrix passed for the exact
 source commit above. This remains a development preview, **not a
 hardware-certified release**.
 
@@ -37,6 +40,11 @@ hardware-certified release**.
 - Privacy-limited local diagnostics, vendor-neutral GPU/Vulkan information
   and recovery-readiness reporting.
 - Updated local ArtCraft Launcher integration with checksum checks.
+- Fixed actual Calamares installation failures in both GRUB/ext4 and
+  Limine/Btrfs caused by upstream Haruna's `libplacebo.so=387-64`
+  dependency; VLC is retained.
+- Applied the Skaldr OS wallpaper to installed KDE Plasma Login without
+  changing passwords or autologin settings.
 - Resolved the CachyOS 26.11 merge conflicts, preserved the single `master`
   branch, migrated to the pinned `cachyos-calamares-staging` package and
   retained Skaldr's fail-closed installer without destructive keyring resets.
@@ -58,9 +66,9 @@ The successful validation produced a ZIP containing `SHA256SUMS`,
 The three ISO part hashes in the verified manifest are:
 
 ```text
-f582bf05e490ff69c8a8a5c41bf831fa44bfeff288a4a843fe926ffa049748f2  skaldr-0.1.0-dev.123-x86_64.iso.part001
-c7eaf384a6f42cc1f174a292b53576215fa6e48fc38058b81452279085c94b08  skaldr-0.1.0-dev.123-x86_64.iso.part002
-b27705d4d631219d5602620d4d66e9fa84eb87a71aa9aea6c49546e00fedbe62  skaldr-0.1.0-dev.123-x86_64.iso.part003
+b781b2dcdc94374a865b17a7614c2d7f2f50d7195c46625629b4634a62809e52  skaldr-0.1.0-dev.129-x86_64.iso.part001
+8fe7cfea0e1fd8815c948140295c0d324c3ce7f3df650ba9243742880f64dfe4  skaldr-0.1.0-dev.129-x86_64.iso.part002
+ab2855a15b516331442d5fbd8f92943c835d1b14ecc3462659e67bd584463fc9  skaldr-0.1.0-dev.129-x86_64.iso.part003
 ```
 
 After downloading **all** assets into one directory:
@@ -87,7 +95,7 @@ If explicitly authorized to publish, use the existing
 gh workflow run skaldr-release.yml --ref master \
   -f version=v0.1.0-preview.2 \
   -f stable=false \
-  -f source_sha=4bf13febf464e95f452406ed98cd3fc30cd3c77c
+  -f source_sha=e37fdd25e01e9564223f426c3ff4000dbdd5ef5b
 ```
 
 The release workflow itself must reject non-validated commits or stable
