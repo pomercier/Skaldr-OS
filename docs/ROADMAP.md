@@ -79,7 +79,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)
 - [x] Prepare [preview.2 candidate release notes](RELEASE-CANDIDATE-PREVIEW-2.md) for exact source `a0198f8`, with 134 source tests and 5/5 ISO jobs passed; **not published**
 - [ ] Publish v0.1.0-preview.2 only via the existing manual release workflow with explicit `source_sha`, then independently verify publicly downloadable parts
-- [ ] Independently download and reassemble all public release assets on a second CI runner (new [integrity workflow](PUBLIC-RELEASE-VERIFICATION.md) added; verify successful execution before completion)
+- [x] Independently download all seven public v0.1.0-preview.1 assets on an Ubuntu CI runner, compare to the original five-job ISO manifests, and reassemble the full ISO with SHA-256 verified (2026-11-15, [run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882))
 - [x] Authorize development preview only after source checks and all five ISO tests passed for commit b391fc35
 - [ ] Publish a stable release only after physical hardware tests and a release-mode ISO build
 

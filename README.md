@@ -159,6 +159,7 @@ non-tested storage layouts are not certified.
 | Version provenance | Implemented in build tooling and first-login welcome |
 | CI source validation | Automated on `master` |
 | Public preview | **Published** [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1), seven verified-release assets from `b391fc35` |
+| Independent public download and reassembly | **Passed** for all seven preview.1 GitHub Release files; rebuilt a 4,144,332,800-byte ISO with the original validated SHA-256 on a separate Ubuntu runner ([2026-11-15, run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882)) |
 | Full ISO build, installation and rollback | **Passed 5/5** on source `a0198f8`, including GRUB/ext4 and Limine/Btrfs installed KDE, restored Btrfs root cold boot, Control Center, legacy BIOS live boot and full ISO SHA-256 reassembly ([2026-11-15, run 43768508315](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315)). Physical hardware, encrypted storage and legacy BIOS **installation** remain untested |
 | Wallpaper, final boot splash and hardware certification | Work in progress |
 

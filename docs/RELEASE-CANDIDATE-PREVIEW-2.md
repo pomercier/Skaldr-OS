@@ -16,7 +16,7 @@ stable release or silently replace v0.1.0-preview.1.
 | Source tests | [43768508332](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508332) — 134/134 PASS |
 | Full ISO validation | [43768508315](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315) — 5/5 jobs PASS |
 | Isolated installed rollback | [43768508288](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508288) — PASS |
-| Previous public preview | [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) |
+| Previous public preview | [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) — all seven public assets independently downloaded and SHA-256-reassembled ([run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882)) |
 
 The source is 52 commits ahead of preview.1 (84 changed files in the GitHub
 comparison as reviewed on November 15, 2026). This is a development preview,

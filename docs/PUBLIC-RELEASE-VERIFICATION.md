@@ -47,8 +47,19 @@ reconstructed ISO combined; it is a dedicated opt-in/push-on-change workflow,
 not a recurring monitor. It can fail because of a transient network problem,
 in which case logs distinguish a download failure from a hash mismatch.
 
-**Do not mark the independent download/reassembly milestone complete before
-the workflow itself has succeeded.**
+**Result — PASS:** The independent Ubuntu runner downloaded all seven
+public v0.1.0-preview.1 files and successfully reconstructed the full
+4,144,332,800-byte ISO on November 15, 2026
+([GitHub Actions run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882)).
+The reconstructed image exactly matched the originally validated SHA-256:
+
+```text
+b553c0e4cfe01e1de0c857f1dc4c70ac89d41a762bdb01750c770bb77069ec49
+```
+
+The workflow's [compact JSON report](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882)
+is archived as `skaldr-public-preview1-independent-verification`.
+No release, tag, or source branch was created by the verification.
 
 A verified download says the public files reconstruct correctly and match
 the original source-validated ISO. It does not certify real-world GPU,
