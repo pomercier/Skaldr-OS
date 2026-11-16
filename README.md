@@ -18,7 +18,8 @@
 </p>
 
 <p align="center">
-  <a href="#download-and-verify-the-public-preview">Download</a> ·
+  <a href="#latest-fully-tested-development-iso--010-dev129">Latest ISO</a> ·
+  <a href="#download-and-verify-the-public-preview">Public preview</a> ·
   <a href="#why-skaldr">Why Skaldr?</a> ·
   <a href="#the-desktop">The desktop</a> ·
   <a href="#versions-you-can-trace">Versioning</a> ·
@@ -34,7 +35,7 @@ Skaldr OS grew from a simple idea: **build the Linux system I actually want to u
 
 It is built on the work of **[CachyOS](https://cachyos.org/)** and **[Arch Linux](https://archlinux.org/)**. The goal isn't to pretend to replace these projects. It is to add an opinionated, cohesive desktop experience while preserving broad hardware compatibility and upstream improvements.
 
-> **The first public development preview is available.** [Get v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) (November 13, 2026). Its ISO passed real automated UEFI installations, cold boots, password-protected KDE logins, first-run welcome and legacy BIOS live-boot tests. Physical GPU compatibility, legacy BIOS installation and full recovery tests remain unverified. **Not yet a hardware-certified stable release.**
+> **The latest complete VM-validated development ISO is available as a GitHub Actions artifact:** [Skaldr OS 0.1.0-dev.129](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899/artifacts/14257118152) (November 16, 2026). Its source passed 148 tests and the exact ISO passed all five CI jobs, including real GRUB/ext4 and Limine/Btrfs installations, authenticated KDE, an offline Btrfs rollback and SHA-256 reassembly. **This is a temporary Actions artifact, not yet the public preview.2 release.** The previous [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) is still the most recent publicly published preview. Physical hardware remains untested.
 
 ## Why Skaldr?
 
@@ -101,6 +102,40 @@ sudo ./buildiso.sh -p desktop -v -w
 
 The expected output is in `out/desktop/`. The build includes a version manifest and generates SHA-256 checksums. **Do not assume the generated image is installable until its build and VM tests pass.** You can follow the [ISO build workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml).
 
+## Latest fully tested development ISO — 0.1.0-dev.129
+
+The November 16, 2026 build is the **current, fully VM-tested image**, even
+though it has **not yet been published as `v0.1.0-preview.2`**.
+
+1. Open the [successful five-job ISO workflow](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899),
+   or [download its exact ISO artifact](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899/artifacts/14257118152)
+   (GitHub sign-in may be required; Actions artifacts eventually expire).
+2. Extract the ZIP named `skaldr-os-x86_64-261116`. It contains
+   `skaldr-0.1.0-dev.129-x86_64.iso` and `SHA256SUMS`.
+3. In the directory containing both files, verify the complete image:
+
+```sh
+sha256sum -c SHA256SUMS
+```
+
+Expected exact ISO SHA-256:
+
+```text
+177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e
+```
+
+The [source check](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758916)
+passed 148 tests; the [ISO matrix](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899)
+passed all five jobs, including original-image hash verification, three-part
+splitting and reconstruction of the exact original image. Source commit:
+[`e37fdd25`](https://github.com/pomercier/Skaldr-OS/commit/e37fdd25e01e9564223f426c3ff4000dbdd5ef5b).
+
+Use a non-production machine or spare SSD and the
+[physical hardware test checklist](docs/HARDWARE-TESTING.md). The newer
+image includes installed Plasma Login branding and a Calamares dependency
+fix; **BIOS installation, Secure Boot, encrypted installations and physical
+GPU behavior have not been certified.**
+
 ## Download and verify the public preview
 
 **[Skaldr OS v0.1.0-preview.1 — seven release files](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1)**
@@ -132,23 +167,23 @@ b553c0e4cfe01e1de0c857f1dc4c70ac89d41a762bdb01750c770bb77069ec49
 **Flash only the verified `.iso`, never an individual part.** Use a spare drive
 or non-production test machine and read the
 [physical-hardware test checklist](docs/HARDWARE-TESTING.md).
-All seven release assets were uploaded and their three published part digests
-match the CI manifests. Independent reassembly from freshly downloaded
-release assets on a second machine is still pending.
+All seven release assets were uploaded. Independent download, checksum checks
+and full ISO reconstruction of the publicly released preview.1 also passed on
+[a separate Ubuntu runner](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882).
 
 ## Project status
 
-**Published preview versus validated candidate:** `v0.1.0-preview.1`
-remains the public download from November 13, 2026. A newer exact-source
-development image from commit `a0198f8` passed **134 source tests**, all
-**five Desktop ISO jobs**, and the independent QCOW2 rollback test on
-November 15, 2026. The Limine/Btrfs test installed Skaldr via Calamares,
-restored a disposable root snapshot, booted the restored system without
-the installer ISO and verified the original data inside authenticated KDE.
-[Full ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315)
-and [preview.2 candidate notes](docs/RELEASE-CANDIDATE-PREVIEW-2.md)
-document this result. **Preview.2 is not published;** physical hardware and
-non-tested storage layouts are not certified.
+**`0.1.0-dev.129` is the latest fully validated development ISO.**
+Its exact source revision `e37fdd25` passed 148 tests
+([source CI](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758916))
+and the ISO passed all five real build, install, BIOS, rollback and full-image
+reassembly jobs
+([ISO CI](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899)).
+The [`v0.1.0-preview.2` release candidate](docs/RELEASE-CANDIDATE-PREVIEW-2.md)
+is pinned to this image and **not yet published**. Until then,
+[`v0.1.0-preview.1`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1)
+remains the latest public GitHub Release. Physical hardware, Secure Boot and
+untested storage configurations remain uncertified.
 
 | Area | Current state |
 | --- | --- |
@@ -160,8 +195,9 @@ non-tested storage layouts are not certified.
 | CI source validation | Automated on `master` |
 | Public preview | **Published** [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1), seven verified-release assets from `b391fc35` |
 | Independent public download and reassembly | **Passed** for all seven preview.1 GitHub Release files; rebuilt a 4,144,332,800-byte ISO with the original validated SHA-256 on a separate Ubuntu runner ([2026-11-15, run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882)) |
-| Full ISO build, installation and rollback | **Passed 5/5** on source `a0198f8`, including GRUB/ext4 and Limine/Btrfs installed KDE, restored Btrfs root cold boot, Control Center, legacy BIOS live boot and full ISO SHA-256 reassembly ([2026-11-15, run 43768508315](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315)). Physical hardware, encrypted storage and legacy BIOS **installation** remain untested |
-| Wallpaper, final boot splash and hardware certification | Work in progress |
+| Full ISO build, installation and rollback | **Passed 5/5** on `e37fdd25` (2026-11-16), including GRUB/ext4 and Limine/Btrfs installed KDE, restored Btrfs root cold boot, Control Center, branded Plasma Login, legacy BIOS live boot and full ISO SHA-256 reassembly ([run 43924758899](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899)). Physical hardware, encrypted storage and legacy BIOS **installation** remain untested |
+| Installed Plasma Login branding | Validated in QEMU after Btrfs rollback; see [run 43924758899](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899) |
+| Physical hardware and final appearance approval | Not yet certified; testing checklist available |
 
 The project's priorities and gaps are tracked in [the development roadmap](docs/ROADMAP.md). Use [safe update, power and diagnostic controls](docs/SAFE-CONTROLS.md), the [hardware test checklist](docs/HARDWARE-TESTING.md) and the [community compatibility report template](docs/HARDWARE-COMPATIBILITY.md).
 

@@ -1,31 +1,51 @@
 # Skaldr OS — physical hardware validation
 
-The [first public preview](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1)
-is **not certified for production systems**. The exact ISO passed all
-[five virtual-machine CI jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/43507233020)
-and the source test suite for commit `b391fc35f4eaade3c1ff5231c33c10f63770bda6`.
+The newest complete, VM-validated image is
+[`skaldr-0.1.0-dev.129-x86_64.iso`](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899/artifacts/14257118152)
+from source commit `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.
+It passed [148 source tests](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758916)
+and [five ISO validation jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899)
+on November 16, 2026, including installed KDE login, Calamares installation
+with GRUB/ext4 and Limine/Btrfs, offline rollback and ISO reassembly.
+
+**This is a development artifact, not a publicly published preview.2 or a
+certified production system.** The older
+[preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1)
+is the latest public Release.
 
 ## Before installing
 
 - [ ] Use a spare computer or disposable test SSD, **not the only system drive**.
 - [ ] Verify independent data backups and keep a bootable rescue medium.
-- [ ] Download all seven GitHub Release files and reassemble with Python 3,
-      verifying each part and the complete ISO.
-- [ ] Confirm the exact `skaldr-0.1.0-dev.62-x86_64.iso` checksum:
+- [ ] For the latest `dev.129`, download the
+      [complete GitHub Actions ISO artifact](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899/artifacts/14257118152)
+      and extract `skaldr-0.1.0-dev.129-x86_64.iso` with `SHA256SUMS`.
+      GitHub may require login; CI artifacts expire.
+- [ ] From the extraction folder, run `sha256sum -c SHA256SUMS` and confirm
+      the complete image matches exactly:
 
 ```text
-b553c0e4cfe01e1de0c857f1dc4c70ac89d41a762bdb01750c770bb77069ec49
+177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e
 ```
+
+- [ ] If testing the older public `preview.1` instead, download all seven
+      public Release files and reconstruct its ISO using the matching
+      `reassemble-skaldr-iso.py` and checksums. **Never mix preview versions.**
 
 - [ ] Record CPU, RAM, GPU model/vendor, storage, firmware UEFI/BIOS mode and
       Secure Boot state before testing.
 
 ## Installation and boot
 
+- [ ] Write **only the fully verified .iso** to a spare USB device with a
+      trusted image writer. The destination device will be overwritten;
+      confirm it is not a system drive before writing.
 - [ ] Boot the live ISO, open the installer and explicitly verify the target drive.
 - [ ] Install **GRUB/ext4** onto a disposable drive; cold boot without the ISO.
 - [ ] Separately install **Limine/Btrfs**; cold boot without the ISO.
 - [ ] Confirm account password is required and KDE Plasma launches.
+- [ ] Confirm Skaldr branding on the installed Plasma Login screen and
+      confirm `skaldr-control-center` opens with Overview and system details.
 - [ ] Confirm Skaldr welcome, NumLock at login/resume, network and audio.
 - [ ] Validate legacy BIOS **installation** separately; only BIOS *live boot*
       was demonstrated by CI.
