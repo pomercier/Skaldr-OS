@@ -6,21 +6,21 @@ set -euo pipefail
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 work="$repo/.skaldr-calamares-build"
 local_repo="$repo/.skaldr-local"
-pkgbuild_revision="288a24812b36c68bf16657e8131d00351878f3e0"
-calamares_revision="199d71543db805fac2cc649ced72ad01dcb2c362"
+pkgbuild_revision="a7b305845d9f530db134d8a2cf94220e737beb9d"
+calamares_revision="42a91ab23334483ff3cd761d120dec9efea67c53"
 
 command -v makepkg >/dev/null || { echo "makepkg is required" >&2; exit 1; }
 command -v repo-add >/dev/null || { echo "repo-add (pacman-contrib) is required" >&2; exit 1; }
 mkdir -p "$work" "$local_repo"
 curl --fail --location --silent --show-error --retry 3 \
-  "https://raw.githubusercontent.com/CachyOS/CachyOS-PKGBUILDS/$pkgbuild_revision/cachyos-calamares/PKGBUILD" \
+  "https://raw.githubusercontent.com/CachyOS/CachyOS-PKGBUILDS/$pkgbuild_revision/cachyos-calamares-staging/PKGBUILD" \
   -o "$work/PKGBUILD"
 
-grep -q '^pkgname=cachyos-calamares-next$' "$work/PKGBUILD"
-grep -q '^pkgrel=13$' "$work/PKGBUILD"
-grep -q '#branch=cachyos-dev' "$work/PKGBUILD"
-sed -i "s|#branch=cachyos-dev|#commit=$calamares_revision|" "$work/PKGBUILD"
-sed -i 's/^pkgrel=13$/pkgrel=13.1/' "$work/PKGBUILD"
+grep -q '^pkgname=cachyos-calamares-staging$' "$work/PKGBUILD"
+grep -q '^pkgrel=3$' "$work/PKGBUILD"
+grep -q '#branch=cachyos-staging' "$work/PKGBUILD"
+sed -i "s|#branch=cachyos-staging|#commit=$calamares_revision|" "$work/PKGBUILD"
+sed -i 's/^pkgrel=3$/pkgrel=3.1/' "$work/PKGBUILD"
 echo "Building official CachyOS Calamares source at $calamares_revision against current Boost"
 
 # Build the installer for portable x86-64 regardless of the GitHub runner CPU.
@@ -40,7 +40,7 @@ MAKEPKG_PORTABLE
   export CMAKE_BUILD_PARALLEL_LEVEL=2
   makepkg --config "$work/skaldr-makepkg.conf" --syncdeps --noconfirm --needed --cleanbuild
 )
-packages=("$work"/cachyos-calamares-next-*.pkg.tar.zst)
+packages=("$work"/cachyos-calamares-staging-*.pkg.tar.zst)
 [[ -f "${packages[0]}" ]] || { echo "No rebuilt Calamares package found" >&2; exit 1; }
 cp -- "${packages[0]}" "$local_repo/"
 repo-add "$local_repo/skaldr-local.db.tar.gz" "$local_repo/$(basename "${packages[0]}")"
