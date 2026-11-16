@@ -1,0 +1,68 @@
+name: Independently verify public Skaldr release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'scripts/skaldr-verify-public-release.py'
+      - 'docs/PUBLIC-PREVIEW-1-LOCK.json'
+      - 'tests/test_public_release_verification.py'
+      - '.github/workflows/skaldr-public-release-verification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skaldr-public-release-integrity
+  cancel-in-progress: false
+
+jobs:
+  download-and-reassemble:
+    name: Verify public preview.1 assets independently
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out public source and trusted local reassembler
+        uses: actions/checkout@v4
+
+      - name: Read published GitHub Release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/pomercier/Skaldr-OS/releases/tags/v0.1.0-preview.1 > "${RUNNER_TEMP}/skaldr-public-release.json"
+          python3 scripts/skaldr-verify-public-release.py metadata \
+            --metadata "${RUNNER_TEMP}/skaldr-public-release.json"
+
+      - name: Download all seven PUBLIC GitHub Release files on an independent runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/skaldr-public-preview1"
+          gh release download v0.1.0-preview.1 \
+            --repo pomercier/Skaldr-OS \
+            --dir "${RUNNER_TEMP}/skaldr-public-preview1"
+          du -sh "${RUNNER_TEMP}/skaldr-public-preview1"
+
+      - name: Verify independently pinned manifests and reassemble entire ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p results/ci
+          python3 scripts/skaldr-verify-public-release.py verify \
+            --metadata "${RUNNER_TEMP}/skaldr-public-release.json" \
+            --directory "${RUNNER_TEMP}/skaldr-public-preview1" \
+            --report results/ci/public-release-verification.json
+          cat results/ci/public-release-verification.json
+          echo "Public preview.1 verified against original 5/5 ISO build 43507233020." >> "${GITHUB_STEP_SUMMARY}"
+          echo "The downloaded release reconstruction used checked-out trusted code, not downloaded executable code." >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Archive the small verification report only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skaldr-public-preview1-independent-verification
+          path: results/ci/public-release-verification.json
+          if-no-files-found: ignore
