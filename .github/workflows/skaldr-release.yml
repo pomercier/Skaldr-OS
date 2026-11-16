@@ -107,6 +107,19 @@ jobs:
           fi
           echo "Verified source checks: $source_run"
 
+      - name: Preserve trusted preview.2 lock and prepublication verifier
+        if: ${{ inputs.version == 'v0.1.0-preview.2' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The validated ISO is from an older, immutable source SHA. Save the
+          # current source-independent release gate BEFORE checking that SHA out.
+          mkdir -p "${RUNNER_TEMP}/skaldr-release-gate"
+          cp -- docs/PUBLIC-PREVIEW-2-LOCK.json \
+            "${RUNNER_TEMP}/skaldr-release-gate/PUBLIC-PREVIEW-2-LOCK.json"
+          cp -- scripts/skaldr-verify-public-release.py \
+            "${RUNNER_TEMP}/skaldr-release-gate/skaldr-verify-public-release.py"
+
       - name: Checkout the exact source tree that produced the validated ISO
         shell: bash
         run: |
@@ -155,8 +168,8 @@ jobs:
         run: |
           set -euo pipefail
           (cd release-assets && sha256sum --check SHA256SUMS.parts)
-          python3 scripts/skaldr-verify-public-release.py assets \
-            --lock docs/PUBLIC-PREVIEW-2-LOCK.json \
+          python3 "${RUNNER_TEMP}/skaldr-release-gate/skaldr-verify-public-release.py" assets \
+            --lock "${RUNNER_TEMP}/skaldr-release-gate/PUBLIC-PREVIEW-2-LOCK.json" \
             --directory release-assets
 
       - name: Publish the authorized release
