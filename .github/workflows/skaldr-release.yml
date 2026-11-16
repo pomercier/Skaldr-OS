@@ -149,6 +149,16 @@ jobs:
             --out release-assets
           test -n "$(find release-assets -maxdepth 1 -name '*.iso.part*' -print -quit)"
 
+      - name: Verify pinned preview.2 checksums before public upload
+        if: ${{ inputs.version == 'v0.1.0-preview.2' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd release-assets && sha256sum --check SHA256SUMS.parts)
+          python3 scripts/skaldr-verify-public-release.py assets \
+            --lock docs/PUBLIC-PREVIEW-2-LOCK.json \
+            --directory release-assets
+
       - name: Publish the authorized release
         shell: bash
         env:

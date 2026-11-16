@@ -77,8 +77,8 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
 - [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)
 - [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)
-- [x] Prepare [preview.2 candidate release notes](RELEASE-CANDIDATE-PREVIEW-2.md) for exact source `a0198f8`, with 134 source tests and 5/5 ISO jobs passed; **not published**
-- [x] Pin preview.2 release checksums to original 5/5 ISO run, add an exact-source pre-publication gate, and configure an independent post-publication runner plus an optional release-event verifier (implementation; source tests pending)
+- [x] Update [preview.2 candidate release notes](RELEASE-CANDIDATE-PREVIEW-2.md) for validated source `4bf13feb` after the CachyOS 26.11 merge; 147 source tests and 5/5 ISO jobs passed on November 16, 2026; **not published**
+- [x] Pin preview.2 release checksums to original 5/5 ISO run, gate publication on matching exact source and CI asset hashes, and configure independent post-publication and optional release-event verification; source regression tests required
 - [ ] Publish v0.1.0-preview.2 only via the existing manual release workflow with explicit `source_sha`; require the follow-up public reassembly job to pass
 - [x] Independently download all seven public v0.1.0-preview.1 assets on an Ubuntu CI runner, compare to the original five-job ISO manifests, and reassemble the full ISO with SHA-256 verified (2026-11-15, [run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882))
 - [x] Authorize development preview only after source checks and all five ISO tests passed for commit b391fc35

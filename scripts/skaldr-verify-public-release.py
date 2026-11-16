@@ -166,14 +166,22 @@ def verify_reassembly(directory, lock, packer=PACKER):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=("metadata", "verify"))
-    parser.add_argument("--metadata", type=Path, required=True)
+    parser.add_argument("phase", choices=("metadata", "verify", "assets"))
+    parser.add_argument("--metadata", type=Path)
     parser.add_argument("--lock", type=Path, default=DEFAULT_LOCK)
     parser.add_argument("--directory", type=Path)
     parser.add_argument("--report", type=Path)
     args = parser.parse_args(argv)
     try:
         lock = validate_lock(json.loads(args.lock.read_text(encoding="utf-8")))
+        if args.phase == "assets":
+            require(args.directory is not None,
+                    "--directory required for pre-publication asset verification")
+            validate_downloaded_assets(args.directory, lock)
+            print(f"PASS: candidate {lock['tag']} assets match pinned CI SHA-256 values")
+            return 0
+        require(args.metadata is not None,
+                "--metadata required for public release metadata verification")
         metadata = json.loads(args.metadata.read_text(encoding="utf-8"))
         validate_release_metadata(metadata, lock)
         if args.phase == "metadata":

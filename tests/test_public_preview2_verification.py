@@ -27,12 +27,13 @@ class PreviewTwoReleaseIntegrityTests(unittest.TestCase):
     def test_candidate_is_exact_successful_five_job_iso(self):
         self.assertEqual(self.lock["tag"], "v0.1.0-preview.2")
         self.assertEqual(self.lock["source_sha"],
-                         "a0198f8bb864d9774d6118e7fc42ccc58b610a5a")
-        self.assertEqual(self.lock["validated_iso_run_id"], 43768508315)
-        self.assertEqual(self.lock["source_checks_run_id"], 43768508332)
-        self.assertEqual(self.lock["iso_name"], "skaldr-0.1.0-dev.114-x86_64.iso")
+                         "4bf13febf464e95f452406ed98cd3fc30cd3c77c")
+        self.assertEqual(self.lock["validated_iso_run_id"], 43801626684)
+        self.assertEqual(self.lock["source_checks_run_id"], 43801626727)
+        self.assertEqual(self.lock["source_checks_run_id"], 43801626727)
+        self.assertEqual(self.lock["iso_name"], "skaldr-0.1.0-dev.123-x86_64.iso")
         self.assertEqual(self.lock["iso_sha256"],
-                         "b31d0a3ce45f6d75e5dbe790218a044523b92a82cc56e4a211be881976b53610")
+                         "07be14cdf59a37cafd1068801fd99ab9cd1b9c7af98a4acd12ce1975d57ab47a")
         self.assertEqual(len(self.lock["parts"]), 3)
         self.assertEqual(len(self.expected), 7)
         self.assertEqual(self.lock["small_assets"]["ASSEMBLE.txt"]["bytes"], 529)
@@ -82,7 +83,9 @@ class PreviewTwoReleaseIntegrityTests(unittest.TestCase):
 
     def test_reassembly_verifies_hashes_even_when_last_size_is_unpinned(self):
         with tempfile.TemporaryDirectory() as temporary:
-            folder = Path(temporary)
+            root = Path(temporary)
+            folder = root / "release-assets"
+            folder.mkdir()
             iso_name = "skaldr-0.1.0-dev.1-x86_64.iso"
             chunks = (b"original-version", b"restored-version")
             sha = lambda b: hashlib.sha256(b).hexdigest()
@@ -110,6 +113,10 @@ class PreviewTwoReleaseIntegrityTests(unittest.TestCase):
                                  for name, data in helpers.items()},
             }
             self.assertTrue(verify_files(folder, lock))
+            lock_path = root / "candidate-lock.json"
+            lock_path.write_text(json.dumps(lock), encoding="utf-8")
+            self.assertEqual(CODE["main"](["assets", "--lock", str(lock_path),
+                                           "--directory", str(folder)]), 0)
             result = reassemble(folder, lock)
             self.assertEqual(result["bytes"], sum(map(len, chunks)))
             self.assertEqual(result["status"], "PASS")
@@ -123,6 +130,8 @@ class PreviewTwoReleaseIntegrityTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/skaldr-release.yml").read_text()
         self.assertIn('if [[ "$RELEASE_VERSION" == "v0.1.0-preview.2" ]]; then', workflow)
         self.assertIn('docs/PUBLIC-PREVIEW-2-LOCK.json', workflow)
+        self.assertIn('scripts/skaldr-verify-public-release.py assets', workflow)
+        self.assertIn('sha256sum --check SHA256SUMS.parts', workflow)
         self.assertIn('[[ "$candidate" != "$pinned_sha" ]]', workflow)
         self.assertIn('independent_preview2_integrity:', workflow)
         self.assertIn('needs: release', workflow)

@@ -68,7 +68,7 @@ Suspend/Resume, encrypted disks, Secure Boot, or physical hardware.
 Preview.2 remains a manually authorized release candidate. Its
 [separate pinned lock](PUBLIC-PREVIEW-2-LOCK.json) records all three ISO
 part SHA-256 hashes and the helper files extracted from its original
-fully-validated [ISO run 43768508315](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315).
+fully-validated [ISO run 43801626684](https://github.com/pomercier/Skaldr-OS/actions/runs/43801626684), whose five jobs passed for source `4bf13febf464e95f452406ed98cd3fc30cd3c77c`.
 The [preview.2 checker](../.github/workflows/skaldr-preview2-public-verification.yml)
 can be run manually and listens to release publications made outside
 `GITHUB_TOKEN`.
@@ -79,4 +79,4 @@ the repository's `GITHUB_TOKEN` does not trigger an independent
 [manual release workflow](../.github/workflows/skaldr-release.yml)
 now schedules an independent Ubuntu post-publication verification job
 **directly in the same release workflow** after the publish job succeeds.
-No public preview.2 release exists yet; its verification remains pending.
+No public preview.2 release exists yet; post-publication verification remains pending. Before the release is created, its candidate assets must match the separately pinned SHA-256 hashes from the validated ISO CI artifact.

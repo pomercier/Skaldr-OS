@@ -58,7 +58,7 @@ jobs:
             --directory "${RUNNER_TEMP}/skaldr-public-preview2" \
             --report results/ci/preview2-public-integrity.json
           cat results/ci/preview2-public-integrity.json
-          echo "Public preview.2 matches validated source a0198f8, five-job Desktop ISO run 43768508315, and original CI checksums." >> "${GITHUB_STEP_SUMMARY}"
+          echo "Public preview.2 matches the exact source and ISO CI checksum lock in docs/PUBLIC-PREVIEW-2-LOCK.json." >> "${GITHUB_STEP_SUMMARY}"
           echo "The downloaded reassembler was integrity-checked but never executed." >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Archive only the small public-release verification report

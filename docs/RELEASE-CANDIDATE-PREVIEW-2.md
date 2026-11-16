@@ -9,18 +9,19 @@ stable release or silently replace v0.1.0-preview.1.
 | Field | Value |
 | --- | --- |
 | Proposed tag | `v0.1.0-preview.2` |
-| Git source SHA | `a0198f8bb864d9774d6118e7fc42ccc58b610a5a` |
-| Embedded ISO version | `0.1.0-dev.114` |
-| ISO filename | `skaldr-0.1.0-dev.114-x86_64.iso` |
-| ISO original SHA-256 | `b31d0a3ce45f6d75e5dbe790218a044523b92a82cc56e4a211be881976b53610` |
-| Source tests | [43768508332](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508332) — 134/134 PASS |
-| Full ISO validation | [43768508315](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508315) — 5/5 jobs PASS |
-| Isolated installed rollback | [43768508288](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508288) — PASS |
+| Git source SHA | `4bf13febf464e95f452406ed98cd3fc30cd3c77c` |
+| Embedded ISO version | `0.1.0-dev.123` |
+| ISO filename | `skaldr-0.1.0-dev.123-x86_64.iso` |
+| ISO original SHA-256 | `07be14cdf59a37cafd1068801fd99ab9cd1b9c7af98a4acd12ce1975d57ab47a` |
+| Source tests | [43801626727](https://github.com/pomercier/Skaldr-OS/actions/runs/43801626727) — 147/147 PASS |
+| Full ISO validation | [43801626684](https://github.com/pomercier/Skaldr-OS/actions/runs/43801626684) — 5/5 jobs PASS |
+| Earlier isolated Btrfs rollback evidence | [43768508288](https://github.com/pomercier/Skaldr-OS/actions/runs/43768508288) — PASS on the preceding source revision; the new ISO also passed its Limine/Btrfs installed-rollback matrix |
 | Previous public preview | [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) — all seven public assets independently downloaded and SHA-256-reassembled ([run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882)) |
 
-The source is 52 commits ahead of preview.1 (84 changed files in the GitHub
-comparison as reviewed on November 15, 2026). This is a development preview,
-**not a hardware-certified release**.
+This candidate includes the November 16, 2026 CachyOS upstream merge and the
+pinned Calamares staging rebuild. Its five-job ISO matrix passed for the exact
+source commit above. This remains a development preview, **not a
+hardware-certified release**.
 
 ## Changes since preview.1
 
@@ -36,8 +37,10 @@ comparison as reviewed on November 15, 2026). This is a development preview,
 - Privacy-limited local diagnostics, vendor-neutral GPU/Vulkan information
   and recovery-readiness reporting.
 - Updated local ArtCraft Launcher integration with checksum checks.
-- Fixed CachyOS upstream sync discovery without unauthenticated GitHub API
-  rate limits; preserved the single `master` branch.
+- Resolved the CachyOS 26.11 merge conflicts, preserved the single `master`
+  branch, migrated to the pinned `cachyos-calamares-staging` package and
+  retained Skaldr's fail-closed installer without destructive keyring resets.
+- Incorporated upstream UEFI shell, Memtest86+ and GRUB live-boot fixes.
 - Expanded QEMU testing: actual Calamares installations, cold boots, installed
   KDE logins and native Control Center display for GRUB/ext4 and Limine/Btrfs.
 - **New recovery evidence:** the disposable Calamares-installed Limine/Btrfs
@@ -55,9 +58,9 @@ The successful validation produced a ZIP containing `SHA256SUMS`,
 The three ISO part hashes in the verified manifest are:
 
 ```text
-1c9e94104fa7b580b548eff6ee89d00c54d7a964c4a24a3007950470538876c1  skaldr-0.1.0-dev.114-x86_64.iso.part001
-2d777245c9f70068e7755b2790d98919afdeab59bb69486c23c493ce6d6593b3  skaldr-0.1.0-dev.114-x86_64.iso.part002
-1b9e7e85bb4d8a13d70414a82a235a3c73e6b05bb5bba79f44d913df66fa4aa3  skaldr-0.1.0-dev.114-x86_64.iso.part003
+f582bf05e490ff69c8a8a5c41bf831fa44bfeff288a4a843fe926ffa049748f2  skaldr-0.1.0-dev.123-x86_64.iso.part001
+c7eaf384a6f42cc1f174a292b53576215fa6e48fc38058b81452279085c94b08  skaldr-0.1.0-dev.123-x86_64.iso.part002
+b27705d4d631219d5602620d4d66e9fa84eb87a71aa9aea6c49546e00fedbe62  skaldr-0.1.0-dev.123-x86_64.iso.part003
 ```
 
 After downloading **all** assets into one directory:
@@ -84,7 +87,7 @@ If explicitly authorized to publish, use the existing
 gh workflow run skaldr-release.yml --ref master \
   -f version=v0.1.0-preview.2 \
   -f stable=false \
-  -f source_sha=a0198f8bb864d9774d6118e7fc42ccc58b610a5a
+  -f source_sha=4bf13febf464e95f452406ed98cd3fc30cd3c77c
 ```
 
 The release workflow itself must reject non-validated commits or stable
@@ -114,7 +117,8 @@ its SHA-256, expected filename, and a size strictly below 2 GiB, rather
 than inventing a byte length. The reconstructed full ISO SHA-256 is always
 required.
 
-**Status: prepared, not yet executed against a public preview.2.** Do not
+**Status: newest source and ISO checks passed; publication is still pending, so
+independent checks of public preview.2 assets cannot yet run.** Do not
 mark the public download test complete until the new job reports success.
 
 ## Known limits
