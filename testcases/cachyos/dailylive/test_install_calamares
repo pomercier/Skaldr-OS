@@ -320,7 +320,13 @@ function test_installed_artcraft_launcher() {
     # --diagnose computes the official SHA-256 against /opt/skaldr/artcraft,
     # rather than treating a .desktop file or an AppImage icon as success.
     qt_send_string_return "konsole --hold -e /usr/local/bin/skaldr-artcraft --diagnose"
-    qt_wait_for_text "$FUNCNAME" "Status: executable verified" 15 5
+    # Real 1408x792 QEMU OCR (run 44028278324, frame 0050) read
+    # "Kistatus: executable verified" where the actual terminal says "Status:".
+    # The SHA-pinned --diagnose command prints both markers ONLY after the
+    # complete digest comparison succeeds; require two stable independent
+    # visible cues rather than relying on OCR of the tiny "Status:" prefix.
+    qt_wait_for_text "$FUNCNAME" "Bundled AppImage" 15 5
+    qt_wait_for_text "$FUNCNAME" "GUI startup not tested" 8 4
     qt_screenshot_ppm "$FUNCNAME"
 
     qt_echo "Open ArtCraft's actual native graphical launcher inside installed KDE"
