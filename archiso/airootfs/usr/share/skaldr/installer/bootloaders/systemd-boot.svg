@@ -19,5 +19,6 @@
   <text x="144" y="337" fill="#a6bbd2" font-size="25" font-family="DejaVu Sans Mono,monospace">  Skaldr OS (LTS)</text>
   <text x="144" y="397" fill="#8099b6" font-size="25" font-family="DejaVu Sans Mono,monospace">  Firmware setup</text>
   <path d="M72 470H888" stroke="url(#glow)" stroke-width="3" opacity=".6"/>
-  <text x="75" y="509" font-size="20" fill="#a6bbd9" font-family="DejaVu Sans,sans-serif">Illustrative preview — appearance varies by firmware and configuration</text>
+  <text x="75" y="509" font-size="34" font-weight="700" fill="#e2f4ff" font-family="DejaVu Sans,sans-serif">Illustrative preview</text>
+  <text x="453" y="506" font-size="19" fill="#92aac7" font-family="DejaVu Sans,sans-serif">Appearance varies by configuration</text>
 </svg>

@@ -133,6 +133,10 @@ function test_calamares_bootloader() {
     qt_send_key_combo "shift-tab"
     qt_send_key_combo "shift-tab"
     qt_screenshot_ppm "$FUNCNAME"
+    # Unlike the inherited CachyOS .jxl screenshot, every Skaldr preview
+    # includes this distinct footer. Require it in the real Calamares QEMU
+    # screenshot, not merely in the source tree.
+    qt_wait_for_text "$FUNCNAME" "Illustrative preview" 8 3
     qt_send_key_combo "spc"
 }
 

@@ -166,6 +166,9 @@ branding: cachyos
     def test_bootloader_previews_are_vector_illustrations_without_cachyos_identity(self):
         source = PREPARE.read_text()
         self.assertIn("brand_bootloader_chooser", source)
+        quicktest = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Illustrative preview" 8 3',
+                      quicktest)
         assets = REPO / "archiso/airootfs/usr/share/skaldr/installer/bootloaders"
         for name in ("grub", "refind", "systemd-boot", "limine"):
             svg = assets / (name + ".svg")
