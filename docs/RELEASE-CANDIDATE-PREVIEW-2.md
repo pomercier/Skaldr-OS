@@ -88,17 +88,17 @@ the exact source SHA above are successful, that the artifact is still
 available, and that no tag `v0.1.0-preview.2` already exists. Review the
 release notes and the unsupported scenarios below.
 
-To publish this validated development candidate, open the
-[manual release workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-release.yml),
-select **Run workflow**, keep `master`, and use the prefilled
-`v0.1.0-preview.2` version with `stable=false`. Leave the
-optional `source_sha` **empty**: the workflow now derives it automatically
-from this candidate's trusted `docs/PUBLIC-PREVIEW-2-LOCK.json` instead
-of from newer documentation-only master commits. A mismatched explicit SHA
-is still rejected. This action publishes seven files and is not performed
-automatically by a source push.
+To publish the already validated ISO, use the
+[manual release workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-release.yml)
+with `version=v0.1.0-preview.2`, `stable=false` and **the exact**
+`source_sha=e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.
+Never default to the latest `master` documentation commit.
+GitHub may reject a `GITHUB_TOKEN` release targeted at an older source
+commit when workflow files differ. Keep the trusted workflow files aligned
+with the tested source until the release is created; the exact source and
+asset hashes remain subject to independent verification.
 
-Alternatively, use the same workflow explicitly from the terminal:
+Equivalent terminal command:
 
 ```sh
 gh workflow run skaldr-release.yml --ref master \
