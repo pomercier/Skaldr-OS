@@ -139,6 +139,9 @@ jobs:
         with:
           name: skaldr-os-x86_64-${{ steps.date.outputs.builddate }}
           path: out/desktop/*
+          # The ISO is already SquashFS-compressed. Avoid expensive ZIP
+          # recompression of a multi-gigabyte build on every CI run.
+          compression-level: 0
   quicktest:
     name: Testing (${{ matrix.bootloader }} / ${{ matrix.filesystem }})
     runs-on: ubuntu-latest

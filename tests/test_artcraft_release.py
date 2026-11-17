@@ -49,6 +49,24 @@ class ArtCraftReleaseTests(unittest.TestCase):
         self.assertIn("Exec=/usr/local/bin/skaldr-artcraft", desktop)
         self.assertIn("Icon=applications-graphics", desktop)
 
+
+    def test_real_installed_artcraft_requires_sha256_and_visible_native_gui(self):
+        quicktest = (ROOT / "testcases/cachyos/dailylive/test_install_calamares").read_text()
+        self.assertIn("function test_installed_artcraft_launcher()", quicktest)
+        self.assertIn("    test_installed_artcraft_launcher\n", quicktest)
+        self.assertIn('"${TEST_BOOTLOADER:-}" != "grub"', quicktest)
+        self.assertIn('"${TEST_FILESYSTEM:-}" != "ext4"', quicktest)
+        self.assertIn("konsole --hold -e /usr/local/bin/skaldr-artcraft --diagnose", quicktest)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Status: executable verified"', quicktest)
+        self.assertIn('qt_send_string_return "skaldr-artcraft"', quicktest)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "PhotoCraft"', quicktest)
+        self.assertIn("PASS: installed ArtCraft AppImage SHA-256 and native launcher GUI", quicktest)
+
+    def test_iso_artifact_does_not_recompress_squashfs(self):
+        workflow = (ROOT / ".github/workflows/build.yml").read_text()
+        self.assertIn("uses: actions/upload-artifact@v4", workflow)
+        self.assertIn("path: out/desktop/*\n          compression-level: 0", workflow)
+
     def test_local_diagnostics_check_executable_and_digest(self):
         launcher = LAUNCHER.read_text()
         with tempfile.TemporaryDirectory() as directory:
