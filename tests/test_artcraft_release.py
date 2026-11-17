@@ -67,6 +67,17 @@ class ArtCraftReleaseTests(unittest.TestCase):
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "PhotoCraft"', quicktest)
         self.assertIn("PASS: installed ArtCraft AppImage SHA-256 and native catalog GUI", quicktest)
 
+    def test_artcraft_retest_reuses_previous_iso_and_no_calamares_build(self):
+        workflow = (ROOT / ".github/workflows/skaldr-artcraft-retest.yml").read_text()
+        self.assertIn('run-id: 44132973459', workflow)
+        self.assertIn('name: skaldr-os-x86_64-261117', workflow)
+        self.assertIn("a4bb1da1b2460cf5192099e8194b61310a4539fc", workflow)
+        self.assertIn("sha256sum -c SHA256SUMS", workflow)
+        self.assertIn("test_install_calamares cachyos dailylive", workflow)
+        self.assertIn("  actions: read", workflow)
+        self.assertNotIn("buildiso.sh", workflow)
+        self.assertNotIn("skaldr-build-calamares.sh", workflow)
+
     def test_iso_artifact_does_not_recompress_squashfs(self):
         workflow = (ROOT / ".github/workflows/build.yml").read_text()
         self.assertIn("uses: actions/upload-artifact@v4", workflow)
