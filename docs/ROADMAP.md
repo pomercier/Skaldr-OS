@@ -61,7 +61,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Create contributor hardware test-report template (no privacy-sensitive identifiers)
 - [ ] Validate GPU decoding, HDR/VRR, suspend and recovery on physical machines
 - [x] Update the locally bundled ArtCraft Launcher to upstream v0.19.2 with published SHA-256, local diagnostics and no web redirect in the wrapper (2026-11-15, source checks run 43758327030)
-- [ ] Validate bundled checksum-verified official ArtCraft Launcher AppImage on live and installed KDE. The full GRUB/ext4 installation, KDE and ArtCraft checksum diagnostic succeeded visually in run 44028278324, but the ArtCraft GUI was not reached because OCR misread the exact "Status:" prefix; use the two proven screenshot markers for the next real-GUI validation. Live system and physical GPUs remain untested
+- [ ] Validate bundled checksum-verified official ArtCraft Launcher AppImage on live and installed KDE. The full GRUB/ext4 installation, KDE and ArtCraft checksum diagnostic succeeded visually in run 44028278324, but the ArtCraft GUI was not reached because OCR misread the exact "Status:" prefix; use the two proven screenshot markers for the next real-GUI validation. Live system and physical GPUs remain untested A new CI rebuild encountered an unrelated upstream force-push: installer commit `42a91ab` was no longer fetchable by a fresh makepkg clone (run 44132186389), so Calamares is now pinned to the currently reachable `cachyos-staging` head `5e1ac805` pending fresh end-to-end validation
 - [ ] Expand the safe update workflow into a complete distribution-first update frontend and rollback UX
 
 ## Phase D — brand, updates and quality

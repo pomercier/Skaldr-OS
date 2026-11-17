@@ -7,7 +7,11 @@ repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 work="$repo/.skaldr-calamares-build"
 local_repo="$repo/.skaldr-local"
 pkgbuild_revision="a7b305845d9f530db134d8a2cf94220e737beb9d"
-calamares_revision="42a91ab23334483ff3cd761d120dec9efea67c53"
+# Upstream force-pushed cachyos-staging: the old tested commit is now
+# unreachable to makepkg's fresh Git clone. Pin the CURRENT branch tip;
+# keep provenance explicit and make the complete ISO/Calamares QEMU matrix
+# prove that this new revision still works before any public release.
+calamares_revision="5e1ac80589bc847b6da17aaae8c3143cc8d6520a"
 
 # Require exactly one installer package, matching the pinned local rebuild.
 installer_packages="$(grep -E '^cachyos-calamares-' "$repo/archiso/packages_desktop.x86_64" || true)"
@@ -29,6 +33,9 @@ grep -q '#branch=cachyos-staging' "$work/PKGBUILD"
 sed -i "s|#branch=cachyos-staging|#commit=$calamares_revision|" "$work/PKGBUILD"
 sed -i 's/^pkgrel=3$/pkgrel=3.1/' "$work/PKGBUILD"
 echo "Building official CachyOS Calamares source at $calamares_revision against current Boost"
+# The branch tip is publicly reachable today (source revision is reviewed).
+# Keep Git's full pinned commit in source= rather than silently changing to
+# a mutable #branch selection if CachyOS rewrites its installer history again.
 
 # Build the installer for portable x86-64 regardless of the GitHub runner CPU.
 # This prevents native-host optimizations from leaking into a distributable ISO.
