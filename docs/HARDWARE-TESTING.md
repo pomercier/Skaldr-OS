@@ -1,28 +1,30 @@
 # Skaldr OS — physical hardware validation
 
-The newest complete, VM-validated image is
-[`skaldr-0.1.0-dev.129-x86_64.iso`](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899/artifacts/14257118152)
-from source commit `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.
+The newest publicly released, VM-validated image is
+[`Skaldr OS v0.1.0-preview.2`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2),
+embedding `skaldr-0.1.0-dev.129-x86_64.iso` from source commit
+`e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.
 It passed [148 source tests](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758916)
 and [five ISO validation jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899)
 on November 16, 2026, including installed KDE login, Calamares installation
 with GRUB/ext4 and Limine/Btrfs, offline rollback and ISO reassembly.
 
-**This is a development artifact, not a publicly published preview.2 or a
-certified production system.** The older
-[preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1)
-is the latest public Release.
+**This is a public development preview, not a certified production system.**
+All seven published assets were independently downloaded and reassembled with
+matching SHA-256 on [GitHub Actions run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008).
 
 ## Before installing
 
 - [ ] Use a spare computer or disposable test SSD, **not the only system drive**.
 - [ ] Verify independent data backups and keep a bootable rescue medium.
-- [ ] For the latest `dev.129`, download the
-      [complete GitHub Actions ISO artifact](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899/artifacts/14257118152)
-      and extract `skaldr-0.1.0-dev.129-x86_64.iso` with `SHA256SUMS`.
-      GitHub may require login; CI artifacts expire.
-- [ ] From the extraction folder, run `sha256sum -c SHA256SUMS` and confirm
-      the complete image matches exactly:
+- [ ] Download **all seven files** from
+      [the public preview.2 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2).
+      Keep `.iso.part001`, `.part002`, `.part003`, `SHA256SUMS`,
+      `SHA256SUMS.parts`, `ASSEMBLE.txt`, and
+      `reassemble-skaldr-iso.py` together.
+- [ ] Run `python3 reassemble-skaldr-iso.py reassemble --directory .`
+      and then `sha256sum -c SHA256SUMS`. Confirm the complete ISO matches
+      exactly:
 
 ```text
 177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e

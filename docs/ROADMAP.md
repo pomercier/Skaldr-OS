@@ -78,9 +78,9 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Generate ISO SHA256SUMS and source provenance (run 43367190468)
 - [x] Verify full-size ISO split and reconstruction against the original SHA256SUMS (2026-11-13, run 43507233020)
 - [x] Publish v0.1.0-preview.1 with seven complete assets and hashes matching the original CI manifests (2026-11-13, release run 43518541485)
-- [x] Update [preview.2 candidate release notes](RELEASE-CANDIDATE-PREVIEW-2.md) for validated source `e37fdd25` after the CachyOS 26.11 merge; 148 source tests and 5/5 ISO jobs passed on November 16, 2026; **not published**
+- [x] Document the [published preview.2](RELEASE-CANDIDATE-PREVIEW-2.md) from validated source `e37fdd25` after the CachyOS 26.11 merge; 148 source tests and 5/5 ISO jobs passed on November 16, 2026
 - [x] Pin preview.2 release checksums to original 5/5 ISO run, gate publication on matching exact source and CI asset hashes, and configure independent post-publication and optional release-event verification; source regression tests required
-- [ ] Publish v0.1.0-preview.2 only via the existing manual release workflow with explicit `source_sha`; require the follow-up public reassembly job to pass
+- [x] Publish `v0.1.0-preview.2` from exact validated `e37fdd25` using the existing fail-closed release workflow; independently download all seven public files and reconstruct the original image with SHA-256 verified ([run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008), 2/2 PASS, November 16 Quebec time)
 - [x] Independently download all seven public v0.1.0-preview.1 assets on an Ubuntu CI runner, compare to the original five-job ISO manifests, and reassemble the full ISO with SHA-256 verified (2026-11-15, [run 43780766882](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882))
 - [x] Authorize development preview only after source checks and all five ISO tests passed for commit b391fc35
 - [ ] Publish a stable release only after physical hardware tests and a release-mode ISO build

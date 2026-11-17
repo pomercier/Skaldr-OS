@@ -65,18 +65,23 @@ A verified download says the public files reconstruct correctly and match
 the original source-validated ISO. It does not certify real-world GPU,
 Suspend/Resume, encrypted disks, Secure Boot, or physical hardware.
 
-Preview.2 remains a manually authorized release candidate. Its
-[separate pinned lock](PUBLIC-PREVIEW-2-LOCK.json) records all three ISO
-part SHA-256 hashes and the helper files extracted from its original
-fully-validated [ISO run 43924758899](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899), whose five jobs passed for source `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.
-The [preview.2 checker](../.github/workflows/skaldr-preview2-public-verification.yml)
-can be run manually and listens to release publications made outside
-`GITHUB_TOKEN`.
+Preview.2 is now **publicly released and independently verified**:
+[download v0.1.0-preview.2](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2).
+The [separate pinned lock](PUBLIC-PREVIEW-2-LOCK.json) preserves the source
+SHA `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`, original ISO SHA-256,
+three ISO part hashes and four helper-file hashes from the
+[fully successful five-job ISO build](https://github.com/pomercier/Skaldr-OS/actions/runs/43924758899).
 
-**Important GitHub Actions behavior:** a release published by
-the repository's `GITHUB_TOKEN` does not trigger an independent
-`release: published` workflow automatically. To avoid that gap, the
-[manual release workflow](../.github/workflows/skaldr-release.yml)
-now schedules an independent Ubuntu post-publication verification job
-**directly in the same release workflow** after the publish job succeeds.
-No public preview.2 release exists yet; post-publication verification remains pending. Before the release is created, its candidate assets must match the separately pinned SHA-256 hashes from the validated ISO CI artifact.
+The [release workflow, second attempt](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008)
+published seven public assets with exact matching SHA-256 digests and
+successfully ran a **second, separate Ubuntu job** that downloaded all seven
+published files from GitHub Releases and reconstructed the original ISO.
+The verifier reported **PASS**, with full SHA-256:
+
+```text
+177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e
+```
+
+The compact verification report is preserved as the workflow artifact
+`skaldr-published-preview2-integrity`.
+No physical compatibility is certified by these checksum and VM checks.

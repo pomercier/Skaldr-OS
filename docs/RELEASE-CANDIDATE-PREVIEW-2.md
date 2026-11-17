@@ -1,14 +1,16 @@
-# Skaldr OS v0.1.0-preview.2 — release candidate
+# Skaldr OS v0.1.0-preview.2 — published and independently verified
 
-**Status:** technically validated; **NOT PUBLISHED**. This document prepares a
-manual development-preview release. It does not grant permission to publish a
-stable release or silently replace v0.1.0-preview.1.
+**Status: PUBLISHED DEVELOPMENT PREVIEW**, November 16, 2026 (Quebec time).
+[Download the seven public release files](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2).
+The exact public files passed an independent full-ISO SHA-256 reconstruction
+([run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008)).
+This remains a development preview, not a stable or hardware-certified release.
 
 ## Exact release identity
 
 | Field | Value |
 | --- | --- |
-| Proposed tag | `v0.1.0-preview.2` |
+| Published tag | [`v0.1.0-preview.2`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2) |
 | Git source SHA | `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b` |
 | Embedded ISO version | `0.1.0-dev.129` |
 | ISO filename | `skaldr-0.1.0-dev.129-x86_64.iso` |
@@ -81,62 +83,39 @@ sha256sum -c SHA256SUMS
 **Do not flash .part001, .part002 or .part003 directly.** Only use the
 reassembled and verified `.iso`.
 
-## Required manual publication gate
+## Completed publication and independent verification
 
-Before publishing, recheck that the source checks and all five ISO jobs for
-the exact source SHA above are successful, that the artifact is still
-available, and that no tag `v0.1.0-preview.2` already exists. Review the
-release notes and the unsupported scenarios below.
+The existing fail-closed [release workflow](../.github/workflows/skaldr-release.yml)
+published this exact ISO in the second attempt of
+[run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008).
+An initial GitHub `GITHUB_TOKEN` release attempt was denied by HTTP 403
+while the default branch's workflow files differed from those in the tested
+source. After aligning the workflow files to the validated `e37fdd25`
+revision, the next attempt passed all checks and published the release
+without changing or rebuilding the ISO.
 
-To publish the already validated ISO, use the
-[manual release workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-release.yml)
-with `version=v0.1.0-preview.2`, `stable=false` and **the exact**
-`source_sha=e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.
-Never default to the latest `master` documentation commit.
-GitHub may reject a `GITHUB_TOKEN` release targeted at an older source
-commit when workflow files differ. Keep the trusted workflow files aligned
-with the tested source until the release is created; the exact source and
-asset hashes remain subject to independent verification.
+The public tag points to the exact tested source SHA, rather than a later
+documentation commit. All seven public asset SHA-256 digests and sizes match
+[the immutable release lock](PUBLIC-PREVIEW-2-LOCK.json).
 
-Equivalent terminal command:
+The separate Ubuntu runner job in the same successful release workflow
+downloaded **all seven actual public release files**, validated the tag,
+part digests and helper files, reconstructed the 4 GiB ISO, and verified its
+SHA-256 as:
 
-```sh
-gh workflow run skaldr-release.yml --ref master \
-  -f version=v0.1.0-preview.2 \
-  -f stable=false \
-  -f source_sha=e37fdd25e01e9564223f426c3ff4000dbdd5ef5b
+```text
+177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e
 ```
 
-The release workflow itself must reject non-validated commits or stable
-releases. A later documentation-only commit on master must **not** replace
-`source_sha`: artifacts correspond to the exact tested revision.
+**Publication: PASS. Independent public-download and reassembly: PASS.**
+Both jobs in run 43996058008 completed successfully. The independent
+verification report is archived as
+`skaldr-published-preview2-integrity` in that workflow's artifacts.
 
-### Independent verification immediately after publication
-
-The release workflow now pins `v0.1.0-preview.2` to
-`docs/PUBLIC-PREVIEW-2-LOCK.json` **before** publishing. A **separate runner
-job**, gated on successful release publication, downloads all seven GitHub
-Release assets, validates their exact source commit and checksums against the
-original five-job ISO CI, then reconstructs the complete ISO.
-
-This post-publication job belongs to the **same release workflow**. GitHub
-normally suppresses follow-on workflow triggers from an event created by
-`GITHUB_TOKEN`, so relying only on `release: published` would not reliably
-start the verifier. The optional
-[`preview.2 standalone checker`](../.github/workflows/skaldr-preview2-public-verification.yml)
-also supports manual dispatch and releases published with non-workflow
-credentials. Neither checker edits repository branches, tags, or releases.
-
-The original CI manifest pinned all three part SHA-256 values and the four
-helper-file SHA-256 values. It did not record the exact byte length of the
-last ISO part in the small verification ZIP; the checker therefore requires
-its SHA-256, expected filename, and a size strictly below 2 GiB, rather
-than inventing a byte length. The reconstructed full ISO SHA-256 is always
-required.
-
-**Status: newest source and ISO checks passed; publication is still pending, so
-independent checks of public preview.2 assets cannot yet run.** Do not
-mark the public download test complete until the new job reports success.
+For testing, download all three `.iso.part*` files and the four helpers
+from the [public preview.2 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2),
+then run `python3 reassemble-skaldr-iso.py reassemble --directory .`.
+Only flash the resulting verified `.iso`; never flash an individual part.
 
 ## Known limits
 
