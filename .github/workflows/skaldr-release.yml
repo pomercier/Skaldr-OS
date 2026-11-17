@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Development preview tag, e.g. v0.1.0-preview.1'
+        description: 'Development preview tag (default is the pinned, fully validated preview.2)'
         required: true
+        default: 'v0.1.0-preview.2'
         type: string
       stable:
         description: 'Publish as stable (blocked until a separately validated release-mode ISO exists)'
@@ -13,7 +14,7 @@ on:
         default: false
         type: boolean
       source_sha:
-        description: 'Optional exact 40-character commit SHA of a fully validated ISO; defaults to master HEAD'
+        description: 'Optional exact ISO commit SHA; preview.2 uses its pinned lock by default'
         required: false
         type: string
 
@@ -52,10 +53,18 @@ jobs:
             exit 1
           fi
           release_base="${BASH_REMATCH[1]}"
-          # A documentation-only master commit can follow a validated ISO.
+          # Preview.2 must refer to the exact independently validated ISO even
+          # when documentation-only commits have advanced master. A single
+          # manual workflow button click therefore uses the signed-off lock.
+          # An explicitly provided SHA is still verified against the lock.
+          if [[ "$RELEASE_VERSION" == "v0.1.0-preview.2" ]]; then
+            pinned_sha="$(python3 -c 'import json; print(json.load(open("docs/PUBLIC-PREVIEW-2-LOCK.json"))["source_sha"])')"
+            candidate="${REQUESTED_SOURCE_SHA:-$pinned_sha}"
+          else
+            candidate="${REQUESTED_SOURCE_SHA:-$(git rev-parse HEAD)}"
+          fi
           # Require an exact SHA and strict ancestry, never use an untested
           # branch name or arbitrary revision to select release assets.
-          candidate="${REQUESTED_SOURCE_SHA:-$(git rev-parse HEAD)}"
           if [[ ! "$candidate" =~ ^[0-9a-f]{40}$ ]] ||
              ! git cat-file -e "$candidate^{commit}" ||
              ! git merge-base --is-ancestor "$candidate" HEAD; then
@@ -70,7 +79,6 @@ jobs:
           # revision. Reject accidental publication from a docs-only newer
           # master HEAD or another unverified ISO, before creating a tag.
           if [[ "$RELEASE_VERSION" == "v0.1.0-preview.2" ]]; then
-            pinned_sha="$(python3 -c 'import json; print(json.load(open("docs/PUBLIC-PREVIEW-2-LOCK.json"))["source_sha"])')"
             if [[ "$candidate" != "$pinned_sha" ]]; then
               echo "::error::Preview.2 must use its exact pinned, five-job validated source SHA $pinned_sha."
               exit 1
