@@ -61,8 +61,11 @@ class ArtCraftReleaseTests(unittest.TestCase):
         self.assertIn('qt_wait_for_text "$FUNCNAME" "GUI startup not tested"', quicktest)
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Status: executable verified"', quicktest)
         self.assertIn('qt_send_string_return "skaldr-artcraft"', quicktest)
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "PhotoCraft"', quicktest)
-        self.assertIn("PASS: installed ArtCraft AppImage SHA-256 and native launcher GUI", quicktest)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "ARTCRAFT"', quicktest)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "AniCraft"', quicktest)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "AVAILABLE TO INSTALL"', quicktest)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "PhotoCraft"', quicktest)
+        self.assertIn("PASS: installed ArtCraft AppImage SHA-256 and native catalog GUI", quicktest)
 
     def test_iso_artifact_does_not_recompress_squashfs(self):
         workflow = (ROOT / ".github/workflows/build.yml").read_text()

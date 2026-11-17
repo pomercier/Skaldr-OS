@@ -335,11 +335,17 @@ function test_installed_artcraft_launcher() {
     qt_send_key_combo "alt-f2"
     qt_wait_for_seconds 2
     qt_send_string_return "skaldr-artcraft"
-    # PhotoCraft is a bundled catalog card inside the real native launcher.
-    # Its visible UI text cannot be created by the checksum diagnostic alone.
-    qt_wait_for_text "$FUNCNAME" "PhotoCraft" 20 6
+    # Real QEMU screenshots (run 44132973459) prove the checksum-verified
+    # native ArtCraft launcher is running and its catalog is populated.
+    # PhotoCraft is below the first alphabetical grid, so that old assertion
+    # generated a false failure despite a working graphical interface.
+    # Assert three independent native-GUI cues present in actual screenshots
+    # 0060 and 0074 that the checksum diagnostic alone cannot produce.
+    qt_wait_for_text "$FUNCNAME" "ARTCRAFT" 12 5
+    qt_wait_for_text "$FUNCNAME" "AniCraft" 10 5
+    qt_wait_for_text "$FUNCNAME" "AVAILABLE TO INSTALL" 10 5
     qt_screenshot_ppm "$FUNCNAME"
-    qt_echo "PASS: installed ArtCraft AppImage SHA-256 and native launcher GUI"
+    qt_echo "PASS: installed ArtCraft AppImage SHA-256 and native catalog GUI"
 }
 
 function test_installed_btrfs_snapshot_rollback() {
