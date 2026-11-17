@@ -142,6 +142,9 @@ jobs:
           # The ISO is already SquashFS-compressed. Avoid expensive ZIP
           # recompression of a multi-gigabyte build on every CI run.
           compression-level: 0
+          # An absent output must fail the build instead of leaving a green
+          # job with no ISO for the independent QEMU installation matrix.
+          if-no-files-found: error
   quicktest:
     name: Testing (${{ matrix.bootloader }} / ${{ matrix.filesystem }})
     runs-on: ubuntu-latest
