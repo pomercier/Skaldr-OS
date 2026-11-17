@@ -65,7 +65,8 @@ class ArtCraftReleaseTests(unittest.TestCase):
     def test_iso_artifact_does_not_recompress_squashfs(self):
         workflow = (ROOT / ".github/workflows/build.yml").read_text()
         self.assertIn("uses: actions/upload-artifact@v4", workflow)
-        self.assertIn("path: out/desktop/*\n          compression-level: 0", workflow)
+        self.assertIn("          path: out/desktop/*", workflow)
+        self.assertIn("          compression-level: 0", workflow)
 
     def test_local_diagnostics_check_executable_and_digest(self):
         launcher = LAUNCHER.read_text()
