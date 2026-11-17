@@ -117,12 +117,15 @@ jobs:
         run: |
           sudo -H -E -u builder env SKALDR_CALAMARES_REPO="$GITHUB_WORKSPACE/.skaldr-local" ./buildiso.sh
 
-      - name: Generate SHA256 checksums
+      - name: Generate SHA256 checksums and source provenance
         shell: bash
         run: |
           set -euo pipefail
           test -n "$(find out/desktop -maxdepth 1 -name '*.iso' -print -quit)"
+          test -s .skaldr-local/calamares-source.sha
+          cp .skaldr-local/calamares-source.sha out/desktop/calamares-source.sha
           (cd out/desktop && sha256sum -- *.iso > SHA256SUMS)
+          echo "Calamares source commit: $(cat out/desktop/calamares-source.sha)"
 
       - name: Audit measured ISO size and package categories
         shell: bash

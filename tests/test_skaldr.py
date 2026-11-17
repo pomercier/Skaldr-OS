@@ -191,9 +191,14 @@ class SkaldrChecks(unittest.TestCase):
 
     def test_pinned_calamares_rebuild_and_local_repo(self):
         script = (REPO / "scripts/skaldr-build-calamares.sh").read_text()
-        self.assertIn("5e1ac80589bc847b6da17aaae8c3143cc8d6520a", script)
+        self.assertNotIn("5e1ac80589bc847b6da17aaae8c3143cc8d6520a", script)
         self.assertNotIn("42a91ab23334483ff3cd761d120dec9efea67c53", script)
-        self.assertIn('s|#branch=cachyos-staging|#commit=$calamares_revision|', script)
+        self.assertIn('calamares_branch="cachyos-staging"', script)
+        self.assertIn('git ls-remote --exit-code "$calamares_upstream"', script)
+        self.assertIn('git -C "$work/src/calamares" rev-parse HEAD', script)
+        self.assertIn('"$actual_revision" == "$expected_revision"', script)
+        self.assertIn('"$local_repo/calamares-source.sha"', script)
+        self.assertNotIn('#commit=$calamares_revision', script)
         self.assertIn("a7b305845d9f530db134d8a2cf94220e737beb9d", script)
         self.assertIn("cachyos-calamares-staging/PKGBUILD", script)
         self.assertIn("cachyos-calamares-staging-*.pkg.tar.zst", script)

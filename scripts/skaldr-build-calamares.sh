@@ -7,11 +7,13 @@ repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 work="$repo/.skaldr-calamares-build"
 local_repo="$repo/.skaldr-local"
 pkgbuild_revision="a7b305845d9f530db134d8a2cf94220e737beb9d"
-# Upstream force-pushed cachyos-staging: the old tested commit is now
-# unreachable to makepkg's fresh Git clone. Pin the CURRENT branch tip;
-# keep provenance explicit and make the complete ISO/Calamares QEMU matrix
-# prove that this new revision still works before any public release.
-calamares_revision="5e1ac80589bc847b6da17aaae8c3143cc8d6520a"
+# CachyOS force-pushes cachyos-staging: pinning a transient SHA here causes
+# makepkg to fail with "unable to read tree" after upstream history rewrites.
+# Resolve the source directly from the official live branch on EVERY build,
+# then record/verify the exact commit that makepkg actually used. This makes
+# the external source auditable while keeping the installer rebuild functional.
+calamares_branch="cachyos-staging"
+calamares_upstream="https://github.com/CachyOS/cachyos-calamares.git"
 
 # Require exactly one installer package, matching the pinned local rebuild.
 installer_packages="$(grep -E '^cachyos-calamares-' "$repo/archiso/packages_desktop.x86_64" || true)"
@@ -22,7 +24,19 @@ fi
 
 command -v makepkg >/dev/null || { echo "makepkg is required" >&2; exit 1; }
 command -v repo-add >/dev/null || { echo "repo-add (pacman-contrib) is required" >&2; exit 1; }
+command -v git >/dev/null || { echo "git is required to verify Calamares source" >&2; exit 1; }
 mkdir -p "$work" "$local_repo"
+expected_revision=""
+for attempt in 1 2 3; do
+    expected_revision="$(git ls-remote --exit-code "$calamares_upstream" "refs/heads/$calamares_branch" | awk '{print $1}')" || :
+    [[ "$expected_revision" =~ ^[0-9a-f]{40}$ ]] && break
+    sleep "$((attempt * 5))"
+done
+[[ "$expected_revision" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "Could not resolve the official Calamares staging revision" >&2
+    exit 1
+}
+echo "Official Calamares staging commit before build: $expected_revision"
 curl --fail --location --silent --show-error --retry 3 \
   "https://raw.githubusercontent.com/CachyOS/CachyOS-PKGBUILDS/$pkgbuild_revision/cachyos-calamares-staging/PKGBUILD" \
   -o "$work/PKGBUILD"
@@ -30,12 +44,10 @@ curl --fail --location --silent --show-error --retry 3 \
 grep -q '^pkgname=cachyos-calamares-staging$' "$work/PKGBUILD"
 grep -q '^pkgrel=3$' "$work/PKGBUILD"
 grep -q '#branch=cachyos-staging' "$work/PKGBUILD"
-sed -i "s|#branch=cachyos-staging|#commit=$calamares_revision|" "$work/PKGBUILD"
+# Preserve official #branch= selection rather than using an obsolete commit
+# hash after a CachyOS force-push; source identity is checked AFTER makepkg.
 sed -i 's/^pkgrel=3$/pkgrel=3.1/' "$work/PKGBUILD"
-echo "Building official CachyOS Calamares source at $calamares_revision against current Boost"
-# The branch tip is publicly reachable today (source revision is reviewed).
-# Keep Git's full pinned commit in source= rather than silently changing to
-# a mutable #branch selection if CachyOS rewrites its installer history again.
+echo "Building official CachyOS Calamares branch $calamares_branch against current Boost"
 
 # Build the installer for portable x86-64 regardless of the GitHub runner CPU.
 # This prevents native-host optimizations from leaking into a distributable ISO.
@@ -54,6 +66,13 @@ MAKEPKG_PORTABLE
   export CMAKE_BUILD_PARALLEL_LEVEL=2
   makepkg --config "$work/skaldr-makepkg.conf" --syncdeps --noconfirm --needed --cleanbuild
 )
+actual_revision="$(git -C "$work/src/calamares" rev-parse HEAD)"
+[[ "$actual_revision" == "$expected_revision" ]] || {
+    echo "Calamares source changed during build: expected $expected_revision, got $actual_revision" >&2
+    exit 1
+}
+printf '%s\n' "$actual_revision" > "$local_repo/calamares-source.sha"
+echo "PASS: exact Calamares source commit $actual_revision verified and recorded"
 packages=("$work"/cachyos-calamares-staging-*.pkg.tar.zst)
 [[ -f "${packages[0]}" ]] || { echo "No rebuilt Calamares package found" >&2; exit 1; }
 cp -- "${packages[0]}" "$local_repo/"
