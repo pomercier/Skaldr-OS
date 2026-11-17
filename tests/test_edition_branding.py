@@ -170,8 +170,8 @@ branding: cachyos
             content = svg.read_text()
             self.assertIn("SKALDR OS", content)
             self.assertIn("Illustrative preview", content)
-            self.assertIn(name.upper() if name != "systemd-boot" else "systemd-boot",
-                          content)
+            title = {"refind": "rEFInd", "systemd-boot": "systemd-boot"}.get(name, name.upper())
+            self.assertIn(title, content)
             self.assertNotIn("CachyOS", content)
             root = ET.fromstring(content)
             self.assertEqual(root.tag, "{http://www.w3.org/2000/svg}svg")

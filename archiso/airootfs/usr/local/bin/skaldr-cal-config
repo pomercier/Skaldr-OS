@@ -103,11 +103,11 @@ BOOTLOADERS = ("grub", "refind", "systemd-boot", "limine")
 
 def brand_bootloader_chooser(source):
     """Retain upstream boot choices, but replace CachyOS screenshot previews."""
-    blocks = re.split(r"(?m)(?=^    - id:\\s*)", source)
+    blocks = re.split(r"(?m)(?=^    - id:\s*)", source)
     found = set()
     updated = [blocks[0]]
     for block in blocks[1:]:
-        match = re.match(r"""^    - id:\\s*["']?([a-z0-9-]+)""", block)
+        match = re.match(r"""^    - id:\s*["']?([a-z0-9-]+)""", block)
         if not match or match.group(1) not in BOOTLOADERS:
             raise ValueError("Unknown Calamares bootloader item; review its preview")
         name = match.group(1)
@@ -116,7 +116,7 @@ def brand_bootloader_chooser(source):
         found.add(name)
         target = "/usr/share/calamares/branding/skaldr/bootloaders/" + name + ".svg"
         block, count = re.subn(
-            r"(?m)^([ \\t]+screenshot:\\s*)[^\\n]*$",
+            r"(?m)^([ \t]+screenshot:\s*)[^\n]*$",
             lambda m: m.group(1) + '"' + target + '"',
             block, count=1)
         if count != 1:
