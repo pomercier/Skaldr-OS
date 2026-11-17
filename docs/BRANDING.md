@@ -39,3 +39,16 @@ Keep the image local to this repository: GitHub can render it without relying
 on externally hosted files. CI checks that the README cannot accidentally
 fall back to the 128 px PNG. Accessibility text and the SVG title/description
 must be kept when editing the emblem.
+
+## Bootloader screenshots in Calamares
+
+The successful preview.2 Limine/Btrfs QEMU screenshots showed a leftover
+CachyOS bootloader preview inside otherwise correctly branded Calamares.
+This was an illustrative upstream static screenshot, not a runtime kernel or
+loader identification error. The post-preview.2 installer now replaces all
+four upstream bootloader screenshots with locally bundled, self-contained SVG
+**illustrations** (GRUB, rEFInd, systemd-boot, Limine) before opening Calamares.
+The bootloader names, descriptions, availability and installation logic are
+kept unchanged; legitimate kernel package names and upstream credits remain.
+The SVG cards explicitly say "Illustrative preview" and do not pretend to
+be literal captures of the bootloader on real hardware.

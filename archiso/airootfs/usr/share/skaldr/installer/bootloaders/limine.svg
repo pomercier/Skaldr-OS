@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <title>Skaldr OS — LIMINE illustrated bootloader selection</title>
+  <desc>An illustrative Skaldr-branded visualization of LIMINE; not a screenshot of a running bootloader.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071023"/><stop offset=".65" stop-color="#101e39"/><stop offset="1" stop-color="#0b1020"/></linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#00deeb"/><stop offset=".53" stop-color="#4e81ef"/><stop offset="1" stop-color="#df41e6"/></linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#bg)"/>
+  <path d="M0 0H960" stroke="url(#glow)" stroke-width="8"/>
+  <circle cx="745" cy="300" r="250" fill="none" stroke="#6178c8" opacity=".1" stroke-width="2"/>
+  <circle cx="745" cy="300" r="205" fill="none" stroke="#40f0ff" opacity=".09" stroke-width="2"/>
+  <text x="72" y="95" font-size="47" font-weight="800" fill="#e8f5ff" font-family="DejaVu Sans,sans-serif" letter-spacing="3">SKALDR OS</text>
+  <text x="74" y="135" font-size="21" fill="#9ab6d8" font-family="DejaVu Sans,sans-serif">Boot entries · Btrfs snapshot-aware configuration</text>
+  <rect x="72" y="162" width="816" height="270" rx="12" fill="#080f22" stroke="#ad61f2" stroke-opacity=".6" stroke-width="2"/>
+  
+  <text x="125" y="213" fill="#74edf3" font-size="27" font-family="DejaVu Sans Mono,monospace">LIMINE</text>
+  <text x="145" y="263" fill="#e8f5ff" font-size="27" font-family="DejaVu Sans Mono,monospace">+ Skaldr OS</text>
+  <rect x="128" y="282" width="697" height="50" rx="6" fill="#174461" stroke="#28e5f0"/>
+  <text x="148" y="318" fill="#ecfbff" font-size="25" font-family="DejaVu Sans Mono,monospace">  + Main kernel</text>
+  <text x="148" y="363" fill="#bed0ea" font-size="24" font-family="DejaVu Sans Mono,monospace">  + Kernel LTS</text>
+  <text x="148" y="408" fill="#819bbb" font-size="24" font-family="DejaVu Sans Mono,monospace">  + Snapshots (when configured)</text>
+  <path d="M72 470H888" stroke="url(#glow)" stroke-width="3" opacity=".6"/>
+  <text x="75" y="509" font-size="20" fill="#a6bbd9" font-family="DejaVu Sans,sans-serif">Illustrative preview — appearance varies by firmware and configuration</text>
+</svg>

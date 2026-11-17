@@ -97,6 +97,36 @@ def filter_groups(source):
     return "---\n" + "".join(selected)
 
 
+
+BOOTLOADERS = ("grub", "refind", "systemd-boot", "limine")
+
+
+def brand_bootloader_chooser(source):
+    """Retain upstream boot choices, but replace CachyOS screenshot previews."""
+    blocks = re.split(r"(?m)(?=^    - id:\\s*)", source)
+    found = set()
+    updated = [blocks[0]]
+    for block in blocks[1:]:
+        match = re.match(r"""^    - id:\\s*["']?([a-z0-9-]+)""", block)
+        if not match or match.group(1) not in BOOTLOADERS:
+            raise ValueError("Unknown Calamares bootloader item; review its preview")
+        name = match.group(1)
+        if name in found:
+            raise ValueError("Duplicate Calamares bootloader item: " + name)
+        found.add(name)
+        target = "/usr/share/calamares/branding/skaldr/bootloaders/" + name + ".svg"
+        block, count = re.subn(
+            r"(?m)^([ \\t]+screenshot:\\s*)[^\\n]*$",
+            lambda m: m.group(1) + '"' + target + '"',
+            block, count=1)
+        if count != 1:
+            raise ValueError("Missing bootloader screenshot for " + name)
+        updated.append(block)
+    if found != set(BOOTLOADERS):
+        raise ValueError("Missing expected Calamares bootloader choices")
+    return "".join(updated)
+
+
 def prepare(root=Path("/")):
     root = Path(root)
     modules = root / "etc/calamares/modules"
@@ -104,15 +134,20 @@ def prepare(root=Path("/")):
     original = root / "usr/share/calamares/settings_online.conf"
     brand_source = root / "usr/share/skaldr/installer"
     brand_target = root / "usr/share/calamares/branding/skaldr"
+    bootloader_config = modules / "packagechooser_bootloader.conf"
+    bootloader_assets = [
+        brand_source / "bootloaders" / (name + ".svg")
+        for name in BOOTLOADERS
+    ]
     # The installer welcome is a dedicated 880x340 SVG, not a cropped 4K wallpaper.
     splash = brand_source / "welcome.svg"
     logo = root / "usr/share/pixmaps/skaldr-logo.png"
     mandatory = [original, installer, modules / "netinstall.yaml",
                  modules / "netinstall.conf",
                  modules / "packagechooser_desktop.conf",
-                 modules / "welcome_online.conf",
+                 bootloader_config, modules / "welcome_online.conf",
                  brand_source / "branding.desc", brand_source / "show.qml",
-                 splash, logo]
+                 splash, logo, *bootloader_assets]
     absent = [str(p) for p in mandatory if not p.is_file()]
     if absent:
         raise ValueError("Skaldr Calamares preflight: missing " + ", ".join(absent))
@@ -124,6 +159,7 @@ def prepare(root=Path("/")):
         raise ValueError("Calamares desktop/netinstall integration missing")
     # Validate *before* modifying the stock installer.
     manifest = filter_groups((modules / "netinstall.yaml").read_text())
+    bootloader_choices = brand_bootloader_chooser(bootloader_config.read_text())
     settings = re.sub(r"(?m)^branding:\s*(?:cachyos|skaldr)\s*$",
                       "branding: skaldr", source_settings, count=1)
     welcome = (modules / "welcome_online.conf").read_text()
@@ -138,7 +174,11 @@ def prepare(root=Path("/")):
     shutil.copyfile(splash, brand_target / "welcome.svg")
     shutil.copyfile(logo, brand_target / "logo.png")
     shutil.copyfile(logo, brand_target / "icon.png")
+    (brand_target / "bootloaders").mkdir(parents=True, exist_ok=True)
+    for source in bootloader_assets:
+        shutil.copyfile(source, brand_target / "bootloaders" / source.name)
     updates = {
+        bootloader_config: bootloader_choices,
         installer: settings,
         modules / "packagechooser_desktop.conf": CHOOSER,
         modules / "netinstall.conf": GROUPS,
@@ -148,7 +188,7 @@ def prepare(root=Path("/")):
     for path, contents in updates.items():
         if path.read_text() != contents:
             path.write_text(contents)
-    print("Skaldr Calamares: branded, KDE-only and local log export", flush=True)
+    print("Skaldr Calamares: branded KDE-only, native bootloader previews and local log export", flush=True)
 
 
 if __name__ == "__main__":

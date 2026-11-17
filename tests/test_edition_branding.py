@@ -73,6 +73,8 @@ branding: cachyos
 """)
         write(root, "etc/calamares/modules/netinstall.conf",
               "groupsUrl:\n - https://example.invalid\n")
+        write(root, "etc/calamares/modules/packagechooser_bootloader.conf",
+              "---\nmode: required\nmethod: legacy\ndefault: limine\nitems:\n    - id: grub\n      name: \"GRUB\"\n      description: \"A mature bootloader\"\n      screenshot: \"/etc/calamares/images/bootloaders/grub.jxl\"\n    - id: refind\n      name: \"rEFInd\"\n      efiOnly: true\n      description: \"A graphical boot manager\"\n      screenshot: \"/etc/calamares/images/bootloaders/refind.jxl\"\n    - id: systemd-boot\n      name: \"systemd-boot\"\n      efiOnly: true\n      description: \"A minimal boot manager\"\n      screenshot: \"/etc/calamares/images/bootloaders/systemd-boot.jxl\"\n    - id: limine\n      name: \"Limine\"\n      description: \"A bootloader with Btrfs snapshots\"\n      screenshot: \"/etc/calamares/images/bootloaders/limine.jxl\"\n")
         write(root, "etc/calamares/modules/packagechooser_desktop.conf",
               "default: KDE-Desktop\n")
         if not broken:
@@ -121,6 +123,19 @@ branding: cachyos
             self.assertIn("cachyos-settings", base["packages"])
             netinstall = (root / "etc/calamares/modules/netinstall.conf").read_text()
             self.assertNotIn("https://", netinstall)
+            boots = yaml.safe_load(
+                (root / "etc/calamares/modules/packagechooser_bootloader.conf").read_text())
+            self.assertEqual(boots["default"], "limine")
+            self.assertEqual([x["id"] for x in boots["items"]],
+                             ["grub", "refind", "systemd-boot", "limine"])
+            self.assertTrue(boots["items"][1]["efiOnly"])
+            for loader in boots["items"]:
+                preview = "/usr/share/calamares/branding/skaldr/bootloaders/" + loader["id"] + ".svg"
+                self.assertEqual(loader["screenshot"], preview)
+                installed_preview = root / preview.lstrip("/")
+                original_preview = REPO / ("archiso/airootfs/usr/share/skaldr/installer/"
+                                           "bootloaders/" + loader["id"] + ".svg")
+                self.assertEqual(installed_preview.read_bytes(), original_preview.read_bytes())
             branding = yaml.safe_load(
                 (root / "usr/share/calamares/branding/skaldr/branding.desc").read_text())
             self.assertEqual(branding["strings"]["productName"], "Skaldr OS")
@@ -131,15 +146,62 @@ branding: cachyos
             self.assertEqual(installed.read_bytes(), expected.read_bytes())
             self.assertNotIn('width="3840"', installed.read_text())
             before = (root / "etc/calamares/modules/netinstall.yaml").read_bytes()
+            before_boot = (root / "etc/calamares/modules/packagechooser_bootloader.conf").read_bytes()
             second = self.invoke(root)
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertEqual((root / "etc/calamares/modules/netinstall.yaml").read_bytes(),
                              before)
+            self.assertEqual((root / "etc/calamares/modules/packagechooser_bootloader.conf").read_bytes(),
+                             before_boot)
             kde_second = next(x for x in yaml.safe_load(
                 (root / "etc/calamares/modules/netinstall.yaml").read_text())
                 if x["name"] == "KDE-Desktop")
             self.assertEqual(kde_second["packages"].count("pyside6"), 1)
             self.assertNotIn("haruna", kde_second["packages"])
+
+
+    def test_bootloader_previews_are_vector_illustrations_without_cachyos_identity(self):
+        source = PREPARE.read_text()
+        self.assertIn("brand_bootloader_chooser", source)
+        assets = REPO / "archiso/airootfs/usr/share/skaldr/installer/bootloaders"
+        for name in ("grub", "refind", "systemd-boot", "limine"):
+            svg = assets / (name + ".svg")
+            self.assertTrue(svg.is_file(), name)
+            content = svg.read_text()
+            self.assertIn("SKALDR OS", content)
+            self.assertIn("Illustrative preview", content)
+            self.assertIn(name.upper() if name != "systemd-boot" else "systemd-boot",
+                          content)
+            self.assertNotIn("CachyOS", content)
+            root = ET.fromstring(content)
+            self.assertEqual(root.tag, "{http://www.w3.org/2000/svg}svg")
+            self.assertEqual(root.attrib["viewBox"], "0 0 960 540")
+            self.assertNotIn("<image", content)
+
+    def test_missing_bootloader_preview_aborts_before_installer_configuration_changes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_fixture(root)
+            (root / "usr/share/skaldr/installer/bootloaders/limine.svg").unlink()
+            settings = root / "etc/calamares/settings.conf"
+            before = settings.read_bytes()
+            result = self.invoke(root)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("limine.svg", result.stderr)
+            self.assertEqual(settings.read_bytes(), before)
+
+    def test_unrecognized_upstream_bootloader_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_fixture(root)
+            boot = root / "etc/calamares/modules/packagechooser_bootloader.conf"
+            boot.write_text(boot.read_text().replace("id: limine", "id: unknown-boot"))
+            settings = root / "etc/calamares/settings.conf"
+            before = settings.read_bytes()
+            result = self.invoke(root)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Unknown Calamares bootloader", result.stderr)
+            self.assertEqual(settings.read_bytes(), before)
 
     def test_missing_calamares_file_fails_without_mutating_installer(self):
         with tempfile.TemporaryDirectory() as tmp:

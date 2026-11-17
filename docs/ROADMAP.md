@@ -71,6 +71,7 @@ only when tested; the existence of code is not evidence of successful boot.
 - [x] Add per-ISO measured-size JSON report to every built ISO artifact (implementation and isolated tests)
 - [x] Add a Quicktest video SHA-256 index and bounded screenshot extraction, since archived recordings replace temporary PPM screenshots; source-level regression tests added
 - [ ] Approve visual appearance using new CI frame samples and a documented known-good baseline (manual review still required)
+- [ ] Revalidate branded previews for all four Calamares bootloader choices in a newly compiled post-preview.2 ISO; detected CachyOS-labelled upstream Limine preview in real QEMU frame from run 43924758899, replaced static previews with distinct native Skaldr SVG illustrations (source tests pending)
 - [x] Replace cropped Calamares productWelcome 4K wallpaper with a dedicated 880x340 SVG and QML fallback (source tests; full ISO validation pending)
 - [x] Validate installed Plasma Login Skaldr wallpaper in real QEMU after Limine/Btrfs rollback (run 43924758899); full five-job ISO suite passed, including KDE, installer, BIOS boot, rollback and identical ISO reassembly. Physical hardware validation is still separate.
 - [x] Replace rate-limited unauthenticated REST default-branch discovery with official Git symbolic HEAD and fail-closed regression tests

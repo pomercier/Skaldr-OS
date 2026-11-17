@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <title>Skaldr OS — rEFInd illustrated bootloader selection</title>
+  <desc>An illustrative Skaldr-branded visualization of rEFInd; not a screenshot of a running bootloader.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071023"/><stop offset=".65" stop-color="#101e39"/><stop offset="1" stop-color="#0b1020"/></linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#00deeb"/><stop offset=".53" stop-color="#4e81ef"/><stop offset="1" stop-color="#df41e6"/></linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#bg)"/>
+  <path d="M0 0H960" stroke="url(#glow)" stroke-width="8"/>
+  <circle cx="745" cy="300" r="250" fill="none" stroke="#6178c8" opacity=".1" stroke-width="2"/>
+  <circle cx="745" cy="300" r="205" fill="none" stroke="#40f0ff" opacity=".09" stroke-width="2"/>
+  <text x="72" y="95" font-size="47" font-weight="800" fill="#e8f5ff" font-family="DejaVu Sans,sans-serif" letter-spacing="3">SKALDR OS</text>
+  <text x="74" y="135" font-size="21" fill="#9ab6d8" font-family="DejaVu Sans,sans-serif">Graphical boot manager · automatic boot discovery</text>
+  <rect x="72" y="162" width="816" height="270" rx="12" fill="#080f22" stroke="#bd73e6" stroke-opacity=".6" stroke-width="2"/>
+  
+  <text x="120" y="213" fill="#a6b9d6" font-size="24" font-family="DejaVu Sans,sans-serif">rEFInd boot manager</text>
+  <rect x="155" y="251" width="206" height="120" rx="15" fill="#174360" stroke="#00e6f0" stroke-width="3"/>
+  <rect x="384" y="251" width="206" height="120" rx="15" fill="#1c2945" stroke="#6e86ce" stroke-width="2"/>
+  <rect x="614" y="251" width="206" height="120" rx="15" fill="#1c2945" stroke="#6e86ce" stroke-width="2"/>
+  <text x="258" y="297" text-anchor="middle" fill="#f0f8ff" font-weight="bold" font-size="26" font-family="DejaVu Sans,sans-serif">Skaldr</text>
+  <text x="258" y="338" text-anchor="middle" fill="#70eff3" font-size="23" font-family="DejaVu Sans,sans-serif">Selected</text>
+  <text x="487" y="322" text-anchor="middle" fill="#c5d5ed" font-size="23" font-family="DejaVu Sans,sans-serif">Linux</text>
+  <text x="716" y="322" text-anchor="middle" fill="#c5d5ed" font-size="23" font-family="DejaVu Sans,sans-serif">Firmware</text>
+  <path d="M72 470H888" stroke="url(#glow)" stroke-width="3" opacity=".6"/>
+  <text x="75" y="509" font-size="20" fill="#a6bbd9" font-family="DejaVu Sans,sans-serif">Illustrative preview — appearance varies by firmware and configuration</text>
+</svg>
