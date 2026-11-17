@@ -1,0 +1,77 @@
+name: One-shot dispatch of pinned Skaldr preview.2
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/PREVIEW2-PUBLISH-REQUEST.json'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    if: github.repository == 'pomercier/Skaldr-OS'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact request revision
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Validate one-shot request against pinned release and successful workflows
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # A second commit changing the same request can never republish.
+          if git cat-file -e "HEAD^:docs/PREVIEW2-PUBLISH-REQUEST.json" 2>/dev/null; then
+            echo "::error::docs/PREVIEW2-PUBLISH-REQUEST.json already existed in the parent commit: refusing replay."
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          lock = json.loads(Path('docs/PUBLIC-PREVIEW-2-LOCK.json').read_text())
+          request = json.loads(Path('docs/PREVIEW2-PUBLISH-REQUEST.json').read_text())
+          required = {
+              'tag': 'v0.1.0-preview.2',
+              'source_sha': lock['source_sha'],
+              'validated_iso_run_id': lock['validated_iso_run_id'],
+              'source_checks_run_id': lock['source_checks_run_id'],
+              'iso_sha256': lock['iso_sha256'],
+          }
+          if request != required:
+              raise SystemExit('One-shot request differs from the cryptographically pinned release lock')
+          if lock['source_sha'] != 'e37fdd25e01e9564223f426c3ff4000dbdd5ef5b':
+              raise SystemExit('Unexpected validated ISO source revision')
+          print('One-shot candidate matches the validated dev.129 ISO and locked release metadata')
+          PY
+          if gh release view v0.1.0-preview.2 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo '::error::Preview.2 is already published; refusing duplicate dispatch.'
+            exit 1
+          fi
+          iso_sha="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/43924758899" --jq .head_sha)"
+          iso_result="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/43924758899" --jq .conclusion)"
+          source_sha="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/43924758916" --jq .head_sha)"
+          source_result="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/43924758916" --jq .conclusion)"
+          test "$iso_sha" = "e37fdd25e01e9564223f426c3ff4000dbdd5ef5b"
+          test "$source_sha" = "e37fdd25e01e9564223f426c3ff4000dbdd5ef5b"
+          test "$iso_result" = success
+          test "$source_result" = success
+          artifact="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/43924758899/artifacts" --jq '[.artifacts[] | select(.name | startswith("skaldr-os-x86_64-")) | select(.expired == false)] | length')"
+          test "$artifact" -eq 1
+          echo 'Exact-source tests, ISO workflow and nonexpired ISO artifact all confirmed.'
+      - name: Dispatch existing fail-closed release workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run skaldr-release.yml --repo "$GITHUB_REPOSITORY" --ref master \
+            -f version=v0.1.0-preview.2 \
+            -f stable=false \
+            -f source_sha=e37fdd25e01e9564223f426c3ff4000dbdd5ef5b
+          echo 'Preview.2 release workflow dispatched; publication depends on its own checksum gates.'
