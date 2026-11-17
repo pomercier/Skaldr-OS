@@ -76,6 +76,7 @@ class CalamaresInstalledRollbackTests(unittest.TestCase):
             "    test_installed_system_cold_boot\n"
             "    test_installed_plasma_first_login\n"
             "    test_installed_native_control_center\n"
+            "    test_installed_artcraft_launcher\n"
             "    test_installed_btrfs_snapshot_rollback\n"
             "    test_power_off_vm"
         )
