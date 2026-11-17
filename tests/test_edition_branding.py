@@ -87,7 +87,10 @@ branding: cachyos
         for source in brand.iterdir():
             target = root / "usr/share/skaldr/installer" / source.name
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, target)
+            if source.is_dir():
+                shutil.copytree(source, target)
+            else:
+                shutil.copyfile(source, target)
 
     def invoke(self, root):
         return subprocess.run([sys.executable, str(PREPARE), "--root", str(root)],
