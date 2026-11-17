@@ -139,7 +139,7 @@ class PreviewTwoReleaseIntegrityTests(unittest.TestCase):
         self.assertIn('candidate="${REQUESTED_SOURCE_SHA:-$pinned_sha}"', workflow)
         self.assertIn('candidate="${REQUESTED_SOURCE_SHA:-$(git rev-parse HEAD)}"', workflow)
         self.assertIn('if [[ "$RELEASE_VERSION" == "v0.1.0-preview.2" ]]; then', workflow)
-        self.assertNotIn("\\n  push:", workflow)
+        self.assertNotIn("  push:", workflow)
         self.assertIn('independent_preview2_integrity:', workflow)
         self.assertIn('needs: release', workflow)
         self.assertIn("inputs.version == 'v0.1.0-preview.2'", workflow)
