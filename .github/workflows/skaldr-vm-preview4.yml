@@ -51,6 +51,36 @@ jobs:
             exit 1
           }
           echo "PASS: exact-source checks run $source_run"
+      - name: Verify actual VM serial logs prove chwd was bypassed and installed KDE cold-booted
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/skaldr-vm-grub" "$RUNNER_TEMP/skaldr-vm-limine"
+          gh run download "$RUN_ID" --repo "$REPO" \
+            --pattern 'skaldr-os-test-results-*-grub-ext4' \
+            --dir "$RUNNER_TEMP/skaldr-vm-grub"
+          gh run download "$RUN_ID" --repo "$REPO" \
+            --pattern 'skaldr-os-test-results-*-limine-btrfs' \
+            --dir "$RUNNER_TEMP/skaldr-vm-limine"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          for name in ('grub', 'limine'):
+              folder=root / ('skaldr-vm-' + name)
+              serials=list(folder.rglob('installer-serial.log'))
+              quicklogs=list(folder.rglob('quicktest.log'))
+              assert len(serials)==1, (name, 'Missing real Calamares serial evidence')
+              assert len(quicklogs)==1, (name, 'Missing real installed-VM quicktest log')
+              serial=serials[0].read_text(errors='replace')
+              quick=quicklogs[0].read_text(errors='replace')
+              assert 'Starting job "chwd"' not in serial, (name, 'VM bypass was not exercised')
+              assert 'Skaldr target packages and system preferences installed' in serial
+              assert 'Skaldr login wallpaper configured.' in serial
+              assert 'Cold boot the newly installed system, without the live ISO' in quick
+              assert 'Launch installed Skaldr Control Center in KDE Plasma' in quick
+              print('PASS:',name,'virtual chwd bypass, package installation, cold boot, KDE GUI')
+          PY
       - name: Request public preview from already-tested ISO, never rebuild it
         shell: bash
         run: |
