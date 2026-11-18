@@ -1,0 +1,50 @@
+# One-shot request to the existing, proven fail-closed publishing workflow.
+# The tested dev.149 ISO is reused; NO new multi-GB ISO build is performed.
+name: Request verified Skaldr preview.3 publication
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/skaldr-dispatch-preview3.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  publish-tested-image:
+    if: github.repository == 'pomercier/Skaldr-OS'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check exact validated source and unchanged release code
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/pomercier/Skaldr-OS/actions/runs/44164284698 > /tmp/iso.json
+          gh api repos/pomercier/Skaldr-OS/actions/runs/44164284682 > /tmp/source.json
+          python3 - <<'PY'
+          import json
+          for path in ('/tmp/iso.json','/tmp/source.json'):
+              r=json.load(open(path))
+              assert r['status']=='completed' and r['conclusion']=='success'
+              assert r['head_sha']=='1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f'
+          print('PASS: validated dev.149 source, ISO 5/5 and 154 source tests')
+          PY
+          if gh release view v0.1.0-preview.3 -R pomercier/Skaldr-OS >/dev/null 2>&1; then
+            echo "::error::Preview.3 already exists, refusing duplicate publication."
+            exit 1
+          fi
+
+      - name: Invoke existing tested-source publication workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run skaldr-release.yml \
+            --repo pomercier/Skaldr-OS --ref master \
+            --field version=v0.1.0-preview.3 \
+            --field stable=false \
+            --field source_sha=1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f
+          echo "Requested a permanent preview.3 publication from the unchanged, tested dev.149 ISO."
