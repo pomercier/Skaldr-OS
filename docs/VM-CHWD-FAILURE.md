@@ -7,15 +7,15 @@ The installed disk did not boot afterward. That is an **incomplete
 installation**, not an independently established bootloader defect.
 
 CachyOS's Calamares chwd module runs:
-\`\`\`text
+```text
 arch-chroot <rootMountPoint> chwd --autoconfigure
-\`\`\`
+```
 If chwd exits nonzero, Calamares fails before reaching later tasks such as
 user creation and final bootloader configuration.
 
 ## Targeted corrective change
 
-Commit \`048fc90039838cc9889fefbbfd1b33984439e5fa\` makes the live
+Commit `048fc90039838cc9889fefbbfd1b33984439e5fa` makes the live
 Calamares configurator inspect PCI **display** controllers:
 
 - Only known virtual-only QEMU/KVM, VMware, VirtualBox or Hyper-V graphics
