@@ -1,4 +1,5 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / VM boot:** A manual VM installation failed at Calamares `chwd`; [virtual-only graphics workaround](VM-CHWD-FAILURE.md) and regression tests are implemented. **Do not mark done until the new exact-source ISO passes installation, cold boot, installed KDE, rollback and checksum checks.**
 - [x] Add an offline, machine-readable stable-release evidence gate and corresponding CI report. Stable publication remains explicitly disabled until physical tests, release-mode build and human review.
 - [x] Integrate a read-only, privacy-limited hardware observation command and isolated tests into the next development ISO (source checks passed; full new ISO validation pending).
 - [ ] Complete the physical test matrix and attach sanitized proof URLs to [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json); only then consider a stable tag.
