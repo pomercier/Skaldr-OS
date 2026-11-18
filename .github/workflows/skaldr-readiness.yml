@@ -38,7 +38,7 @@ jobs:
               'This is NOT a physical test or permission to publish stable.'
           ]
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
-              output.write('\\n'.join(summary) + '\\n')
+              output.write('\n'.join(summary) + '\n')
           PY
       - name: Preserve the report
         uses: actions/upload-artifact@v4
