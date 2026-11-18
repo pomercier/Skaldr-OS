@@ -42,7 +42,7 @@ label:
 """
 
 
-def filter_groups(source):
+def filter_groups(source, guest_profile=None):
     chunks = re.split(r"(?m)(?=^- name:\s)", source)
     selected, found = [], set()
     for block in chunks:
@@ -76,6 +76,15 @@ def filter_groups(source):
                     block, count=1)
                 if pkg_count != 1:
                     raise ValueError("Missing KDE packages in netinstall")
+        if name == "KDE-Desktop" and guest_profile:
+            for package in VIRTUAL_KDE_PACKAGES[guest_profile]:
+                if not re.search(r"(?m)^    - " + re.escape(package) + r"\s*$", block):
+                    block, added = re.subn(
+                        r"(?m)^  packages:[ \t]*$",
+                        lambda match: match.group(0) + "\n    - " + package,
+                        block, count=1)
+                    if added != 1:
+                        raise ValueError("Missing KDE packages for virtual display")
         if name == "CachyOS Packages":
             block = block.replace('name: "CachyOS Packages"',
                                   'name: "Skaldr OS base packages"')
@@ -96,6 +105,51 @@ def filter_groups(source):
         raise ValueError("Required netinstall groups were not found")
     return "---\n" + "".join(selected)
 
+
+
+# Only virtual PCI *display* devices permit bypassing upstream chwd. Physical
+# displays and passthrough GPUs keep the original hardware configuration.
+VIRTUAL_DISPLAY_VENDORS = {
+    "0x1af4": "qemu", "0x1b36": "qemu", "0x1234": "qemu",
+    "0x1013": "qemu", "0x15ad": "vmware",
+    "0x80ee": "virtualbox", "0x1414": "hyperv",
+}
+VIRTUAL_KDE_PACKAGES = {
+    "qemu": ("mesa", "vulkan-swrast", "lib32-vulkan-swrast",
+             "vulkan-virtio", "spice-vdagent", "qemu-guest-agent"),
+    "vmware": ("mesa", "vulkan-swrast", "lib32-vulkan-swrast", "open-vm-tools"),
+    "virtualbox": ("mesa", "vulkan-swrast", "lib32-vulkan-swrast",
+                   "virtualbox-guest-utils"),
+    "hyperv": ("mesa", "vulkan-swrast", "lib32-vulkan-swrast"),
+}
+
+
+def virtual_display_profile(root):
+    """Do not bypass chwd when PCI evidence is missing or mixed with real GPUs."""
+    seen = set()
+    for device in (root / "sys/bus/pci/devices").glob("*"):
+        try:
+            pci_class = (device / "class").read_text().strip().lower()
+            if not re.fullmatch(r"0x03[0-9a-f]{4}", pci_class):
+                continue
+            vendor = (device / "vendor").read_text().strip().lower()
+        except OSError:
+            return None
+        profile = VIRTUAL_DISPLAY_VENDORS.get(vendor)
+        if not profile:
+            return None
+        seen.add(profile)
+    return next(iter(seen)) if len(seen) == 1 else None
+
+
+def omit_virtual_chwd_step(settings):
+    """Do not silently accept a changed Calamares sequence layout."""
+    expression = r"(?m)^  - chwd[ \t]*\r?\n"
+    updated, count = re.subn(
+        expression, "  # Skaldr: staged virtual display drivers\n", settings)
+    if count != 1 or not re.search(r"(?m)^- exec:\s*$", settings):
+        raise ValueError("Unrecognized Calamares chwd execution step")
+    return updated
 
 
 BOOTLOADERS = ("grub", "refind", "systemd-boot", "limine")
@@ -158,10 +212,13 @@ def prepare(root=Path("/")):
     if "packagechooser@desktop" not in source_settings or "- netinstall" not in source_settings:
         raise ValueError("Calamares desktop/netinstall integration missing")
     # Validate *before* modifying the stock installer.
-    manifest = filter_groups((modules / "netinstall.yaml").read_text())
+    guest_profile = virtual_display_profile(root)
+    manifest = filter_groups((modules / "netinstall.yaml").read_text(), guest_profile)
     bootloader_choices = brand_bootloader_chooser(bootloader_config.read_text())
     settings = re.sub(r"(?m)^branding:\s*(?:cachyos|skaldr)\s*$",
                       "branding: skaldr", source_settings, count=1)
+    if guest_profile:
+        settings = omit_virtual_chwd_step(settings)
     welcome = (modules / "welcome_online.conf").read_text()
     welcome, hits = re.subn(r"(?m)^(\s*internetCheckUrl:\s*).*$",
                             r"\g<1>https://github.com/pomercier/Skaldr-OS",
