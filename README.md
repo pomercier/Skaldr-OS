@@ -13,12 +13,13 @@
 <p align="center">
   <a href="https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-checks.yml"><img alt="Source checks" src="https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-checks.yml/badge.svg"></a>
   <a href="https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml"><img alt="ISO build" src="https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml/badge.svg"></a>
-  <a href="https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2"><img alt="Public development preview" src="https://img.shields.io/badge/release-v0.1.0--preview.2-orange"></a>
+  <a href="https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3"><img alt="Public development preview" src="https://img.shields.io/badge/release-v0.1.0--preview.3-orange"></a>
   <img alt="Architecture x86-64" src="https://img.shields.io/badge/architecture-x86__64-5a6881">
 </p>
 
 <p align="center">
-  <a href="#latest-vm-validated-development-iso--dev149">Latest tested ISO dev.149</a> ·
+  <a href="#public-download--skaldr-os-v010-preview3">Download preview.3</a> ·
+  <a href="#latest-vm-validated-development-iso--dev149">Exact ISO dev.149</a> ·
   <a href="#download-skaldr-os-v010-preview2">Public preview.2</a> ·
   <a href="#download-and-verify-the-public-preview">Public preview</a> ·
   <a href="#why-skaldr">Why Skaldr?</a> ·
@@ -36,7 +37,7 @@ Skaldr OS grew from a simple idea: **build the Linux system I actually want to u
 
 It is built on the work of **[CachyOS](https://cachyos.org/)** and **[Arch Linux](https://archlinux.org/)**. The goal isn't to pretend to replace these projects. It is to add an opinionated, cohesive desktop experience while preserving broad hardware compatibility and upstream improvements.
 
-> **Newest fully VM-validated ISO: [`skaldr-0.1.0-dev.149-x86_64.iso`](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698/artifacts/14364619884).** On November 17, 2026, its exact source [`1b4c3d0`](https://github.com/pomercier/Skaldr-OS/commit/1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f) passed **154 source tests, 5/5 ISO jobs and verified native ArtCraft GUI** inside the installed KDE guest. The original ISO was also split, reassembled, and independently hash-checked. See [download and checksum instructions](#latest-vm-validated-development-iso--dev149). This build is a **GitHub Actions artifact, not a new public Release**; GitHub sign-in may be required and the artifact expires. The last permanent public Release is [preview.2](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2), containing the earlier `dev.129` image. Neither image is hardware-certified.
+> **[Skaldr OS v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3) is now publicly available.** Its embedded `dev.149` ISO passed **154 source tests and 5/5 VM jobs**, including real KDE installation, native ArtCraft GUI and offline Btrfs rollback. The seven public files were published on November 18, 2026 from the exact tested [`1b4c3d0` source](https://github.com/pomercier/Skaldr-OS/commit/1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f). Download and verify the parts using [these instructions](#public-download--skaldr-os-v010-preview3). This is a development preview, **not a hardware-certified stable release**.
 
 ## Why Skaldr?
 
@@ -102,6 +103,32 @@ sudo ./buildiso.sh -p desktop -v -w
 ```
 
 The expected output is in `out/desktop/`. The build includes a version manifest and generates SHA-256 checksums. **Do not assume the generated image is installable until its build and VM tests pass.** You can follow the [ISO build workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/build.yml).
+
+## Public download — Skaldr OS v0.1.0-preview.3
+
+**[Download all seven permanent GitHub Release assets](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3)**.
+This is the exact **VM-validated `dev.149` ISO**, not a new or untested compilation.
+
+Download all three `skaldr-0.1.0-dev.149-x86_64.iso.partNNN` pieces
+and the four supporting files (`SHA256SUMS`, `SHA256SUMS.parts`,
+`ASSEMBLE.txt`, `reassemble-skaldr-iso.py`) into the same folder.
+
+```sh
+python3 reassemble-skaldr-iso.py reassemble --directory .
+sha256sum -c SHA256SUMS
+```
+
+The expected complete ISO SHA-256 is `e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9`; size
+is **4,194,566,144 bytes**. **Only flash the verified, reassembled
+`.iso` file**, never a `.partNNN` file. The release tag points to
+exact source `1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f`, matching
+[154 successful source tests](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682)
+and [five successful ISO jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698).
+Public download reconstruction on an additional independent GitHub runner:
+[verification workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-preview3-public-integrity.yml).
+
+**Preview, not stable:** real NVIDIA/AMD/Intel hardware, Secure Boot and
+encrypted installation still require separate tests.
 
 ## Latest VM-validated development ISO — dev.149
 
@@ -215,14 +242,13 @@ and full ISO reconstruction of the publicly released preview.1 also passed on
 
 ## Project status
 
-**The newest VM-validated image is `dev.149`**: [154/154 source checks](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682),
+**The newest public development preview is [`v0.1.0-preview.3`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3) (embedded `dev.149`)**: [154/154 source checks](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682),
 [5/5 ISO jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698),
 installed KDE with a genuine ArtCraft UI check, GRUB/ext4, Limine/Btrfs
 rollback, BIOS live boot and independent image SHA-256 reconstruction.
-The most recent **permanent public release** remains the previously tested
-[`v0.1.0-preview.2`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2)
-(`dev.129`). Physical hardware, Secure Boot and untested storage layouts
-remain uncertified.
+The older [`v0.1.0-preview.2`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2)
+(`dev.129`) remains archived. Physical hardware, Secure Boot and untested
+storage layouts remain uncertified.
 
 | Area | Current state |
 | --- | --- |
@@ -232,7 +258,7 @@ remain uncertified.
 | Performance and Btrfs policies | Initial implementation; platform testing ongoing |
 | Version provenance | Implemented in build tooling and first-login welcome |
 | CI source validation | Automated on `master` |
-| Public preview | **Published** [v0.1.0-preview.2](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2), seven independently verified assets from `e37fdd25`; [preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) remains archived |
+| Public preview | **Published** [v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3), seven assets from the exact VM-tested `1b4c3d0`; earlier [preview.2](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2) remains archived |
 | Independent public download and reassembly | **Passed** for all seven preview.2 GitHub Release assets; reproduced exact `dev.129` ISO SHA-256 on a separate Ubuntu runner ([2026-11-16, run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008)). The earlier preview.1 passed its own [independent check](https://github.com/pomercier/Skaldr-OS/actions/runs/43780766882) |
 | Full ISO build, installation and rollback | **Passed 5/5** on `1b4c3d0` (2026-11-17), including GRUB/ext4 installed KDE with real ArtCraft GUI, Limine/Btrfs rollback and cold boot, legacy BIOS live boot and full `dev.149` ISO SHA-256 reconstruction ([run 44164284698](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698)). Physical hardware, encrypted storage and legacy BIOS **installation** remain untested |
 | Installed Plasma Login and ArtCraft | **Passed** on `dev.149`: KDE first login, branding, ArtCraft AppImage checksum and real GUI catalog in GRUB/ext4 QEMU; independent ArtCraft recheck also [passed](https://github.com/pomercier/Skaldr-OS/actions/runs/44163757616) |

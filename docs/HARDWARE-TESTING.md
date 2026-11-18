@@ -1,18 +1,25 @@
 # Skaldr OS — physical hardware validation
 
-**Newest VM-validated development ISO (November 17, 2026):**
+**Newest publicly released and VM-validated ISO:**
+[Skaldr OS v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3),
+published November 18, 2026. It contains the exact dev.149 image described below
+and is available as seven permanent GitHub Release assets. Independently verify
+all three parts and the complete ISO SHA-256 with the bundled
+`reassemble-skaldr-iso.py` before writing any USB drive.
+
+**Exact development image (November 17, 2026):**
 [`skaldr-0.1.0-dev.149-x86_64.iso`](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698/artifacts/14364619884)
 from exact Skaldr commit `1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f`.
 This CI artifact passed [154/154 source checks](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682)
 and [5/5 ISO validation jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698),
 including real ArtCraft graphical launch on installed KDE. Its SHA-256 is
 `e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9`.
-The artifact is not a permanent public Release; download and verify via
+The CI artifact itself is temporary; download the permanent [preview.3 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3) or verify via
 [the dev.149 instructions](../README.md#latest-vm-validated-development-iso--dev149)
 and keep the ISO + `SHA256SUMS` together. **Do not mix dev.149 files with
 preview.2.**
 
-The newest publicly released, VM-validated image is
+The previous publicly released, VM-validated image is
 [`Skaldr OS v0.1.0-preview.2`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2),
 embedding `skaldr-0.1.0-dev.129-x86_64.iso` from source commit
 `e37fdd25e01e9564223f426c3ff4000dbdd5ef5b`.

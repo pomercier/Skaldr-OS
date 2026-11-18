@@ -1,9 +1,15 @@
 # Skaldr OS dev.149 — fully tested development ISO (November 17, 2026)
 
-**Validation: PASS**. This is the newest fully VM-tested development ISO in
+**Validation: PASS**. **This exact `dev.149` ISO is now permanently published**
+as [`v0.1.0-preview.3`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3)
+(seven public assets, 2026-11-18). It was not rebuilt for publication.
+The independent public-download SHA-256 check is documented in the
+[preview.3 verification workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-preview3-public-integrity.yml).
+
+This is the newest fully VM-tested development ISO in
 [GitHub Actions run 44164284698](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698),
-not a permanent public GitHub Release. GitHub Actions artifacts expire and
-may require authentication.
+also a permanent public GitHub Release; GitHub Actions artifacts themselves
+still expire and may require authentication.
 
 - ISO: `skaldr-0.1.0-dev.149-x86_64.iso`
 - Exact Skaldr source: `1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f`
@@ -54,8 +60,8 @@ overwrite a production system.
 - ArtCraft *live-session* launch; installed KDE launch alone passed.
 - Long-term reliability on actual user hardware.
 
-The latest **public GitHub Release** remains
-[`v0.1.0-preview.2`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2),
-which contains the previously successful `dev.129` image and has its own
-independent public-release verification. Do not confuse this with the
-newer, temporary CI artifact `dev.149`.
+The latest **public GitHub Release** is
+[`v0.1.0-preview.3`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3)
+containing this same validated `dev.149` image. The older
+[`v0.1.0-preview.2`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2)
+remains archived with its independently verified `dev.129` ISO.
