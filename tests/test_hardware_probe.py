@@ -44,6 +44,12 @@ class HardwareProbeTests(unittest.TestCase):
                 self.assertNotIn(forbidden, content)
             self.assertEqual(report["status"], "observations_only_not_certified")
 
+    def test_calamares_copies_probe_to_installed_system(self):
+        inject = runpy.run_path(
+            str(ROOT / "archiso/airootfs/usr/local/bin/skaldr-cal-inject"),
+            run_name="calamares_inject_test")
+        self.assertIn("/usr/local/bin/skaldr-hardware-probe", inject["FILES"])
+
     def test_no_existing_report_overwrite_and_private_permissions(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "report.json"
