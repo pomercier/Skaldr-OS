@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Read-only, privacy-limited Skaldr hardware observations.
+
+Observations are NOT hardware certification or proof of successful installation.
+No network access, privilege escalation, hostnames, usernames or raw logs.
+"""
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import platform
+import re
+import sys
+
+GPU_VENDORS = {"0x10de": "NVIDIA", "0x1002": "AMD", "0x8086": "Intel"}
+SHA40 = re.compile(r"^[0-9a-f]{40}$")
+
+
+def read(path, default=""):
+    try:
+        return Path(path).read_text(encoding="utf-8").strip()
+    except (OSError, UnicodeError):
+        return default
+
+
+def gpu_families(root):
+    found = set()
+    pci = root / "sys/bus/pci/devices"
+    for device in pci.glob("*"):
+        category = read(device / "class")
+        # PCI classes: 03xx = display controller, including VGA and 3D.
+        if not category.startswith("0x03"):
+            continue
+        vendor = GPU_VENDORS.get(read(device / "vendor").lower())
+        if vendor:
+            found.add(vendor)
+        else:
+            found.add("Other/unknown")
+    return sorted(found)
+
+
+def collect(root=Path("/"), environ=None):
+    """Only allowlisted facts are returned; paths and user data are discarded."""
+    root = Path(root)
+    env = os.environ if environ is None else environ
+    identity = {}
+    try:
+        meta = json.loads(read(root / "usr/share/skaldr/build.json", "{}"))
+        if isinstance(meta, dict):
+            sha = meta.get("git_revision", "")
+            if isinstance(sha, str) and SHA40.fullmatch(sha):
+                identity["git_revision"] = sha
+            version = meta.get("version", "")
+            if isinstance(version, str) and re.fullmatch(r"[A-Za-z0-9.+_-]{1,72}", version):
+                identity["version"] = version
+    except (ValueError, TypeError):
+        pass
+    ram = None
+    for line in read(root / "proc/meminfo").splitlines():
+        if line.startswith("MemTotal:"):
+            match = re.fullmatch(r"MemTotal:\s+([0-9]+)\s+kB", line)
+            if match:
+                ram = round(int(match.group(1)) / 1024 / 1024, 1)
+            break
+    session = str(env.get("XDG_SESSION_TYPE", "")).lower()
+    session = session if session in ("wayland", "x11") else "unknown"
+    desktop = "plasma" if "plasma" in str(env.get("XDG_CURRENT_DESKTOP", "")).lower() else "other_or_unknown"
+    sched = read(root / "sys/kernel/sched_ext/state", "unavailable")
+    if sched not in ("enabled", "disabled", "unavailable"):
+        sched = "unknown"
+    return {
+        "schema": "skaldr.hardware-observations.v1",
+        "collected_utc": datetime.now(timezone.utc).isoformat(),
+        "build_identity": identity,
+        "architecture": platform.machine(),
+        "kernel": platform.release(),
+        "boot_firmware": "uefi" if (root / "sys/firmware/efi").is_dir() else "bios_or_unknown",
+        "gpu_vendor_families": gpu_families(root),
+        "ram_total_gib_approx": ram,
+        "zram_present": any((root / "sys/block").glob("zram*")),
+        "sched_ext_state": sched,
+        "session_type": session,
+        "plasma_session": desktop == "plasma",
+        "manual_verification_required": [
+            "physical_machine_confirmed", "installer_completed", "cold_boot",
+            "gpu_driver_and_acceleration", "network_audio", "suspend_resume",
+            "hdr_vrr", "update_and_recovery", "no_private_identifiers_in_report"
+        ],
+        "status": "observations_only_not_certified",
+        "privacy": "No telemetry, network calls, log export, usernames, serials, MACs, IPs or PCI addresses",
+    }
+
+
+def write_private(path, contents):
+    target = Path(path).expanduser()
+    if target.is_symlink():
+        raise ValueError("Refusing symlink output")
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as out:
+            out.write(contents)
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--write", metavar="NEW_JSON_FILE",
+                        help="Write a private report without overwriting any existing file")
+    args = parser.parse_args(argv)
+    output = json.dumps(collect(), ensure_ascii=False, indent=2) + "\n"
+    if args.write:
+        write_private(args.write, output)
+        print("Private hardware observation report created. Review it before sharing.")
+    else:
+        print(output, end="")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError) as exc:
+        sys.exit("Hardware probe stopped safely: " + str(exc))

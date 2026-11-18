@@ -72,6 +72,22 @@ sha256sum -c SHA256SUMS
       was demonstrated by CI.
 - [ ] Test actual recovery boot entries without `mitigations=off` when provided.
 
+## Privacy-limited hardware observations
+
+**For upcoming development builds** containing the tool, use `skaldr-hardware-probe`
+or `skaldr-hardware-probe --write ~/skaldr-hardware.json` on the actual system.
+The existing **preview.3 does not contain this new tool**; the first later
+fully validated ISO that includes the commit may be used instead. The probe is
+read-only, does not need root privileges, uploads nothing and writes new reports
+with private file permissions. It records broad GPU vendor families, boot mode,
+RAM, session and exact Skaldr revision while deliberately omitting identifying
+device addresses, hostnames, usernames, serials, networks and logs.
+
+A probe report is **not a physical installation test, GPU certification or
+verification of HDR/VRR**, and should never mark a stable-release evidence
+checkbox as passed automatically. Confirm actual tests manually, then review
+the report for privacy before sharing it.
+
 ## Vendor-neutral GPU coverage
 
 | Hardware | Driver choice / consent | KDE | Video / games | Suspend / resume | HDR / VRR |

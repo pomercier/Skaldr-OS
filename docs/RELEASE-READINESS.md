@@ -49,4 +49,9 @@ The existing `skaldr-release.yml` continues to block stable publication until
 a separate human review changes that explicit policy. Preview.3 and its hashes
 must not be overwritten or silently replaced.
 
+A privacy-limited `skaldr-hardware-probe` command is included in newer
+development ISO sources to assist real hardware testing. It **does not** run
+the required installation, graphics, suspend or rollback procedures itself,
+and is absent from the previously validated preview.3 ISO.
+
 For the hands-on procedures see [HARDWARE-TESTING.md](HARDWARE-TESTING.md).
