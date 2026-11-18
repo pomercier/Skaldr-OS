@@ -1,0 +1,91 @@
+# Independently download and reconstruct the first VM-fixed public ISO.
+name: Independently validate Skaldr preview.4
+on:
+  workflow_run:
+    workflows: ["Publish validated Skaldr OS release"]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-public-integrity:
+    if: >-
+      github.repository == 'pomercier/Skaldr-OS' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: pomercier/Skaldr-OS
+      TAG: v0.1.0-preview.4
+      ISO_RUN: 44400111821
+      SOURCE_SHA: 048fc90039838cc9889fefbbfd1b33984439e5fa
+    steps:
+      - name: Use exactly trusted published ISO source tooling
+        uses: actions/checkout@v4
+        with:
+          ref: 048fc90039838cc9889fefbbfd1b33984439e5fa
+      - name: Verify exact public tag and seven published assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/releases/tags/$TAG" > /tmp/skaldr-release.json
+          python3 - <<'PY'
+          import json, os
+          data=json.load(open('/tmp/skaldr-release.json'))
+          assert data['tag_name']==os.environ['TAG']
+          assert data['target_commitish']==os.environ['SOURCE_SHA']
+          assert not data['draft'] and data['prerelease']
+          assets=data['assets']
+          assert len(assets)==7
+          assert all(a['state']=='uploaded' and 0<a['size']<2*1024**3 for a in assets)
+          print('PASS: pinned VM-tested source and seven public release assets')
+          PY
+      - name: Fetch original CI checksum without duplicate full-size ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/original"
+          gh run download "$ISO_RUN" --repo "$REPO" \
+            --pattern 'skaldr-preview-verification-*' \
+            --dir "$RUNNER_TEMP/original"
+          test -s "$RUNNER_TEMP/original/SHA256SUMS"
+      - name: Download all seven actual public release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/public"
+          gh release download "$TAG" --repo "$REPO" \
+            --dir "$RUNNER_TEMP/public"
+          test "$(find "$RUNNER_TEMP/public" -maxdepth 1 -type f | wc -l)" -eq 7
+          cmp "$RUNNER_TEMP/original/SHA256SUMS" "$RUNNER_TEMP/public/SHA256SUMS"
+      - name: Verify all parts and reconstruct exact original tested ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd "$RUNNER_TEMP/public" && sha256sum --check SHA256SUMS.parts)
+          python3 scripts/skaldr-release-assets.py reassemble \
+            --directory "$RUNNER_TEMP/public"
+          (cd "$RUNNER_TEMP/public" && sha256sum --check SHA256SUMS)
+          mkdir -p results/ci
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          entries=Path(os.environ['RUNNER_TEMP']+'/original/SHA256SUMS').read_text().splitlines()
+          assert len(entries)==1
+          checksum, iso=entries[0].split()
+          path=Path(os.environ['RUNNER_TEMP']+'/public')/iso
+          report={'tag':os.environ['TAG'], 'source_sha':os.environ['SOURCE_SHA'],
+                  'iso_name':iso,'sha256':checksum,'bytes':path.stat().st_size,
+                  'public_assets':7,'independently_verified':True}
+          Path('results/ci/preview4-public-integrity.json').write_text(
+              json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+      - name: Archive independent public integrity proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skaldr-preview4-public-sha256
+          path: results/ci/preview4-public-integrity.json
+          if-no-files-found: ignore
