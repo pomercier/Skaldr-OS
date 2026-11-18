@@ -31,9 +31,12 @@ and [five ISO validation jobs](https://github.com/pomercier/Skaldr-OS/actions/ru
 on November 16, 2026, including installed KDE login, Calamares installation
 with GRUB/ext4 and Limine/Btrfs, offline rollback and ISO reassembly.
 
-**This is a public development preview, not a certified production system.**
-All seven published assets were independently downloaded and reassembled with
-matching SHA-256 on [GitHub Actions run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008).
+**These are public development previews, not certified production systems.**
+The older preview.2 assets were independently reconstructed on
+[run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008);
+the newer **preview.3** public assets passed the same independent reconstruction
+on [run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997).
+The latter is the current reference for hands-on testing.
 
 ## Before installing
 

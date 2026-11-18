@@ -31,6 +31,21 @@ through `skaldr-version` or `skaldr-version --json`.
 
 The first public **development preview** is [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1), published November 13, 2026 from validated commit `b391fc35f4eaade3c1ff5231c33c10f63770bda6`. Its ISO embeds build version `0.1.0-dev.62`; the public preview tag and internal build number serve different purposes.
 
+The successive, publicly distributed and VM-validated development previews are:
+
+| Public tag | Embedded ISO | Validation |
+| --- | --- | --- |
+| [v0.1.0-preview.1](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.1) | `dev.62` | Published and independently reconstructed |
+| [v0.1.0-preview.2](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2) | `dev.129` | 148 source tests and full VM matrix |
+| [v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3) | `dev.149` | 154 source tests, 5/5 ISO jobs, independent public reassembly |
+
+The preview.3 release was published on November 18, 2026 from exact source
+`1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f` (SHA-256
+`e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9`).
+It is **not hardware-certified**; later development commits are not silently
+part of that published ISO. See the [release readiness evidence
+register](RELEASE-READINESS.md).
+
 Stable `v0.1.0` remains blocked pending real-hardware, recovery and release-mode build validation. A new feature increments MINOR, compatible fixes increment PATCH, and breaking architectural changes can increment MAJOR.
 
 The development counter is a traceability aid, **not a statement that the ISO
