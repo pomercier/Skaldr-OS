@@ -43,6 +43,7 @@ file_permissions=(
   ["/usr/local/bin/skaldr-control-center"]="0:0:755"
   ["/usr/local/lib/skaldr/control_center_actions.py"]="0:0:644"
   ["/usr/local/bin/skaldr-doctor"]="0:0:755"
+  ["/usr/local/bin/skaldr-hardware-probe"]="0:0:755"
   ["/usr/local/bin/skaldr-report"]="0:0:755"
   ["/usr/local/bin/skaldr-gpu-diagnostics"]="0:0:755"
   ["/usr/local/bin/skaldr-recovery"]="0:0:755"
