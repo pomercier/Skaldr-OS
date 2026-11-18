@@ -1,0 +1,67 @@
+# One-shot release gate for the first virtual-machine install fix.
+name: Request proven Skaldr VM-fix preview.4
+on:
+  workflow_run:
+    workflows: ["Desktop ISO"]
+    types: [completed]
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: skaldr-vm-preview4-dispatch
+  cancel-in-progress: false
+jobs:
+  request:
+    if: >-
+      github.repository == 'pomercier/Skaldr-OS' &&
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.head_sha == '048fc90039838cc9889fefbbfd1b33984439e5fa' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: pomercier/Skaldr-OS
+      SOURCE_SHA: 048fc90039838cc9889fefbbfd1b33984439e5fa
+      RELEASE_TAG: v0.1.0-preview.4
+      RUN_ID: ${{ github.event.workflow_run.id }}
+    steps:
+      - name: Require all five VM and ISO checks from exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/actions/runs/$RUN_ID" > /tmp/iso.json
+          gh api "repos/$REPO/actions/runs/$RUN_ID/jobs?per_page=100" > /tmp/jobs.json
+          python3 - <<'PY'
+          import json, os
+          run=json.load(open('/tmp/iso.json'))
+          jobs=json.load(open('/tmp/jobs.json'))['jobs']
+          assert run['status']=='completed' and run['conclusion']=='success'
+          assert run['head_sha']==os.environ['SOURCE_SHA']
+          expected={'Build', 'Testing (grub / ext4)', 'Testing (limine / btrfs)',
+                    'Testing (bios / live)', 'Verify full-size ISO preview reconstruction'}
+          assert expected <= {j['name'] for j in jobs if j['conclusion']=='success'}
+          assert all(j['conclusion']=='success' for j in jobs)
+          print('PASS: all five real ISO, installation and cold-boot jobs')
+          PY
+          source_run="$(gh run list --repo "$REPO" --workflow skaldr-checks.yml \
+            --commit "$SOURCE_SHA" --status success --json databaseId \
+            --jq '.[0].databaseId // empty')"
+          [[ -n "$source_run" ]] || {
+            echo "::error::Exact-source checks missing; preview not authorized."
+            exit 1
+          }
+          echo "PASS: exact-source checks run $source_run"
+      - name: Request public preview from already-tested ISO, never rebuild it
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "::notice::Preview already exists; skip duplicate."
+            exit 0
+          fi
+          gh workflow run skaldr-release.yml \
+            --repo "$REPO" --ref master \
+            --field version="$RELEASE_TAG" \
+            --field stable=false \
+            --field source_sha="$SOURCE_SHA"
+          echo "Publication requested; the release workflow independently validates ISO artifacts."
