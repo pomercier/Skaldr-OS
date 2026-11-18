@@ -57,7 +57,12 @@ jobs:
           gh run download "$ISO_RUN" --repo "$REPO" \
             --pattern 'skaldr-preview-verification-*' \
             --dir "$RUNNER_TEMP/original"
-          test -s "$RUNNER_TEMP/original/SHA256SUMS"
+          mapfile -d '' -t manifests < <(find "$RUNNER_TEMP/original" -type f -name SHA256SUMS -print0)
+          if [[ "${#manifests[@]}" -ne 1 ]] || [[ ! -s "${manifests[0]}" ]]; then
+            echo "::error::Expected exactly one original CI SHA256SUMS in the downloaded artifact."
+            exit 1
+          fi
+          cp -- "${manifests[0]}" "$RUNNER_TEMP/original-SHA256SUMS"
       - name: Download all seven actual public release files
         shell: bash
         run: |
@@ -66,7 +71,7 @@ jobs:
           gh release download "$TAG" --repo "$REPO" \
             --dir "$RUNNER_TEMP/public"
           test "$(find "$RUNNER_TEMP/public" -maxdepth 1 -type f | wc -l)" -eq 7
-          cmp "$RUNNER_TEMP/original/SHA256SUMS" "$RUNNER_TEMP/public/SHA256SUMS"
+          cmp "$RUNNER_TEMP/original-SHA256SUMS" "$RUNNER_TEMP/public/SHA256SUMS"
       - name: Verify all parts and reconstruct exact original tested ISO
         shell: bash
         run: |
@@ -79,7 +84,7 @@ jobs:
           python3 - <<'PY'
           import json, os
           from pathlib import Path
-          entries=Path(os.environ['RUNNER_TEMP']+'/original/SHA256SUMS').read_text().splitlines()
+          entries=Path(os.environ['RUNNER_TEMP']+'/original-SHA256SUMS').read_text().splitlines()
           assert len(entries)==1
           checksum, iso=entries[0].split()
           assert checksum==os.environ["EXPECTED_ISO_SHA256"], "Original tested checksum changed"
