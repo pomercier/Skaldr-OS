@@ -138,6 +138,8 @@ The evidence-audit workflow reports missing checks without claiming to
 perform them. Stable publication remains explicitly blocked pending a separate,
 physically tested, release-mode ISO and manual review.
 
+For manual virtual-machine tests, follow the [10-step VM acceptance checklist](docs/VM-ACCEPTANCE.md). A screenshot of the live desktop is useful evidence of boot, not proof of completed installation or cold reboot.
+
 ## Latest VM-validated development ISO — dev.149
 
 **[Download the complete `dev.149` ISO artifact](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698/artifacts/14364619884)** from the fully successful
