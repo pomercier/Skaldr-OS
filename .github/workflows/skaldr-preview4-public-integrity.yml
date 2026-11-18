@@ -1,6 +1,11 @@
 # Independently download and reconstruct the first VM-fixed public ISO.
 name: Independently validate Skaldr preview.4
 on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/skaldr-preview4-public-integrity.yml'
   workflow_run:
     workflows: ["Publish validated Skaldr OS release"]
     types: [completed]
@@ -11,7 +16,7 @@ jobs:
   independent-public-integrity:
     if: >-
       github.repository == 'pomercier/Skaldr-OS' &&
-      github.event.workflow_run.conclusion == 'success'
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     env:
@@ -20,6 +25,9 @@ jobs:
       TAG: v0.1.0-preview.4
       ISO_RUN: 44400111821
       SOURCE_SHA: 048fc90039838cc9889fefbbfd1b33984439e5fa
+      EXPECTED_ISO_SHA256: bf562d5f2061686489ad28efe62ce2065f7fac6450474757b9dc5e47d2416435
+      EXPECTED_ISO_NAME: skaldr-0.1.0-dev.163-x86_64.iso
+      EXPECTED_ISO_BYTES: "4194566144"
     steps:
       - name: Use exactly trusted published ISO source tooling
         uses: actions/checkout@v4
@@ -74,7 +82,10 @@ jobs:
           entries=Path(os.environ['RUNNER_TEMP']+'/original/SHA256SUMS').read_text().splitlines()
           assert len(entries)==1
           checksum, iso=entries[0].split()
+          assert checksum==os.environ["EXPECTED_ISO_SHA256"], "Original tested checksum changed"
+          assert iso==os.environ["EXPECTED_ISO_NAME"], "Unexpected ISO name"
           path=Path(os.environ['RUNNER_TEMP']+'/public')/iso
+          assert path.stat().st_size==int(os.environ["EXPECTED_ISO_BYTES"]), "Unexpected ISO size"
           report={'tag':os.environ['TAG'], 'source_sha':os.environ['SOURCE_SHA'],
                   'iso_name':iso,'sha256':checksum,'bytes':path.stat().st_size,
                   'public_assets':7,'independently_verified':True}
