@@ -1,6 +1,6 @@
 # Skaldr OS implementation plan
 - [x] Publish the exact successful dev.149 ISO from validated source `1b4c3d0` as [public v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3) (seven permanent assets; 2026-11-18).
-- [ ] Independently re-download all seven public preview.3 files on a clean runner, compare exact `e2950355...` SHA-256 and reconstruct the whole ISO; [independent verification workflow](../.github/workflows/skaldr-preview3-public-integrity.yml).
+- [x] Independently re-download and verify all seven public preview.3 assets and reassemble exactly 4,194,566,144 bytes with original SHA-256 `e2950355...` on an isolated Ubuntu runner ([run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997), PASS; [machine-readable report](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997/artifacts/14467203750)).
 
 The phases below are ordered to minimize regression risk. An item is complete
 only when tested; the existence of code is not evidence of successful boot.

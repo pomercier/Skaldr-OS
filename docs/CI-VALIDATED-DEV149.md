@@ -3,8 +3,11 @@
 **Validation: PASS**. **This exact `dev.149` ISO is now permanently published**
 as [`v0.1.0-preview.3`](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3)
 (seven public assets, 2026-11-18). It was not rebuilt for publication.
-The independent public-download SHA-256 check is documented in the
-[preview.3 verification workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-preview3-public-integrity.yml).
+The **independent public-download SHA-256 check PASSED**: a separate
+Ubuntu runner fetched all seven public assets, validated public tag metadata,
+checked all ISO parts, and rebuilt the original ISO with the exact
+`e2950355...` hash ([run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997);
+[proof artifact 14467203750](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997/artifacts/14467203750)).
 
 This is the newest fully VM-tested development ISO in
 [GitHub Actions run 44164284698](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698),

@@ -3,7 +3,10 @@
 **Newest publicly released and VM-validated ISO:**
 [Skaldr OS v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3),
 published November 18, 2026. It contains the exact dev.149 image described below
-and is available as seven permanent GitHub Release assets. Independently verify
+and is available as seven permanent GitHub Release assets. All seven were
+independently downloaded, checked and reconstructed with matching SHA-256
+([verification run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997)).
+Independently verify
 all three parts and the complete ISO SHA-256 with the bundled
 `reassemble-skaldr-iso.py` before writing any USB drive.
 

@@ -124,8 +124,7 @@ is **4,194,566,144 bytes**. **Only flash the verified, reassembled
 exact source `1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f`, matching
 [154 successful source tests](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682)
 and [five successful ISO jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698).
-Public download reconstruction on an additional independent GitHub runner:
-[verification workflow](https://github.com/pomercier/Skaldr-OS/actions/workflows/skaldr-preview3-public-integrity.yml).
+**Public download and exact reconstruction independently PASSED:** a separate clean runner downloaded all seven published files, verified every ISO part, rebuilt the complete 4.2 GB image and matched the original SHA-256 ([successful run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997); [saved integrity report](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997/artifacts/14467203750)).
 
 **Preview, not stable:** real NVIDIA/AMD/Intel hardware, Secure Boot and
 encrypted installation still require separate tests.
