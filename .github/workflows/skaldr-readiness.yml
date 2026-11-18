@@ -1,0 +1,48 @@
+name: Skaldr release readiness evidence
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'scripts/skaldr-release-readiness.py'
+      - 'docs/RELEASE-EVIDENCE.json'
+      - 'tests/test_release_readiness.py'
+      - '.github/workflows/skaldr-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test fail-closed evidence logic
+        run: python -m unittest discover -s tests -p 'test_release_readiness.py' -v
+      - name: Build machine-readable readiness report
+        run: |
+          python scripts/skaldr-release-readiness.py --output results/ci/release-readiness.json
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads(Path('results/ci/release-readiness.json').read_text())
+          summary = [
+              '## Skaldr OS release readiness (recorded evidence)',
+              f"Preview: {report['preview_tag']}",
+              f"Stable evidence complete: {report['stable_evidence_complete']}",
+              f"Outstanding checks: {len(report['stable_blockers'])}",
+              '',
+              'This is NOT a physical test or permission to publish stable.'
+          ]
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+              output.write('\\n'.join(summary) + '\\n')
+          PY
+      - name: Preserve the report
+        uses: actions/upload-artifact@v4
+        with:
+          name: skaldr-release-readiness
+          path: results/ci/release-readiness.json
+          if-no-files-found: error

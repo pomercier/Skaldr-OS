@@ -39,27 +39,19 @@ matching SHA-256 on [GitHub Actions run 43996058008](https://github.com/pomercie
 
 - [ ] Use a spare computer or disposable test SSD, **not the only system drive**.
 - [ ] Verify independent data backups and keep a bootable rescue medium.
-- [ ] Choose **one** VM-tested build and keep its matching hashes: the newer
-      [dev.149 CI artifact](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698/artifacts/14364619884)
-      (complete ISO, `SHA256SUMS`, SHA-256
-      `e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9`),
-      or the permanent public preview.2, described below.
-- [ ] If using public preview.2, download **all seven files** from
-      [the public preview.2 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.2).
-      Keep `.iso.part001`, `.part002`, `.part003`, `SHA256SUMS`,
-      `SHA256SUMS.parts`, `ASSEMBLE.txt`, and
-      `reassemble-skaldr-iso.py` together.
-- [ ] Run `python3 reassemble-skaldr-iso.py reassemble --directory .`
-      and then `sha256sum -c SHA256SUMS`. Confirm the complete ISO matches
-      exactly:
-
-```text
-177b5667b29338db66473ebefb739551ee35edb116cd6b650e2ec6d9f4517b2e
+- [ ] Download the permanent [v0.1.0-preview.3 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3), **all seven files**: the three `dev.149` ISO parts, `SHA256SUMS`, `SHA256SUMS.parts`, `ASSEMBLE.txt` and `reassemble-skaldr-iso.py`.
+- [ ] Keep the seven files together, reconstruct and verify:
+  
+```sh
+python3 reassemble-skaldr-iso.py reassemble --directory .
+sha256sum -c SHA256SUMS
 ```
 
-- [ ] If testing the older public `preview.1` instead, download all seven
-      public Release files and reconstruct its ISO using the matching
-      `reassemble-skaldr-iso.py` and checksums. **Never mix preview versions.**
+- [ ] Confirm exact full ISO SHA-256:
+  `e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9`
+  (4,194,566,144 bytes). **Never flash a split `.partNNN` file.**
+- [ ] Consult the [machine-readable release evidence and stable blockers](RELEASE-READINESS.md). A passing VM job is not proof of physical compatibility.
+- [ ] Never mix assets from preview.1, preview.2 and preview.3.
 
 - [ ] Record CPU, RAM, GPU model/vendor, storage, firmware UEFI/BIOS mode and
       Secure Boot state before testing.

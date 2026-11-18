@@ -1,4 +1,6 @@
 # Skaldr OS implementation plan
+- [x] Add an offline, machine-readable stable-release evidence gate and corresponding CI report. Stable publication remains explicitly disabled until physical tests, release-mode build and human review.
+- [ ] Complete the physical test matrix and attach sanitized proof URLs to [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json); only then consider a stable tag.
 - [x] Publish the exact successful dev.149 ISO from validated source `1b4c3d0` as [public v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3) (seven permanent assets; 2026-11-18).
 - [x] Independently re-download and verify all seven public preview.3 assets and reassemble exactly 4,194,566,144 bytes with original SHA-256 `e2950355...` on an isolated Ubuntu runner ([run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997), PASS; [machine-readable report](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997/artifacts/14467203750)).
 

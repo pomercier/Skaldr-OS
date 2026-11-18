@@ -129,6 +129,15 @@ and [five successful ISO jobs](https://github.com/pomercier/Skaldr-OS/actions/ru
 **Preview, not stable:** real NVIDIA/AMD/Intel hardware, Secure Boot and
 encrypted installation still require separate tests.
 
+## Release readiness and physical test gate
+
+A [machine-readable release evidence register](docs/RELEASE-EVIDENCE.json)
+and [release-readiness policy](docs/RELEASE-READINESS.md) distinguish the
+validated public preview from the **unverified physical hardware** criteria.
+The evidence-audit workflow reports missing checks without claiming to
+perform them. Stable publication remains explicitly blocked pending a separate,
+physically tested, release-mode ISO and manual review.
+
 ## Latest VM-validated development ISO — dev.149
 
 **[Download the complete `dev.149` ISO artifact](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698/artifacts/14364619884)** from the fully successful

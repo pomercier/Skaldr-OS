@@ -1,0 +1,72 @@
+{
+  "schema": "skaldr.release-evidence.v1",
+  "preview": {
+    "tag": "v0.1.0-preview.3",
+    "source_sha": "1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f",
+    "iso_sha256": "e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9",
+    "evidence": {
+      "source_tests": "https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682",
+      "iso_matrix": "https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698",
+      "public_reassembly": "https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997"
+    }
+  },
+  "stable": {
+    "release_source_sha": "",
+    "release_mode_iso": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "nvidia_physical": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "amd_physical": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "intel_physical": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "uefi_grub_ext4": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "uefi_limine_btrfs": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "physical_rollback": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "kernel_recovery": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "update_cycles": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "graphics_suspend": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "visual_review": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "privacy_review": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "secure_boot": {
+      "status": "untested",
+      "evidence_url": ""
+    },
+    "encrypted_install": {
+      "status": "untested",
+      "evidence_url": ""
+    }
+  }
+}
