@@ -82,33 +82,57 @@ class BrandingTests(unittest.TestCase):
         self.assertIn(EFI, text)
         self.assertEqual(lib.reconcile_limine_menu(self.root), "already-skaldr")
 
-    def test_missing_root_with_mismatched_boot_images_fails_without_changes(self):
+    def test_mismatched_new_images_preserve_rooted_legacy_fallback(self):
         self.create(legacy=section('CachyOS',CMD,hashes='different'),
                     modern=section('Skaldr OS','mitigations=off'))
+        self.snap.write_text('TARGET_OS_NAME="CachyOS"\n')
+        status = lib.reconcile_limine_menu(self.root)
+        self.assertEqual(status, "legacy-preserved-rootless")
+        revised = self.cfg.read_text()
+        self.assertIn('/+CachyOS', revised)
+        self.assertIn('/+Skaldr OS', revised)
+        self.assertIn('default_entry: CachyOS/linux-cachyos', revised)
+        self.assertIn(SNAP, revised)
+        self.assertIn(EFI, revised)
+        self.assertIn('TARGET_OS_NAME="CachyOS"', self.snap.read_text())
+        self.assertEqual(lib.reconcile_limine_menu(self.root), status)
+
+    def test_inconsistent_fallback_roots_rejected(self):
+        bad = section('CachyOS',CMD).replace('root=UUID='+UUID,
+                                               'root=UUID=other', 1)
+        self.create(legacy=bad, modern=section('Skaldr OS','mitigations=off'))
         before = self.cfg.read_text()
-        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
             lib.reconcile_limine_menu(self.root)
         self.assertEqual(self.cfg.read_text(), before)
+
+    def test_no_legacy_rootflags_mismatch_between_kernels(self):
+        different = section('CachyOS',CMD).replace('rootflags=subvol=/@',
+                                                     'rootflags=subvol=/old', 1)
+        self.create(legacy=different,
+                    modern=section('Skaldr OS','mitigations=off'))
+        with self.assertRaisesRegex(RuntimeError,'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
 
     def test_missing_root_in_both_groups_fails_without_changes(self):
         self.create(legacy=section('CachyOS','quiet nowatchdog'),
                     modern=section('Skaldr OS','mitigations=off'))
         before = self.cfg.read_text()
-        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
             lib.reconcile_limine_menu(self.root)
         self.assertEqual(self.cfg.read_text(), before)
 
     def test_unverified_rootless_kernel_option_refused(self):
         self.create(modern=section('Skaldr OS','mitigations=off init=/bin/false'))
         before = self.cfg.read_text()
-        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
             lib.reconcile_limine_menu(self.root)
         self.assertEqual(self.cfg.read_text(), before)
 
     def test_missing_root_without_legacy_group_fails_without_changes(self):
         self.create(legacy='', modern=section('Skaldr OS','mitigations=off'))
         before = self.cfg.read_text()
-        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
             lib.reconcile_limine_menu(self.root)
         self.assertEqual(self.cfg.read_text(), before)
 
@@ -188,6 +212,14 @@ class BrandingTests(unittest.TestCase):
         self.cfg.write_text('default_entry: 3\n'+self.cfg.read_text())
         with self.assertRaisesRegex(ValueError,'Duplicate global'):
             lib.reconcile_limine_menu(self.root)
+    def test_ci_checks_fallback_or_skaldr_and_cold_boot(self):
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github/workflows/build.yml").read_text()
+        self.assertIn('legacy-preserved-rootless', workflow)
+        self.assertIn('test_installed_system_cold_boot',
+                      (Path(__file__).resolve().parents[1] /
+                       'testcases/cachyos/dailylive/test_install_calamares').read_text())
+
     def test_snapshot_lines_preserved_byte_exactly(self):
         self.create()
         lib.reconcile_limine_menu(self.root)
@@ -195,7 +227,7 @@ class BrandingTests(unittest.TestCase):
     def test_ci_requires_installed_limine_menu_reconciliation(self):
         workflow = (Path(__file__).resolve().parents[1] /
                     ".github/workflows/build.yml").read_text()
-        self.assertIn("Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr)", workflow)
+        self.assertIn("Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr|legacy-preserved-rootless)", workflow)
         self.assertIn('"${{ matrix.bootloader }}" = "limine"', workflow)
 
     def test_limine_efi_fallback_preserved(self):

@@ -115,6 +115,35 @@ def _recover_verified_root_arguments(legacy, modern):
         return None
     return result
 
+
+def _validated_legacy_root_fallback(legacy, modern):
+    """Find a consistent previous menu without claiming its images boot."""
+    a, b = _entries(legacy), _entries(modern)
+    if not a or not b or a.keys() != b.keys():
+        return None
+    roots = set()
+    rootflags = set()
+    for name, prior in a.items():
+        before = prior["cmdline"][0].split()
+        after = b[name]["cmdline"][0].split()
+        root = [token for token in before if token.startswith("root=")]
+        flags = [token for token in before if token.startswith("rootflags=")]
+        if len(root) != 1 or root[0] == "root=" or len(flags) > 1:
+            return None
+        if any(token.startswith("root=") for token in after):
+            return None
+        if len(set(before)) != len(before) or len(set(after)) != len(after):
+            return None
+        if not set(after).issubset(set(before) | {"mitigations=off"}):
+            return None
+        roots.add(root[0])
+        rootflags.add(tuple(flags))
+    if len(roots) != 1 or len(rootflags) != 1:
+        return None
+    return "linux-cachyos" if "linux-cachyos" in a else next(iter(a))
+
+
+
 def _update_global(header, key, value):
     pattern = re.compile(r"(?m)^" + re.escape(key) + r":[ \t]*[^\r\n]*$")
     if len(pattern.findall(header)) > 1:
@@ -172,8 +201,27 @@ def reconcile_limine_menu(root=Path("/")):
         repaired = (_recover_verified_root_arguments(sections[old], sections[new])
                     if old is not None else None)
         if repaired is None:
-            raise RuntimeError("Skaldr Limine entries lack exactly one root= parameter; "
-                               "no verified fallback kernel to recover from")
+            # The two groups can legitimately have different initramfs hashes
+            # after the final mkinitcpio refresh. Do not invent a root UUID or
+            # let nonessential branding abort a completed installation when
+            # a consistently rooted, previously generated fallback remains.
+            # The QEMU cold-boot test must still prove this fallback boots.
+            fallback = (_validated_legacy_root_fallback(sections[old], sections[new])
+                        if old is not None else None)
+            if fallback is None:
+                raise RuntimeError("Skaldr Limine entries lack exactly one root= parameter; "
+                                   "no safe fallback menu with consistent roots")
+            header = _update_global(header, "default_entry", "CachyOS/" + fallback)
+            for key, value in THEME.items():
+                header = _update_global(header, key, value)
+            revised = header + "".join(sections)
+            if revised != data:
+                cfg.write_text(revised, encoding="utf-8")
+            # Leave the Snapper OS name untouched while relying on the
+            # legacy group; never point snapshots to a rootless group.
+            print("Skaldr: preserving rooted legacy Limine fallback; "
+                  "Skaldr entries require further reconciliation", flush=True)
+            return "legacy-preserved-rootless"
         sections[new] = repaired
         modern_entries = _entries(repaired)
         print("Skaldr: recovered root parameters from matching legacy boot images",

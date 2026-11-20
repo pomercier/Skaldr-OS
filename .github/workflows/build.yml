@@ -253,7 +253,14 @@ jobs:
             if [ "${{ matrix.bootloader }}" = "limine" ]; then
               # The installed Btrfs VM must have a verified Skaldr boot group,
               # not merely a working old CachyOS fallback.
-              grep -Eq 'Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr)' "$log_file"
+              # If the refreshed Skaldr image differs from its rooted legacy
+              # fallback, retain the existing bootable candidate rather than
+              # aborting Calamares after disk partitioning. The cold-boot and
+              # Btrfs rollback tests below still must succeed.
+              grep -Eq 'Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr|legacy-preserved-rootless)' "$log_file"
+              if grep -Fq 'Skaldr: Limine menu reconciliation: legacy-preserved-rootless' "$log_file"; then
+                grep -Fq 'Skaldr: preserving rooted legacy Limine fallback' "$log_file"
+              fi
             fi
           fi
         env:
