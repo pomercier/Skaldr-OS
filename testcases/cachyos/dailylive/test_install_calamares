@@ -320,12 +320,13 @@ function test_installed_artcraft_launcher() {
     # --diagnose computes the official SHA-256 against /opt/skaldr/artcraft,
     # rather than treating a .desktop file or an AppImage icon as success.
     qt_send_string_return "konsole --hold -e /usr/local/bin/skaldr-artcraft --diagnose"
-    # Real 1408x792 QEMU OCR (run 44028278324, frame 0050) read
-    # "Kistatus: executable verified" where the actual terminal says "Status:".
-    # The SHA-pinned --diagnose command prints both markers ONLY after the
-    # complete digest comparison succeeds; require two stable independent
-    # visible cues rather than relying on OCR of the tiny "Status:" prefix.
-    qt_wait_for_text "$FUNCNAME" "Bundled AppImage" 15 5
+    # Actual GitHub Actions screenshots in runs 44777785711 (attempts 1
+    # and 2) show the SHA-256 verified terminal, but OCR misreads the very
+    # small "Bundled AppImage" label as "Bundled AppInag". Both phrases
+    # below are consistently legible in 15 consecutive archived frames and
+    # are emitted only AFTER the app's full SHA-256 digest matches.
+    # Preserve this installed-guest integrity check and the native GUI test.
+    qt_wait_for_text "$FUNCNAME" "executable verified" 15 5
     qt_wait_for_text "$FUNCNAME" "GUI startup not tested" 8 4
     qt_screenshot_ppm "$FUNCNAME"
 
