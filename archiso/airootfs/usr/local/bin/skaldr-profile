@@ -121,22 +121,50 @@ def sync_limine_checksums(config=Path("/boot/limine.conf"), boot_root=Path("/boo
     return changed
 
 
+def ensure_limine_mitigations(lines):
+    """Preserve Calamares's KERNEL_CMDLINE[default]+= root and subvol flags."""
+    matches = []
+    for index, line in enumerate(lines):
+        match = re.fullmatch(r'(KERNEL_CMDLINE\[default\](?:\+?=)")([^"]*)(")', line)
+        if match:
+            matches.append((index, match))
+        elif re.match(r'^\s*KERNEL_CMDLINE\[default\]\s*\+?=', line):
+            raise RuntimeError('Unrecognized Limine default kernel command line; refusing to overwrite')
+    # Older Skaldr versions appended an unconditional assignment after the
+    # Calamares += line, potentially discarding root= and rootflags=. Repair
+    # only that exact known obsolete assignment, never arbitrary user choices.
+    if (len(matches) >= 2 and
+            matches[-1][1].group(1) == 'KERNEL_CMDLINE[default]="' and
+            matches[-1][1].group(2).strip() == 'mitigations=off' and
+            any(match.group(1).endswith('+="') and
+                any(token.startswith('root=') for token in match.group(2).split())
+                for _, match in matches[:-1])):
+        lines.pop(matches[-1][0])
+        matches.pop()
+    # A different later assignment could still wipe earlier root settings.
+    # Do not silently edit or endorse such an unknown boot configuration.
+    for n, (index, match) in enumerate(matches):
+        if (n and match.group(1).endswith('="') and
+                any(prior.group(1).endswith('+="') and
+                    any(token.startswith('root=') for token in prior.group(2).split())
+                    for _, prior in matches[:n])):
+            raise RuntimeError('Later Limine assignment overrides root parameters; manual review required')
+    if not matches:
+        lines.append('KERNEL_CMDLINE[default]+="mitigations=off"')
+        return lines
+    if any('mitigations=off' in match.group(2).split() for _, match in matches):
+        return lines
+    index, match = matches[0]
+    content = (match.group(2) + ' mitigations=off').strip()
+    lines[index] = match.group(1) + content + match.group(3)
+    return lines
+
 def boot():
     # Do not modify unknown bootloader formats. Invalid parameters can prevent boot.
     limine = Path("/etc/default/limine")
     if limine.exists():
         value = limine.read_text()
-        lines = value.splitlines()
-        found = False
-        for i, line in enumerate(lines):
-            if line.startswith('KERNEL_CMDLINE[default]="') and line.endswith('"'):
-                params = line[len('KERNEL_CMDLINE[default]="'):-1]
-                if "mitigations=off" not in params.split():
-                    params += " mitigations=off"
-                lines[i] = 'KERNEL_CMDLINE[default]="' + params.strip() + '"'
-                found = True
-        if not found:
-            lines.append('KERNEL_CMDLINE[default]="mitigations=off"')
+        lines = ensure_limine_mitigations(value.splitlines())
         write(limine, "\n".join(lines) + "\n")
         if run("limine-mkinitcpio") != 0:
             raise RuntimeError("Limine initramfs regeneration failed")

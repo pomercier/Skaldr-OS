@@ -11,6 +11,26 @@ done
 gpu_info="$(lspci -nn | grep -Ei 'VGA compatible controller|3D controller|Display controller' || true)"
 [[ -n "$gpu_info" ]] || exit 0
 
+# Virtual-only PCI display adapters (VirtIO, QXL, Bochs, VBox, VMSVGA,
+# Hyper-V) already use their generic graphics stack. Avoid prompting users to
+# install physical hardware drivers in these VM-only cases. A passthrough GPU
+# keeps the prompt: every display adapter must match an exact virtual PCI ID.
+# --recheck explicitly bypasses this first-boot convenience rule.
+if [[ "${1:-}" != "--recheck" ]]; then
+    all_virtual=true
+    while IFS= read -r display; do
+        if ! printf '%s\n' "$display" | grep -Eiq '\[(1af4|1b36|1234|80ee|15ad|1414):[[:xdigit:]]{4}\]'; then
+            all_virtual=false
+            break
+        fi
+    done <<< "$gpu_info"
+    if [[ "$all_virtual" == true ]]; then
+        mkdir -p "$HOME/.config/skaldr"
+        touch "$HOME/.config/skaldr/gpu-choice-complete"
+        exit 0
+    fi
+fi
+
 # chwd --list enumerates profiles for detected devices; --list-all is unfiltered.
 available="$(chwd --list 2>/dev/null || true)"
 message="Detected graphics hardware:
