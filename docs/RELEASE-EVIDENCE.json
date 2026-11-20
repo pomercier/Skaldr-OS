@@ -1,13 +1,13 @@
 {
   "schema": "skaldr.release-evidence.v1",
   "preview": {
-    "tag": "v0.1.0-preview.3",
-    "source_sha": "1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f",
-    "iso_sha256": "e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9",
+    "tag": "v0.1.0-preview.4",
+    "source_sha": "048fc90039838cc9889fefbbfd1b33984439e5fa",
+    "iso_sha256": "bf562d5f2061686489ad28efe62ce2065f7fac6450474757b9dc5e47d2416435",
     "evidence": {
-      "source_tests": "https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682",
-      "iso_matrix": "https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698",
-      "public_reassembly": "https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997"
+      "source_tests": "https://github.com/pomercier/Skaldr-OS/actions/runs/44400111727",
+      "iso_matrix": "https://github.com/pomercier/Skaldr-OS/actions/runs/44400111821",
+      "public_reassembly": "https://github.com/pomercier/Skaldr-OS/actions/runs/44423298442"
     }
   },
   "stable": {

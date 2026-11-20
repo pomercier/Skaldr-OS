@@ -35,6 +35,104 @@ class VirtualChwdTests(unittest.TestCase):
                 pci_display(root, 2, "0x10de")
                 self.assertIsNone(TOOLS["virtual_display_profile"](root))
 
+    def test_virtualbox_vmsvga_uses_virtualbox_guest_utils(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pci_display(root, 1, "0x15ad")
+            dmi = root / "sys/class/dmi/id"
+            dmi.mkdir(parents=True)
+            (dmi / "product_name").write_text("VirtualBox")
+            (dmi / "sys_vendor").write_text("innotek GmbH")
+            profile = TOOLS["virtual_display_profile"](root)
+            self.assertEqual(profile, "virtualbox")
+            self.assertIn("virtualbox-guest-utils", TOOLS["VIRTUAL_KDE_PACKAGES"][profile])
+            self.assertNotIn("open-vm-tools", TOOLS["VIRTUAL_KDE_PACKAGES"][profile])
+            pci_display(root, 2, "0x10de")
+            self.assertIsNone(TOOLS["virtual_display_profile"](root))
+
+    def test_vmware_dmi_does_not_change_existing_behavior(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pci_display(root, 1, "0x15ad")
+            dmi = root / "sys/class/dmi/id"
+            dmi.mkdir(parents=True)
+            (dmi / "product_name").write_text("VMware Virtual Platform")
+            self.assertEqual(TOOLS["virtual_display_profile"](root), "vmware")
+
+    def test_contradictory_dmi_preserves_chwd(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pci_display(root, 1, "0x15ad")
+            dmi = root / "sys/class/dmi/id"
+            dmi.mkdir(parents=True)
+            (dmi / "product_name").write_text("VirtualBox")
+            (dmi / "sys_vendor").write_text("VMware, Inc.")
+            self.assertIsNone(TOOLS["virtual_display_profile"](root))
+
+    def test_vmsvga_installer_integration_preserves_user_stage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            branding.CalamaresBrandingChecks().make_fixture(root)
+            pci_display(root, 1, "0x15ad")
+            dmi = root / "sys/class/dmi/id"
+            dmi.mkdir(parents=True)
+            (dmi / "product_name").write_text("VirtualBox")
+            (dmi / "sys_vendor").write_text("innotek GmbH")
+            original = root / "usr/share/calamares/settings_online.conf"
+            original.write_text(original.read_text().replace(
+                "branding: cachyos",
+                "- exec:\n  - partition\n  - chwd\n  - users\nbranding: cachyos"))
+            TOOLS["prepare"](root)
+            settings = yaml.safe_load((root / "etc/calamares/settings.conf").read_text())
+            self.assertNotIn("chwd", settings["sequence"][1]["exec"])
+            self.assertIn("users", settings["sequence"][1]["exec"])
+            groups = yaml.safe_load((root / "etc/calamares/modules/netinstall.yaml").read_text())
+            kde = next(item for item in groups if item["name"] == "KDE-Desktop")
+            self.assertIn("virtualbox-guest-utils", kde["packages"])
+            self.assertNotIn("open-vm-tools", kde["packages"])
+            self.assertIn("mesa", kde["packages"])
+
+    def test_cirrus_physical_without_subsystem_preserves_chwd(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pci_display(root, 1, "0x1013")
+            self.assertIsNone(TOOLS["virtual_display_profile"](root))
+
+    def test_cirrus_qemu_subsystem_is_accepted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pci_display(root, 1, "0x1013")
+            pci = root / "sys/bus/pci/devices/0000:00:01.0"
+            (pci / "device").write_text("0x00b8")
+            (pci / "subsystem_vendor").write_text("0x1af4")
+            (pci / "subsystem_device").write_text("0x1100")
+            self.assertEqual(TOOLS["virtual_display_profile"](root), "qemu")
+
+    def test_cirrus_wrong_subsystem_or_device_preserves_chwd(self):
+        for field, replacement in (("device", "0x004c"),
+                                   ("subsystem_vendor", "0x0000"),
+                                   ("subsystem_device", "0x0001")):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                pci_display(root, 1, "0x1013")
+                pci = root / "sys/bus/pci/devices/0000:00:01.0"
+                for name, value in (("device", "0x00b8"),
+                                    ("subsystem_vendor", "0x1af4"),
+                                    ("subsystem_device", "0x1100")):
+                    (pci / name).write_text(replacement if name == field else value)
+                self.assertIsNone(TOOLS["virtual_display_profile"](root))
+
+    def test_cirrus_mixed_physical_gpu_preserves_chwd(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pci_display(root, 1, "0x1013")
+            pci = root / "sys/bus/pci/devices/0000:00:01.0"
+            (pci / "device").write_text("0x00b8")
+            (pci / "subsystem_vendor").write_text("0x1af4")
+            (pci / "subsystem_device").write_text("0x1100")
+            pci_display(root, 2, "0x1002")
+            self.assertIsNone(TOOLS["virtual_display_profile"](root))
+
     def test_no_display_or_unknown_pci_retains_chwd(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

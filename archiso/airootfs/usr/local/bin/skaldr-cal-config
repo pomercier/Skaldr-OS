@@ -135,11 +135,44 @@ def virtual_display_profile(root):
             vendor = (device / "vendor").read_text().strip().lower()
         except OSError:
             return None
+        # Cirrus Logic 0x1013 also identifies genuine historical PCI hardware.
+        # Bypass chwd only for the QEMU Cirrus GD5446 + Red Hat subsystem ID.
+        if vendor == "0x1013":
+            try:
+                pci_device_id = (device / "device").read_text().strip().lower()
+                subsystem_vendor = (device / "subsystem_vendor").read_text().strip().lower()
+                subsystem_device = (device / "subsystem_device").read_text().strip().lower()
+            except OSError:
+                return None
+            if (pci_device_id, subsystem_vendor, subsystem_device) != (
+                    "0x00b8", "0x1af4", "0x1100"):
+                return None
         profile = VIRTUAL_DISPLAY_VENDORS.get(vendor)
         if not profile:
             return None
         seen.add(profile)
-    return next(iter(seen)) if len(seen) == 1 else None
+    if len(seen) != 1:
+        return None
+    profile = next(iter(seen))
+    if profile == "vmware":
+        # VirtualBox VMSVGA emulates VMware's 0x15ad PCI display controller.
+        # Confirm the hypervisor via DMI before selecting guest integrations.
+        dmi = root / "sys/class/dmi/id"
+        identity = []
+        for name in ("product_name", "sys_vendor"):
+            try:
+                identity.append((dmi / name).read_text().strip().lower())
+            except OSError:
+                continue
+        virtualbox_identity = any("virtualbox" in value or "innotek" in value
+                                  for value in identity)
+        vmware_identity = any("vmware" in value for value in identity)
+        if virtualbox_identity and vmware_identity:
+            # Conflicting DMI identities: do not bypass upstream chwd.
+            return None
+        if virtualbox_identity:
+            return "virtualbox"
+    return profile
 
 
 def omit_virtual_chwd_step(settings):

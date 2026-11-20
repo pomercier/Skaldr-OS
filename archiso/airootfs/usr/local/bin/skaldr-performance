@@ -65,12 +65,46 @@ def main(argv=None):
                             capture_output=True, text=True, timeout=10, check=False)
     if output.returncode != 0 or power not in output.stdout:
         raise RuntimeError(f"Power profile {power} not available; no settings changed")
-    previous = current()
-    store(args.profile)
-    result = subprocess.run(["powerprofilesctl", "set", power], check=False)
+    # Capture the running policy, not merely the saved preference. Another
+    # application may have changed the active profile since Skaldr last ran.
+    active = subprocess.run(["powerprofilesctl", "get"],
+                            capture_output=True, text=True, timeout=10, check=False)
+    previous_runtime = active.stdout.strip()
+    if active.returncode != 0 or previous_runtime not in (
+            "balanced", "performance", "power-saver"):
+        raise RuntimeError("Cannot determine current active power profile; no change started")
+
+    # Do not persist anything until activation has actually succeeded.
+    # A failed set can leave the runtime state uncertain, but never writes
+    # a new preference or creates the configuration file.
+    try:
+        result = subprocess.run(["powerprofilesctl", "set", power],
+                                check=False, timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("Could not activate power mode; saved setting unchanged "
+                           "(runtime state may need checking)") from error
     if result.returncode != 0:
-        store(previous)
-        raise RuntimeError("Could not activate power mode; prior setting restored")
+        raise RuntimeError("Could not activate power mode; saved setting unchanged "
+                           "(runtime state may need checking)")
+
+    try:
+        store(args.profile)
+    except OSError as error:
+        # Atomic storage failed; attempt to undo the runtime change using
+        # the measured prior runtime mode, never a guessed saved default.
+        try:
+            restored = subprocess.run(["powerprofilesctl", "set", previous_runtime],
+                                      check=False, timeout=30)
+        except (OSError, subprocess.TimeoutExpired) as rollback_error:
+            raise RuntimeError("Power mode activated but preference could not be "
+                               "saved and runtime rollback failed; check active "
+                               "mode with powerprofilesctl get") from rollback_error
+        if restored.returncode != 0:
+            raise RuntimeError("Power mode activated but preference could not be "
+                               "saved and runtime rollback failed; check active "
+                               "mode with powerprofilesctl get") from error
+        raise RuntimeError("Preference could not be saved; prior running power "
+                           "mode restored") from error
     print("Saved profile: " + args.profile + " (applies again on next boot)")
     return 0
 
