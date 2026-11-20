@@ -106,6 +106,26 @@ class BrandingTests(unittest.TestCase):
             lib.reconcile_limine_menu(self.root)
         self.assertEqual(self.cfg.read_text(), before)
 
+    def test_recovery_rejects_conflicting_existing_modern_root(self):
+        modern = section('Skaldr OS', 'mitigations=off')
+        modern = modern.replace('cmdline: mitigations=off',
+                                'cmdline: mitigations=off root=UUID=wrong', 1)
+        self.create(modern=modern)
+        original = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(original, self.cfg.read_text())
+
+    def test_recovery_rejects_modern_subvolume_disagreement(self):
+        modern = section('Skaldr OS', 'mitigations=off')
+        modern = modern.replace('cmdline: mitigations=off',
+                                'cmdline: mitigations=off rootflags=subvol=/other', 1)
+        self.create(modern=modern)
+        original = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(original, self.cfg.read_text())
+
     def test_no_legacy_rootflags_mismatch_between_kernels(self):
         different = section('CachyOS',CMD).replace('rootflags=subvol=/@',
                                                      'rootflags=subvol=/old', 1)

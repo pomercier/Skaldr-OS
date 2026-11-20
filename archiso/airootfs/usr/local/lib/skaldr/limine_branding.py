@@ -73,6 +73,27 @@ def _recover_verified_root_arguments(legacy, modern):
     old, new = _entries(legacy), _entries(modern)
     if not old or not new or old.keys() != new.keys():
         return None
+    # Every kernel in this installation must agree on the same root device
+    # and Btrfs subvolume before any cmdline is copied from the old menu.
+    # One valid root per entry is not enough: inconsistent kernels can boot
+    # different filesystems and must never be marked reconciled.
+    old_roots = {tuple(s for s in v["cmdline"][0].split()
+                       if s.startswith("root=")) for v in old.values()}
+    old_flags = {tuple(s for s in v["cmdline"][0].split()
+                       if s.startswith("rootflags=")) for v in old.values()}
+    if len(old_roots) != 1 or len(old_flags) != 1:
+        return None
+    verified_root = next(iter(old_roots))
+    verified_flags = next(iter(old_flags))
+    if (len(verified_root) != 1 or verified_root[0] == "root=" or
+            len(verified_flags) > 1):
+        return None
+    for entry in new.values():
+        tokens = entry["cmdline"][0].split()
+        roots = tuple(s for s in tokens if s.startswith("root="))
+        flags = tuple(s for s in tokens if s.startswith("rootflags="))
+        if (roots and roots != verified_root) or (flags and flags != verified_flags):
+            return None
     matches = list(CHILD.finditer(modern))
     rebuilt = [modern[:matches[0].start()]]
     for i, match in enumerate(matches):
