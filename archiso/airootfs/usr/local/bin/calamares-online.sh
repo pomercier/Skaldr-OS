@@ -63,6 +63,20 @@ sudo /usr/local/bin/skaldr-cal-config
 stage="integrate installed-system settings"
 sudo /usr/local/bin/skaldr-cal-inject
 
+# This is an ONLINE installer.  Pacstrap uses the live environment's sync
+# databases; an ISO built before a rolling kernel update can otherwise demand
+# versions no mirror still has (Calamares then fails after partitioning).
+# Refresh repository metadata BEFORE opening the partitioning UI.  Do not
+# disable signature checks, install packages in the live OS, or force a
+# partial system upgrade.  On failure, stop before any disk modification.
+stage="refresh live package databases"
+printf '[Skaldr installer] Refreshing signed rolling-repository databases before partitioning\n'
+if ! sudo pacman -Syy --noconfirm; then
+    printf '[Skaldr installer] Repository refresh failed; installation was NOT started. Check connectivity, mirrors and signatures.\n' >&2
+    exit 1
+fi
+printf '[Skaldr installer] Repository metadata refreshed successfully\n'
+
 stage="start Calamares GUI"
 printf '[Skaldr installer] Launching Calamares with shipped packages\n'
 pkexec-wrapper calamares -D6
