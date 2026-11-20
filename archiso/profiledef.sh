@@ -53,6 +53,7 @@ file_permissions=(
   ["/usr/local/bin/skaldr-numlock"]="0:0:755"
   ["/usr/local/bin/skaldr-postinstall"]="0:0:755"
   ["/usr/local/bin/skaldr-profile"]="0:0:755"
+  ["/usr/local/lib/skaldr/limine_branding.py"]="0:0:644"
   ["/usr/local/bin/skaldr-theme"]="0:0:755"
   ["/usr/local/bin/skaldr-version"]="0:0:755"
   ["/usr/local/bin/skaldr-welcome"]="0:0:755"

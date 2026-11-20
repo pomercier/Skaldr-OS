@@ -12,6 +12,7 @@ import sys
 FILES = [
     "/usr/local/bin/skaldr-postinstall",
     "/usr/local/bin/skaldr-profile",
+    "/usr/local/lib/skaldr/limine_branding.py",
     "/usr/local/bin/skaldr-welcome",
     "/usr/local/bin/skaldr-theme",
     "/usr/share/pixmaps/skaldr-logo.png",
