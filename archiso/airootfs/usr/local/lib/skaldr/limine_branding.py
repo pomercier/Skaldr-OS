@@ -8,7 +8,7 @@ import re
 
 ROOT = re.compile(r"(?m)^/(?!/)[^\r\n]+$")
 CHILD = re.compile(r"(?m)^//(?!/)[^\r\n]+$")
-FIELD = re.compile(r"(?m)^\s*([a-z_]+):\s*([^\r\n]*)$")
+FIELD = re.compile(r"(?m)^[ \t]*([a-z_]+):[ \t]*([^\r\n]*)$")
 THEME = {
     "interface_branding": "SKALDR OS  |  PERFORMANCE BY INTENTION",
     "interface_branding_colour": "1ad7ef",
@@ -50,15 +50,19 @@ def _same_boot_images_with_safe_cmdline(legacy, modern):
             return False
         before = old["cmdline"][0].split()
         after = new["cmdline"][0].split()
-        if (not any(x.startswith("root=") for x in before) or
-                not any(x.startswith("root=") for x in after) or
-                not set(before).issubset(set(after))):
+        old_roots = [x for x in before if x.startswith("root=")]
+        new_roots = [x for x in after if x.startswith("root=")]
+        if (len(old_roots) != 1 or new_roots != old_roots or
+                len(set(before)) != len(before) or
+                len(set(after)) != len(after) or
+                not set(before).issubset(set(after)) or
+                set(after).difference(before) - {"mitigations=off"}):
             return False
     return True
 
 
 def _update_global(header, key, value):
-    pattern = re.compile(r"(?m)^" + re.escape(key) + r":\s*[^\r\n]*$")
+    pattern = re.compile(r"(?m)^" + re.escape(key) + r":[ \t]*[^\r\n]*$")
     if len(pattern.findall(header)) > 1:
         raise ValueError("Duplicate global Limine option: " + key)
     if pattern.search(header):
@@ -70,7 +74,7 @@ def _prepare_snapper(path):
     if path.is_symlink() or not path.is_file():
         return False
     original = path.read_text(encoding="utf-8")
-    key = re.compile(r"(?m)^TARGET_OS_NAME\s*=\s*([^\r\n]*)$")
+    key = re.compile(r"(?m)^TARGET_OS_NAME[ \t]*=[ \t]*([^\r\n]*)$")
     found = key.findall(original)
     if len(found) > 1:
         raise ValueError("Duplicate TARGET_OS_NAME keys in Snapper config")
@@ -107,10 +111,11 @@ def reconcile_limine_menu(root=Path("/")):
     if new is None:
         return "no-skaldr-group"  # Keep upstream's working fallback.
     modern_entries = _entries(sections[new])
-    if not modern_entries or not any(
-            any(token.startswith("root=") for token in entry["cmdline"][0].split())
+    if not modern_entries or not all(
+            len([token for token in entry["cmdline"][0].split()
+                 if token.startswith("root=")]) == 1
             for entry in modern_entries.values()):
-        raise RuntimeError("Skaldr Limine entries have no verified root= parameter")
+        raise RuntimeError("Skaldr Limine entries lack exactly one root= parameter")
     if old is not None and _same_boot_images_with_safe_cmdline(sections[old], sections[new]):
         sections.pop(old)
         status = "legacy-duplicate-removed"

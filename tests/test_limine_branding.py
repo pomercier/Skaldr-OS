@@ -71,7 +71,7 @@ class BrandingTests(unittest.TestCase):
         self.assertNotIn('TARGET_OS_NAME=',self.snap.read_text())
     def test_missing_root_in_modern_group_fails(self):
         self.create(modern=section('Skaldr OS','quiet mitigations=off'))
-        with self.assertRaisesRegex(RuntimeError,'no verified root'):
+        with self.assertRaisesRegex(RuntimeError,'exactly one root'):
             lib.reconcile_limine_menu(self.root)
         self.assertIn('/+CachyOS',self.cfg.read_text())
     def test_difference_in_cmdline_is_not_pruned(self):
@@ -109,6 +109,23 @@ class BrandingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Duplicate TARGET_OS_NAME'):
             lib.reconcile_limine_menu(self.root)
         self.assertEqual(before, self.cfg.read_text())
+    def test_new_root_override_preserves_legacy_fallback(self):
+        self.create(modern=section('Skaldr OS',SAME+' root=UUID=elsewhere'))
+        with self.assertRaisesRegex(RuntimeError, 'exactly one root'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertIn('/+CachyOS', self.cfg.read_text())
+
+    def test_unverified_new_kernel_flag_preserves_legacy_fallback(self):
+        self.create(modern=section('Skaldr OS',SAME+' init=/bin/false'))
+        self.assertEqual(lib.reconcile_limine_menu(self.root), 'legacy-preserved-unverified')
+        self.assertIn('/+CachyOS',self.cfg.read_text())
+
+    def test_empty_global_does_not_consume_menu_section(self):
+        self.create()
+        self.cfg.write_text('interface_branding:\n' + self.cfg.read_text())
+        lib.reconcile_limine_menu(self.root)
+        self.assertIn('/+Skaldr OS\n',self.cfg.read_text())
+
     def test_symlinked_config_rejected(self):
         self.create()
         self.cfg.unlink()
