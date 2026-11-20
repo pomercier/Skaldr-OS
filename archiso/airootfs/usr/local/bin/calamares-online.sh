@@ -71,7 +71,20 @@ sudo /usr/local/bin/skaldr-cal-inject
 # partial system upgrade.  On failure, stop before any disk modification.
 stage="refresh live package databases"
 printf '[Skaldr installer] Refreshing signed rolling-repository databases before partitioning\n'
-if ! sudo pacman -Syy --noconfirm; then
+# Allow brief mirror or transport outages, without an unbounded loop.
+# Metadata downloads only; no package installation or signature exceptions.
+metadata_ready=false
+for attempt in 1 2 3; do
+    if sudo pacman -Syy --noconfirm; then
+        metadata_ready=true
+        break
+    fi
+    printf '[Skaldr installer] Repository refresh attempt %s of 3 failed.\n' "$attempt" >&2
+    if (( attempt < 3 )); then
+        sleep 3
+    fi
+done
+if [[ "$metadata_ready" != true ]]; then
     printf '[Skaldr installer] Repository refresh failed; installation was NOT started. Check connectivity, mirrors and signatures.\n' >&2
     exit 1
 fi

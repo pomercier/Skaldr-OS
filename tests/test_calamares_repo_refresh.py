@@ -21,20 +21,26 @@ class CalamaresRepositoryRefreshTests(unittest.TestCase):
         end = cls.source.index('stage="start Calamares GUI"', start)
         cls.block = cls.source[start:end]
 
-    def invoke(self, should_fail=False):
+    def invoke(self, fail_first=0):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             sudo = root / "sudo"
             actions = root / "actions"
             sudo.write_text(
-                '#!/bin/sh\nprintf "%s\\n" "$*" >> "$MOCK_ACTIONS"\n'
-                'exit "$MOCK_SUDO_EXIT"\n', encoding="utf-8")
+                '#!/bin/sh\n'
+                'printf "%s\\n" "$*" >> "$MOCK_ACTIONS"\n'
+                'count="$(wc -l < "$MOCK_ACTIONS")"\n'
+                'if [ "$count" -le "$MOCK_FAIL_FIRST" ]; then exit 42; fi\n'
+                'exit 0\n', encoding="utf-8")
             sudo.chmod(0o755)
+            sleeper = root / "sleep"
+            sleeper.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            sleeper.chmod(0o755)
             env = os.environ.copy()
             env.update({
                 "PATH": str(root) + os.pathsep + env.get("PATH", ""),
                 "MOCK_ACTIONS": str(actions),
-                "MOCK_SUDO_EXIT": "42" if should_fail else "0",
+                "MOCK_FAIL_FIRST": str(fail_first),
             })
             command = "set -Eeuo pipefail\n" + self.block + "\nprintf 'GUI_LAUNCHED\\n'\n"
             proc = subprocess.run(
@@ -61,11 +67,18 @@ class CalamaresRepositoryRefreshTests(unittest.TestCase):
         self.assertIn("GUI_LAUNCHED", proc.stdout)
 
     def test_failed_refresh_prevents_installer_start(self):
-        proc, commands = self.invoke(should_fail=True)
+        proc, commands = self.invoke(fail_first=3)
         self.assertEqual(proc.returncode, 1)
-        self.assertEqual(commands.strip(), "pacman -Syy --noconfirm")
+        self.assertEqual(commands.strip().splitlines(), ["pacman -Syy --noconfirm"] * 3)
         self.assertNotIn("GUI_LAUNCHED", proc.stdout)
         self.assertIn("installation was NOT started", proc.stderr)
+
+    def test_transient_failure_recovers_without_starting_extra_installer(self):
+        proc, commands = self.invoke(fail_first=1)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(commands.strip().splitlines(), ["pacman -Syy --noconfirm"] * 2)
+        self.assertIn("GUI_LAUNCHED", proc.stdout)
+        self.assertIn("attempt 1 of 3 failed", proc.stderr)
 
     def test_never_installs_or_upgrades_live_packages(self):
         self.assertIn("sudo pacman -Syy --noconfirm", self.block)
