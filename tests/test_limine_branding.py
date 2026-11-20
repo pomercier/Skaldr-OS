@@ -129,6 +129,12 @@ class BrandingTests(unittest.TestCase):
         self.create()
         lib.reconcile_limine_menu(self.root)
         self.assertIn(SNAP, self.cfg.read_text())
+    def test_ci_requires_installed_limine_menu_reconciliation(self):
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github/workflows/build.yml").read_text()
+        self.assertIn("Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr)", workflow)
+        self.assertIn('"${{ matrix.bootloader }}" = "limine"', workflow)
+
     def test_limine_efi_fallback_preserved(self):
         self.create()
         lib.reconcile_limine_menu(self.root)

@@ -250,6 +250,11 @@ jobs:
             if [ "${{ matrix.filesystem }}" = "btrfs" ]; then
               grep -Fq "Skaldr: Btrfs snapshot configuration is available." "$log_file"
             fi
+            if [ "${{ matrix.bootloader }}" = "limine" ]; then
+              # The installed Btrfs VM must have a verified Skaldr boot group,
+              # not merely a working old CachyOS fallback.
+              grep -Eq 'Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr)' "$log_file"
+            fi
           fi
         env:
           QT_NOTIFY: "false"
