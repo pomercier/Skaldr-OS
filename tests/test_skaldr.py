@@ -232,8 +232,13 @@ class SkaldrChecks(unittest.TestCase):
         self.assertIn("sudo /usr/local/bin/skaldr-cal-config", installer)
         self.assertIn("pacstrap.conf", installer)
         self.assertIn("shellprocess.conf", installer)
+        # A rolling online installer MUST refresh its signed sync DBs to
+        # avoid pacstrap 404s on superseded CachyOS kernels. -Syy downloads
+        # metadata only; neither install nor partially upgrade the live OS.
+        self.assertIn("sudo pacman -Syy --noconfirm", installer)
         for forbidden in ("sudo rm -rf /etc/pacman.d/gnupg",
-                          "sudo pacman -Sy", "pacman-key --init"):
+                          "sudo pacman -Syu", "sudo pacman -Syyu",
+                          "sudo pacman -U", "pacman-key --init"):
             self.assertNotIn(forbidden, installer)
 
     def test_branding_and_controls(self):
