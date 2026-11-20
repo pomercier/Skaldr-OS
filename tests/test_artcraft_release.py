@@ -57,9 +57,12 @@ class ArtCraftReleaseTests(unittest.TestCase):
         self.assertIn('"${TEST_BOOTLOADER:-}" != "grub"', quicktest)
         self.assertIn('"${TEST_FILESYSTEM:-}" != "ext4"', quicktest)
         self.assertIn("konsole --hold -e /usr/local/bin/skaldr-artcraft --diagnose", quicktest)
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "Bundled AppImage"', quicktest)
+        # Archived GRUB/ext4 guest screenshots prove checksum success, but
+        # tiny "Bundled AppImage" text is misread by OCR as "Bundled AppInag".
+        # Both markers appear only after the complete SHA-256 comparison.
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "executable verified"', quicktest)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "GUI startup not tested"', quicktest)
-        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Status: executable verified"', quicktest)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Bundled AppImage"', quicktest)
         self.assertIn('qt_send_string_return "skaldr-artcraft"', quicktest)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "ARTCRAFT"', quicktest)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "AniCraft"', quicktest)
