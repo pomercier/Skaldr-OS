@@ -61,6 +61,60 @@ def _same_boot_images_with_safe_cmdline(legacy, modern):
     return True
 
 
+
+def _recover_verified_root_arguments(legacy, modern):
+    """Recover missing root flags only from exactly matching fallback images.
+
+    Calamares may generate a rootless Skaldr group alongside a working
+    CachyOS group for the very same kernel and initramfs hashes. Copy only
+    the proven fallback command line plus the already-requested mitigations
+    flag. Unknown kernel options or mismatched images are never accepted.
+    """
+    old, new = _entries(legacy), _entries(modern)
+    if not old or not new or old.keys() != new.keys():
+        return None
+    matches = list(CHILD.finditer(modern))
+    rebuilt = [modern[:matches[0].start()]]
+    for i, match in enumerate(matches):
+        name = match.group()[2:].lstrip("+-").strip()
+        before = old[name]
+        after = new[name]
+        if (before["path"] != after["path"] or
+                before["module_path"] != after["module_path"]):
+            return None
+        previous = before["cmdline"][0].split()
+        current = after["cmdline"][0].split()
+        roots_previous = [s for s in previous if s.startswith("root=")]
+        roots_current = [s for s in current if s.startswith("root=")]
+        if (len(roots_previous) != 1 or roots_previous[0] == "root=" or
+                len(roots_current) > 1 or
+                len(previous) != len(set(previous)) or
+                len(current) != len(set(current))):
+            return None
+        block = modern[match.end():
+                       matches[i + 1].start() if i + 1 < len(matches)
+                       else len(modern)]
+        if not roots_current:
+            allowed = set(previous) | {"mitigations=off"}
+            if not set(current).issubset(allowed):
+                return None
+            repaired = previous + [s for s in current if s not in previous]
+            pattern = re.compile(r"(?m)^([ \t]*cmdline:[ \t]*)[^\r\n]*$")
+            if len(pattern.findall(block)) != 1:
+                return None
+            block = pattern.sub(lambda m: m.group(1) + " ".join(repaired),
+                                block, count=1)
+        rebuilt.append(match.group(0))
+        rebuilt.append(block)
+    result = "".join(rebuilt)
+    confirmed = _entries(result)
+    if (not confirmed or
+            any(len([s for s in entry["cmdline"][0].split()
+                     if s.startswith("root=")]) != 1
+                for entry in confirmed.values())):
+        return None
+    return result
+
 def _update_global(header, key, value):
     pattern = re.compile(r"(?m)^" + re.escape(key) + r":[ \t]*[^\r\n]*$")
     if len(pattern.findall(header)) > 1:
@@ -115,7 +169,15 @@ def reconcile_limine_menu(root=Path("/")):
             len([token for token in entry["cmdline"][0].split()
                  if token.startswith("root=")]) == 1
             for entry in modern_entries.values()):
-        raise RuntimeError("Skaldr Limine entries lack exactly one root= parameter")
+        repaired = (_recover_verified_root_arguments(sections[old], sections[new])
+                    if old is not None else None)
+        if repaired is None:
+            raise RuntimeError("Skaldr Limine entries lack exactly one root= parameter; "
+                               "no verified fallback kernel to recover from")
+        sections[new] = repaired
+        modern_entries = _entries(repaired)
+        print("Skaldr: recovered root parameters from matching legacy boot images",
+              flush=True)
     if old is not None and _same_boot_images_with_safe_cmdline(sections[old], sections[new]):
         sections.pop(old)
         status = "legacy-duplicate-removed"

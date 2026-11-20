@@ -69,11 +69,57 @@ class BrandingTests(unittest.TestCase):
         self.assertIn('/+CachyOS',self.cfg.read_text())
         self.assertIn('default_entry: 2',self.cfg.read_text())
         self.assertNotIn('TARGET_OS_NAME=',self.snap.read_text())
-    def test_missing_root_in_modern_group_fails(self):
-        self.create(modern=section('Skaldr OS','quiet mitigations=off'))
-        with self.assertRaisesRegex(RuntimeError,'exactly one root'):
+    def test_missing_root_in_modern_group_recovered_from_matching_fallback(self):
+        self.create(modern=section('Skaldr OS','mitigations=off'))
+        status = lib.reconcile_limine_menu(self.root)
+        self.assertEqual(status, "legacy-duplicate-removed")
+        text = self.cfg.read_text()
+        self.assertNotIn('/+CachyOS', text)
+        self.assertIn('default_entry: Skaldr OS/linux-cachyos', text)
+        self.assertEqual(text.count('root=UUID=' + UUID), 2)
+        self.assertEqual(text.count('rootflags=subvol=/@ '), 2)
+        self.assertIn(SNAP, text)
+        self.assertIn(EFI, text)
+        self.assertEqual(lib.reconcile_limine_menu(self.root), "already-skaldr")
+
+    def test_missing_root_with_mismatched_boot_images_fails_without_changes(self):
+        self.create(legacy=section('CachyOS',CMD,hashes='different'),
+                    modern=section('Skaldr OS','mitigations=off'))
+        before = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
             lib.reconcile_limine_menu(self.root)
-        self.assertIn('/+CachyOS',self.cfg.read_text())
+        self.assertEqual(self.cfg.read_text(), before)
+
+    def test_missing_root_in_both_groups_fails_without_changes(self):
+        self.create(legacy=section('CachyOS','quiet nowatchdog'),
+                    modern=section('Skaldr OS','mitigations=off'))
+        before = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(self.cfg.read_text(), before)
+
+    def test_unverified_rootless_kernel_option_refused(self):
+        self.create(modern=section('Skaldr OS','mitigations=off init=/bin/false'))
+        before = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(self.cfg.read_text(), before)
+
+    def test_missing_root_without_legacy_group_fails_without_changes(self):
+        self.create(legacy='', modern=section('Skaldr OS','mitigations=off'))
+        before = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no verified fallback'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(self.cfg.read_text(), before)
+
+    def test_partial_missing_root_recovers_only_verified_entry(self):
+        modern = section('Skaldr OS', 'mitigations=off')
+        modern = modern.replace('    cmdline: mitigations=off', '    cmdline: '+SAME, 1)
+        self.create(modern=modern)
+        self.assertEqual(lib.reconcile_limine_menu(self.root), 'legacy-duplicate-removed')
+        lines = self.cfg.read_text()
+        self.assertEqual(lines.count('root=UUID=' + UUID), 2)
+
     def test_difference_in_cmdline_is_not_pruned(self):
         self.create(legacy=section('CachyOS',CMD+' foo=bar'))
         self.assertEqual(lib.reconcile_limine_menu(self.root),'legacy-preserved-unverified')
