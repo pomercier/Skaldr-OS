@@ -6,6 +6,8 @@ import pwd
 import shutil
 import subprocess
 import sys
+import re
+import shlex
 
 def call(*args):
     subprocess.run(args, check=True)
@@ -77,6 +79,68 @@ def configure_installed_login_wallpaper(
     return True
 
 
+
+def verify_limine_uefi_esp(root=Path("/"), *, limine_installed=None,
+                           uefi=None, filesystem=None):
+    """Fail installation if the selected Limine EFI setup cannot load a menu.
+
+    Read-only: never format disks, copy unverified bootloaders or modify NVRAM.
+    This checks the mounted ESP, not firmware boot order or other disks.
+    """
+    root = Path(root)
+    if limine_installed is None:
+        limine_installed = subprocess.run(
+            ["pacman", "-Qq", "limine"], stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, check=False).returncode == 0
+    if not limine_installed:
+        return False  # GRUB, systemd-boot, rEFInd: do not interfere.
+    if uefi is None:
+        uefi = (root / "sys/firmware/efi").is_dir()
+    if not uefi:
+        return False  # BIOS installations need a separate boot-chain audit.
+
+    prefs = root / "etc/default/limine"
+    if not prefs.is_file() or prefs.is_symlink():
+        raise RuntimeError("Limine UEFI preflight: /etc/default/limine missing or unsafe")
+    lines = [line.split("=", 1)[1].strip()
+             for line in prefs.read_text(encoding="utf-8").splitlines()
+             if re.match(r"^\s*ESP_PATH\s*=", line)]
+    if len(lines) != 1:
+        raise RuntimeError("Limine UEFI preflight: expected exactly one ESP_PATH")
+    try:
+        values = shlex.split(lines[0], comments=True)
+    except ValueError as exc:
+        raise RuntimeError("Limine UEFI preflight: malformed ESP_PATH") from exc
+    if len(values) != 1:
+        raise RuntimeError("Limine UEFI preflight: ambiguous ESP_PATH")
+    esp_name = values[0]
+    esp_path = Path(esp_name)
+    if (not esp_path.is_absolute() or esp_path == Path("/") or
+            ".." in esp_path.parts or "$" in esp_name):
+        raise RuntimeError("Limine UEFI preflight: unsafe ESP_PATH")
+    esp = root / esp_path.relative_to("/")
+    if esp.is_symlink() or not esp.is_dir() or not esp.resolve().is_relative_to(root.resolve()):
+        raise RuntimeError("Limine UEFI preflight: ESP path is missing or unsafe")
+    if filesystem is None:
+        checked = subprocess.run(
+            ["findmnt", "-rnM", str(esp), "-o", "FSTYPE"],
+            capture_output=True, text=True, check=False, timeout=10)
+        filesystem = checked.stdout.strip() if checked.returncode == 0 else None
+    if filesystem != "vfat":
+        raise RuntimeError("Limine UEFI preflight: ESP_PATH is not an exact mounted FAT ESP")
+    config = esp / "limine.conf"
+    if not config.is_file() or config.is_symlink():
+        raise RuntimeError("Limine UEFI preflight: limine.conf missing on mounted ESP")
+    data = config.read_text(encoding="utf-8", errors="replace")
+    if not re.search(r"(?m)^\s*protocol:\s*linux\b", data):
+        raise RuntimeError("Limine UEFI preflight: no Linux boot entry in limine.conf")
+    if not any((esp / path).is_file() for path in (
+            "EFI/limine/limine_x64.efi", "EFI/BOOT/BOOTX64.EFI")):
+        raise RuntimeError("Limine UEFI preflight: EFI executable missing on mounted ESP")
+    print(f"Skaldr: Limine UEFI preflight OK (mounted FAT ESP {esp_path}, "
+          "config, Linux menu and EFI binary present)", flush=True)
+    return True
+
 def main():
     pkg = Path("/usr/share/skaldr/packages.txt")
     if not pkg.exists():
@@ -91,6 +155,7 @@ def main():
     call("/usr/local/bin/skaldr-profile", "install")
     configure_installed_users()
     configure_installed_login_wallpaper()
+    verify_limine_uefi_esp()
     print("Skaldr target packages and system preferences installed")
 
 if __name__ == "__main__":
