@@ -257,9 +257,14 @@ jobs:
               # fallback, retain the existing bootable candidate rather than
               # aborting Calamares after disk partitioning. The cold-boot and
               # Btrfs rollback tests below still must succeed.
-              grep -Eq 'Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr|legacy-preserved-rootless)' "$log_file"
+              grep -Eq 'Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr|legacy-preserved-rootless|legacy-preserved-verified-skaldr)' "$log_file"
               if grep -Fq 'Skaldr: Limine menu reconciliation: legacy-preserved-rootless' "$log_file"; then
                 grep -Fq 'Skaldr: preserving rooted legacy Limine fallback' "$log_file"
+              fi
+              if grep -Fq 'Skaldr: Limine menu reconciliation: legacy-preserved-verified-skaldr' "$log_file"; then
+                # This status must reflect an actual fstab root repair, not
+                # merely an entry label change.
+                grep -Fq 'Skaldr: reconstructed root arguments from installed Btrfs fstab' "$log_file"
               fi
             fi
           fi

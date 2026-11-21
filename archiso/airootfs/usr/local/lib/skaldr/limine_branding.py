@@ -165,6 +165,80 @@ def _validated_legacy_root_fallback(legacy, modern):
 
 
 
+
+def _installed_root_arguments(root):
+    """Read Calamares' installed Btrfs root from fstab; never invent a UUID."""
+    fstab = root / "etc/fstab"
+    if not fstab.is_file() or fstab.is_symlink():
+        return None
+    entries = []
+    for line in fstab.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) >= 4 and parts[1] == "/":
+            entries.append(parts)
+    if len(entries) != 1:
+        return None
+    source, _, fstype, opts = entries[0][:4]
+    if fstype != "btrfs":
+        return None
+    uuid = source.removeprefix("UUID=")
+    if not source.startswith("UUID=") or not re.fullmatch(
+            r"[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}", uuid):
+        return None
+    options = opts.split(",")
+    subvol = [part for part in options if part.startswith("subvol=")]
+    if len(subvol) != 1 or subvol[0] != "subvol=/@":
+        return None
+    return "root=UUID=" + uuid, "rootflags=subvol=/@"
+
+
+def _recover_root_from_installed_fstab(root, modern):
+    """Repair a rootless Skaldr menu from the actual installed fstab record.
+
+    Never change hashed kernel paths or initramfs locations. Refuse unknown
+    kernel arguments and mismatched root or subvolume options.
+    """
+    required = _installed_root_arguments(root)
+    entries = _entries(modern)
+    if required is None or not entries:
+        return None
+    rootarg, flagarg = required
+    matches = list(CHILD.finditer(modern))
+    rebuilt = [modern[:matches[0].start()]]
+    permitted = {"mitigations=off", "quiet", "nowatchdog", "rw", "splash"}
+    for i, match in enumerate(matches):
+        name = match.group()[2:].lstrip("+-").strip()
+        tokens = entries[name]["cmdline"][0].split()
+        if len(tokens) != len(set(tokens)):
+            return None
+        roots = [token for token in tokens if token.startswith("root=")]
+        flags = [token for token in tokens if token.startswith("rootflags=")]
+        if (len(roots) > 1 or len(flags) > 1 or
+                (roots and roots[0] != rootarg) or
+                (flags and flags[0] != flagarg) or
+                any(token not in permitted | {rootarg, flagarg}
+                    for token in tokens)):
+            return None
+        if not roots:
+            tokens.append(rootarg)
+        if not flags:
+            tokens.append(flagarg)
+        block = modern[match.end():
+                       matches[i + 1].start() if i + 1 < len(matches)
+                       else len(modern)]
+        cmdline = re.compile(r"(?m)^([ \t]*cmdline:[ \t]*)[^\r\n]*$")
+        if len(cmdline.findall(block)) != 1:
+            return None
+        block = cmdline.sub(lambda m: m.group(1) + " ".join(tokens),
+                            block, count=1)
+        rebuilt.extend((match.group(0), block))
+    result = "".join(rebuilt)
+    return result if _entries(result) else None
+
+
 def _update_global(header, key, value):
     pattern = re.compile(r"(?m)^" + re.escape(key) + r":[ \t]*[^\r\n]*$")
     if len(pattern.findall(header)) > 1:
@@ -215,12 +289,21 @@ def reconcile_limine_menu(root=Path("/")):
     if new is None:
         return "no-skaldr-group"  # Keep upstream's working fallback.
     modern_entries = _entries(sections[new])
+    fstab_repaired = False
     if not modern_entries or not all(
             len([token for token in entry["cmdline"][0].split()
                  if token.startswith("root=")]) == 1
             for entry in modern_entries.values()):
-        repaired = (_recover_verified_root_arguments(sections[old], sections[new])
-                    if old is not None else None)
+        # The installed fstab is Calamares' authoritative root mount record.
+        # Unlike old boot entries, it need not share initramfs hashes.
+        repaired = _recover_root_from_installed_fstab(root, sections[new])
+        if repaired is not None:
+            fstab_repaired = True
+            print("Skaldr: reconstructed root arguments from installed Btrfs fstab",
+                  flush=True)
+        if repaired is None:
+            repaired = (_recover_verified_root_arguments(sections[old], sections[new])
+                        if old is not None else None)
         if repaired is None:
             # The two groups can legitimately have different initramfs hashes
             # after the final mkinitcpio refresh. Do not invent a root UUID or
@@ -251,10 +334,12 @@ def reconcile_limine_menu(root=Path("/")):
         sections.pop(old)
         status = "legacy-duplicate-removed"
     elif old is not None:
-        status = "legacy-preserved-unverified"
+        status = ("legacy-preserved-verified-skaldr" if fstab_repaired
+                  else "legacy-preserved-unverified")
     else:
         status = "already-skaldr"
-    # Keep existing choice when duplicate comparison was inconclusive.
+    # Prefer the new group when its root and subvolume come from the installed
+    # fstab. Keep the old fallback on disk until the cold-boot tests succeed.
     if status != "legacy-preserved-unverified":
         preferred = "linux-cachyos" if "linux-cachyos" in modern_entries else next(iter(modern_entries))
         header = _update_global(header, "default_entry", "Skaldr OS/" + preferred)

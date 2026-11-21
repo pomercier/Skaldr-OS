@@ -167,6 +167,76 @@ class BrandingTests(unittest.TestCase):
     def test_difference_in_cmdline_is_not_pruned(self):
         self.create(legacy=section('CachyOS',CMD+' foo=bar'))
         self.assertEqual(lib.reconcile_limine_menu(self.root),'legacy-preserved-unverified')
+    def create_fstab(self, source=None, options="rw,compress=zstd:3,subvol=/@"):
+        target = self.root / 'etc/fstab'
+        target.write_text((source or 'UUID='+UUID) + ' / btrfs ' + options + ' 0 0\n')
+        return target
+
+    def test_calamares_fstab_repairs_different_initramfs_hashes(self):
+        self.create(legacy=section('CachyOS', CMD, hashes='upstream'),
+                    modern=section('Skaldr OS','mitigations=off', hashes='new'))
+        self.create_fstab()
+        result = lib.reconcile_limine_menu(self.root)
+        self.assertEqual(result, 'legacy-preserved-verified-skaldr')
+        fixed = self.cfg.read_text()
+        self.assertIn('/+CachyOS\n', fixed)
+        self.assertIn('/+Skaldr OS\n', fixed)
+        self.assertIn('default_entry: Skaldr OS/linux-cachyos', fixed)
+        self.assertEqual(fixed.count('root=UUID='+UUID), 4)
+        self.assertIn(SNAP, fixed)
+        self.assertIn(EFI, fixed)
+        self.assertIn('TARGET_OS_NAME="Skaldr OS"',self.snap.read_text())
+
+    def test_fstab_root_repairs_without_legacy_group(self):
+        self.create(legacy='', modern=section('Skaldr OS','mitigations=off'))
+        self.create_fstab()
+        self.assertEqual(lib.reconcile_limine_menu(self.root), 'already-skaldr')
+        self.assertEqual(self.cfg.read_text().count('root=UUID='+UUID), 2)
+
+    def test_fstab_repair_keeps_safety_on_repeated_runs(self):
+        self.create(modern=section('Skaldr OS','mitigations=off'))
+        self.create_fstab()
+        initial = lib.reconcile_limine_menu(self.root)
+        after = self.cfg.read_text()
+        self.assertIn(initial, ('legacy-duplicate-removed','legacy-preserved-verified-skaldr'))
+        self.assertEqual(lib.reconcile_limine_menu(self.root),
+                         'already-skaldr' if initial == 'legacy-duplicate-removed'
+                         else 'legacy-preserved-unverified')
+        self.assertEqual(self.cfg.read_text(), after)
+
+    def test_rejects_untrusted_fstab_uuid_without_safe_fallback(self):
+        self.create(legacy='', modern=section('Skaldr OS','mitigations=off'))
+        self.create_fstab(source="UUID=not-a-real-uuid")
+        original = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(self.cfg.read_text(), original)
+
+    def test_rejects_mismatched_subvolume_from_fstab(self):
+        self.create(legacy='', modern=section('Skaldr OS','mitigations=off'))
+        self.create_fstab(options="rw,subvol=/other")
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+
+    def test_rejects_duplicate_root_mounts_in_fstab(self):
+        self.create(legacy='', modern=section('Skaldr OS','mitigations=off'))
+        fstab = self.create_fstab()
+        fstab.write_text(fstab.read_text()*2)
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+
+    def test_fstab_cannot_override_explicit_conflicting_root(self):
+        self.create(legacy='', modern=section('Skaldr OS','mitigations=off root=UUID=wrong'))
+        self.create_fstab()
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+
+    def test_fstab_does_not_accept_unknown_init_override(self):
+        self.create(legacy='', modern=section('Skaldr OS','mitigations=off init=/bin/false'))
+        self.create_fstab()
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+
     def test_no_limine_system_untouched(self):
         (self.root / 'etc/default/limine').unlink()
         self.create()
@@ -247,7 +317,7 @@ class BrandingTests(unittest.TestCase):
     def test_ci_requires_installed_limine_menu_reconciliation(self):
         workflow = (Path(__file__).resolve().parents[1] /
                     ".github/workflows/build.yml").read_text()
-        self.assertIn("Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr|legacy-preserved-rootless)", workflow)
+        self.assertIn("Skaldr: Limine menu reconciliation: (legacy-duplicate-removed|already-skaldr|legacy-preserved-rootless|legacy-preserved-verified-skaldr)", workflow)
         self.assertIn('"${{ matrix.bootloader }}" = "limine"', workflow)
 
     def test_limine_efi_fallback_preserved(self):
