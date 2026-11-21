@@ -105,10 +105,11 @@ branding: cachyos
             config = yaml.safe_load(
                 (root / "etc/calamares/settings.conf").read_text())
             self.assertEqual(config["branding"], "skaldr")
-            chooser = yaml.safe_load(
-                (root / "etc/calamares/modules/packagechooser_desktop.conf").read_text())
-            self.assertEqual(chooser["default"], "KDE-Desktop")
-            self.assertEqual([x["id"] for x in chooser["items"]], ["KDE-Desktop"])
+            show = config["sequence"][0]["show"]
+            self.assertNotIn("packagechooser@desktop", show)
+            self.assertIn("netinstall", show)
+            # The single KDE desktop is installed by the netinstall manifest,
+            # not by a redundant packagechooser wizard page.
             groups = yaml.safe_load(
                 (root / "etc/calamares/modules/netinstall.yaml").read_text())
             names = [x["name"] for x in groups]
@@ -116,6 +117,7 @@ branding: cachyos
             self.assertNotIn("GNOME-Desktop", names)
             self.assertNotIn("Xfce4", names)
             self.assertTrue(next(x for x in groups if x["name"] == "KDE-Desktop")["selected"])
+            self.assertTrue(next(x for x in groups if x["name"] == "KDE-Desktop")["hidden"])
             kde = next(x for x in groups if x["name"] == "KDE-Desktop")
             self.assertEqual(kde["packages"].count("pyside6"), 1)
             self.assertNotIn("haruna", kde["packages"])
@@ -219,10 +221,40 @@ branding: cachyos
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(conf.read_bytes(), original)
 
-    def test_kde_chooser_has_no_upstream_screenshot(self):
-        config = (REPO / "archiso/airootfs/usr/local/bin/skaldr-cal-config").read_text()
-        self.assertIn('screenshot: "/usr/share/pixmaps/skaldr-logo.png"', config)
-        self.assertNotIn('screenshot: "/etc/calamares/images/kde.webp"', config)
+    def test_no_desktop_step_and_chooser_config_not_rewritten(self):
+        # KDE is a hidden, selected netinstall group.  Desktop GUI options
+        # and the unused upstream chooser configuration must stay untouched.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_fixture(root)
+            unused_chooser = root / "etc/calamares/modules/packagechooser_desktop.conf"
+            old_bytes = unused_chooser.read_bytes()
+            result = self.invoke(root)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            settings = yaml.safe_load((root / "etc/calamares/settings.conf").read_text())
+            show = settings["sequence"][0]["show"]
+            self.assertNotIn("packagechooser@desktop", show)
+            self.assertEqual(show, ["welcome@online", "netinstall"])
+            self.assertEqual(unused_chooser.read_bytes(), old_bytes)
+            packages = yaml.safe_load((root / "etc/calamares/modules/netinstall.yaml").read_text())
+            kde = next(x for x in packages if x["name"] == "KDE-Desktop")
+            self.assertTrue(kde["selected"])
+            self.assertTrue(kde["hidden"])
+            self.assertIn("plasma-desktop", kde["packages"])
+
+    def test_unexpected_desktop_step_fails_before_runtime_changes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.make_fixture(root)
+            online = root / "usr/share/calamares/settings_online.conf"
+            online.write_text(online.read_text().replace(
+                "packagechooser@desktop", "packagechooser@unsupported"))
+            settings = root / "etc/calamares/settings.conf"
+            original = settings.read_bytes()
+            result = self.invoke(root)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Unexpected Calamares desktop chooser", result.stderr)
+            self.assertEqual(settings.read_bytes(), original)
 
     def test_calamare_welcome_is_self_contained_scalable_banner_not_wallpaper(self):
         brand = REPO / "archiso/airootfs/usr/share/skaldr/installer"

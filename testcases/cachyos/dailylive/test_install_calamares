@@ -165,12 +165,6 @@ function test_calamares_partitions() {
     qt_send_key_combo "spc"
 }
 
-function test_calamares_desktop() {
-    qt_wait_for_text "$FUNCNAME" "$text_calamares_desktop" 10 5
-    qt_send_key_combo "spc"
-    qt_screenshot_ppm "$FUNCNAME"
-}
-
 function test_calamares_packages() {
     qt_wait_for_text "$FUNCNAME" "$text_calamares_packages" 10 5
     qt_screenshot_ppm "$FUNCNAME"
@@ -483,7 +477,6 @@ function test_install_calamares() {
     test_calamares_keyboard
     test_calamares_bootloader
     test_calamares_partitions
-    test_calamares_desktop
     test_calamares_packages
     test_calamares_users
     test_calamares_summary

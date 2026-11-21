@@ -17,19 +17,6 @@ ALLOWED = {
     "KDE-Desktop", "Printing-Support",
     "Support for HP Printer/Scanner", "Accessibility Tools",
 }
-CHOOSER = """---
-mode: required
-method: netinstall-select
-labels:
-    step: "KDE Plasma"
-    step[fr]: "KDE Plasma"
-default: KDE-Desktop
-items:
-    - id: KDE-Desktop
-      name: "KDE Plasma"
-      description: "Skaldr OS uses KDE Plasma as its sole desktop environment."
-      screenshot: "/usr/share/pixmaps/skaldr-logo.png"
-"""
 GROUPS = """---
 groupsUrl:
  - file:///etc/calamares/modules/netinstall.yaml
@@ -66,6 +53,18 @@ def filter_groups(source, guest_profile=None):
                                    "  selected: true", block, count=1)
             if count != 1:
                 raise ValueError("Missing KDE selection in netinstall")
+            # KDE Plasma is the ONLY supported desktop. In Calamares,
+            # hidden + selected installs a group unconditionally without
+            # exposing a selectable desktop option on the Packages page.
+            hidden = re.findall(r"(?m)^  hidden:[ \t]*(?:true|false)[ \t]*$", block)
+            if len(hidden) > 1:
+                raise ValueError("Duplicate KDE hidden flag in netinstall")
+            if hidden:
+                block = re.sub(r"(?m)^  hidden:[ \t]*(?:true|false)[ \t]*$",
+                               "  hidden: true", block, count=1)
+            else:
+                block = block.replace("  selected: true\n",
+                                      "  selected: true\n  hidden: true\n", 1)
             # pyside6 must exist on the *installed* KDE system as well as on
             # the live ISO; desktop selection is an online package manifest.
             # Insert once and fail closed if the upstream packages key moves.
@@ -214,6 +213,24 @@ def brand_bootloader_chooser(source):
     return "".join(updated)
 
 
+def remove_desktop_choice(settings):
+    """Remove the redundant desktop selection view, preserving other steps.
+
+    The KDE group remains selected and hidden in netinstall.yaml, so the
+    netinstall module still installs Plasma without depending on this view.
+    Fail closed if upstream changes the expected Calamares show sequence.
+    """
+    desktop = re.compile(r"(?m)^[ \t]*-[ \t]*packagechooser@desktop[ \t]*\r?\n")
+    if len(desktop.findall(settings)) != 1:
+        raise ValueError("Unexpected Calamares desktop chooser sequence")
+    if len(re.findall(r"(?m)^[ \t]*-[ \t]*netinstall[ \t]*$", settings)) != 1:
+        raise ValueError("Missing unique Calamares netinstall stage")
+    updated, count = desktop.subn("", settings, count=1)
+    if count != 1:
+        raise ValueError("Could not remove Calamares desktop chooser")
+    return updated
+
+
 def prepare(root=Path("/")):
     root = Path(root)
     modules = root / "etc/calamares/modules"
@@ -231,7 +248,6 @@ def prepare(root=Path("/")):
     logo = root / "usr/share/pixmaps/skaldr-logo.png"
     mandatory = [original, installer, modules / "netinstall.yaml",
                  modules / "netinstall.conf",
-                 modules / "packagechooser_desktop.conf",
                  bootloader_config, modules / "welcome_online.conf",
                  brand_source / "branding.desc", brand_source / "show.qml",
                  splash, logo, *bootloader_assets]
@@ -242,14 +258,16 @@ def prepare(root=Path("/")):
     if not re.search(r"(?m)^branding:\s*(?:cachyos|skaldr)\s*$",
                      source_settings):
         raise ValueError("Unknown Calamares branding selector")
-    if "packagechooser@desktop" not in source_settings or "- netinstall" not in source_settings:
-        raise ValueError("Calamares desktop/netinstall integration missing")
+    # The desktop step is removed below; netinstall remains mandatory.
+    if "- netinstall" not in source_settings:
+        raise ValueError("Calamares netinstall integration missing")
     # Validate *before* modifying the stock installer.
     guest_profile = virtual_display_profile(root)
     manifest = filter_groups((modules / "netinstall.yaml").read_text(), guest_profile)
     bootloader_choices = brand_bootloader_chooser(bootloader_config.read_text())
     settings = re.sub(r"(?m)^branding:\s*(?:cachyos|skaldr)\s*$",
                       "branding: skaldr", source_settings, count=1)
+    settings = remove_desktop_choice(settings)
     if guest_profile:
         settings = omit_virtual_chwd_step(settings)
     welcome = (modules / "welcome_online.conf").read_text()
@@ -270,7 +288,6 @@ def prepare(root=Path("/")):
     updates = {
         bootloader_config: bootloader_choices,
         installer: settings,
-        modules / "packagechooser_desktop.conf": CHOOSER,
         modules / "netinstall.conf": GROUPS,
         modules / "netinstall.yaml": manifest,
         modules / "welcome_online.conf": welcome,
@@ -278,7 +295,7 @@ def prepare(root=Path("/")):
     for path, contents in updates.items():
         if path.read_text() != contents:
             path.write_text(contents)
-    print("Skaldr Calamares: branded KDE-only, native bootloader previews and local log export", flush=True)
+    print("Skaldr Calamares: fixed KDE Plasma, no desktop chooser, native bootloader previews and local log export", flush=True)
 
 
 if __name__ == "__main__":

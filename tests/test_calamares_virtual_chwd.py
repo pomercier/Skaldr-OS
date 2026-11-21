@@ -169,6 +169,7 @@ class VirtualChwdTests(unittest.TestCase):
                 groups = yaml.safe_load((root / "etc/calamares/modules/netinstall.yaml").read_text())
                 kde = next(item for item in groups if item["name"] == "KDE-Desktop")
                 self.assertTrue(kde["selected"])
+                self.assertTrue(kde["hidden"])
                 self.assertEqual("mesa" in kde["packages"], bypass)
                 self.assertEqual(kde["packages"].count("pyside6"), 1)
                 # Settings regeneration remains idempotent.
