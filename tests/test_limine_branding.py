@@ -187,6 +187,35 @@ class BrandingTests(unittest.TestCase):
         self.assertIn(EFI, fixed)
         self.assertIn('TARGET_OS_NAME="Skaldr OS"',self.snap.read_text())
 
+    def test_real_cachyos_kernel_flags_repaired_from_fstab(self):
+        # The Limine entry tool emits additional flags that must not prevent
+        # recovery of the actual Calamares-installed root and Btrfs subvolume.
+        params = ("BOOT_IMAGE=/@/boot/vmlinuz-linux-cachyos "
+                  "quiet loglevel=3 zswap.enabled=0 nvme_load=YES "
+                  "nowatchdog rw mitigations=off")
+        self.create(legacy='', modern=section('Skaldr OS', params))
+        self.create_fstab()
+        self.assertEqual(lib.reconcile_limine_menu(self.root), 'already-skaldr')
+        updated = self.cfg.read_text()
+        self.assertEqual(updated.count('root=UUID=' + UUID), 2)
+        self.assertIn('zswap.enabled=0 nvme_load=YES', updated)
+
+    def test_existing_equivalent_btrfs_subvolume_spelling_accepted(self):
+        self.create(legacy='', modern=section(
+            'Skaldr OS', 'quiet rootflags=subvol=@ mitigations=off'))
+        self.create_fstab()
+        self.assertEqual(lib.reconcile_limine_menu(self.root), 'already-skaldr')
+        self.assertEqual(self.cfg.read_text().count('root=UUID=' + UUID), 2)
+
+    def test_fstab_recovery_rejects_emergency_boot_override(self):
+        self.create(legacy='', modern=section(
+            'Skaldr OS', 'quiet systemd.unit=emergency.target'))
+        self.create_fstab()
+        unchanged = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(unchanged, self.cfg.read_text())
+
     def test_fstab_root_repairs_without_legacy_group(self):
         self.create(legacy='', modern=section('Skaldr OS','mitigations=off'))
         self.create_fstab()

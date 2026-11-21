@@ -198,8 +198,9 @@ def _installed_root_arguments(root):
 def _recover_root_from_installed_fstab(root, modern):
     """Repair a rootless Skaldr menu from the actual installed fstab record.
 
-    Never change hashed kernel paths or initramfs locations. Refuse unknown
-    kernel arguments and mismatched root or subvolume options.
+    Never change hashed kernel paths or initramfs locations. Preserve the
+    already-generated kernel options verbatim, but reject emergency-mode
+    overrides and mismatched root or subvolume options.
     """
     required = _installed_root_arguments(root)
     entries = _entries(modern)
@@ -208,7 +209,18 @@ def _recover_root_from_installed_fstab(root, modern):
     rootarg, flagarg = required
     matches = list(CHILD.finditer(modern))
     rebuilt = [modern[:matches[0].start()]]
-    permitted = {"mitigations=off", "quiet", "nowatchdog", "rw", "splash"}
+    # limine-entry-tool legitimately generates BOOT_IMAGE=, loglevel=,
+    # zswap.enabled= and hardware-specific flags. The previous five-token
+    # allowlist rejected those real entries, leaving a rootless menu and
+    # aborting an otherwise-completed Calamares installation.
+    #
+    # Only root= and rootflags= are added here, taken from the installed
+    # UUID and subvolume in fstab. Preserve other generated flags untouched,
+    # but do not turn an emergency/debug override into a "verified" menu.
+    forbidden = {"single", "s", "1", "rescue", "emergency"}
+    forbidden_prefixes = ("init=", "rdinit=", "systemd.unit=",
+                          "rd.break", "break=", "rootfstype=")
+    equivalent_btrfs_rootflags = {flagarg, "rootflags=subvol=@"}
     for i, match in enumerate(matches):
         name = match.group()[2:].lstrip("+-").strip()
         tokens = entries[name]["cmdline"][0].split()
@@ -218,8 +230,8 @@ def _recover_root_from_installed_fstab(root, modern):
         flags = [token for token in tokens if token.startswith("rootflags=")]
         if (len(roots) > 1 or len(flags) > 1 or
                 (roots and roots[0] != rootarg) or
-                (flags and flags[0] != flagarg) or
-                any(token not in permitted | {rootarg, flagarg}
+                (flags and flags[0] not in equivalent_btrfs_rootflags) or
+                any(token in forbidden or token.startswith(forbidden_prefixes)
                     for token in tokens)):
             return None
         if not roots:
@@ -301,7 +313,8 @@ def reconcile_limine_menu(root=Path("/")):
             flags = [x for x in tokens if x.startswith("rootflags=")]
             if (len(roots) > 1 or len(flags) > 1 or
                     (roots and roots[0] != rootarg) or
-                    (flags and flags[0] != flagarg)):
+                    (flags and flags[0] not in
+                     {flagarg, "rootflags=subvol=@"})):
                 raise RuntimeError(
                     "Skaldr Limine root arguments conflict with installed Btrfs fstab")
     fstab_repaired = False
@@ -328,6 +341,16 @@ def reconcile_limine_menu(root=Path("/")):
             fallback = (_validated_legacy_root_fallback(sections[old], sections[new])
                         if old is not None else None)
             if fallback is None:
+                # Preserve actionable evidence in the CI serial artifact.
+                # Never silently rebrand a rootless menu as install-ready.
+                print("Skaldr: Limine fstab root lookup: " + repr(installed),
+                      flush=True)
+                for label, block in zip(labels, sections):
+                    entries = _entries(block)
+                    if entries:
+                        print("Skaldr: Limine " + label + " cmdlines: " +
+                              repr([entry["cmdline"][0]
+                                    for entry in entries.values()]), flush=True)
                 raise RuntimeError("Skaldr Limine entries lack exactly one root= parameter; "
                                    "no safe fallback menu with consistent roots")
             header = _update_global(header, "default_entry", "CachyOS/" + fallback)
