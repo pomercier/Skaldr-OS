@@ -37,6 +37,7 @@ jobs:
           fetch-depth: 0
 
       - name: Reject untested ISO changes since the source build
+        id: source_gate
         shell: bash
         run: |
           set -euo pipefail
@@ -54,13 +55,16 @@ jobs:
                 ;;
               *)
                 echo "::notice::Skip stale build; untested source change: $changed"
+                echo "eligible=false" >> "$GITHUB_OUTPUT"
                 exit 0
                 ;;
             esac
           done < <(git diff --name-only "$SOURCE_SHA" HEAD)
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "Trusted tested ISO source: $SOURCE_SHA"
 
       - name: Require the five successful jobs of the exact full-size ISO
+        if: steps.source_gate.outputs.eligible == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -88,6 +92,7 @@ jobs:
           echo "Source regression checks: $source_run"
 
       - name: Verify real Calamares and cold-boot VM log evidence
+        if: steps.source_gate.outputs.eligible == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -125,6 +130,7 @@ jobs:
           PY
 
       - name: Request a unique public preview from the proven ISO
+        if: steps.source_gate.outputs.eligible == 'true'
         shell: bash
         run: |
           set -euo pipefail
