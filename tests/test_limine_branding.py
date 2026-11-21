@@ -228,8 +228,19 @@ class BrandingTests(unittest.TestCase):
     def test_fstab_cannot_override_explicit_conflicting_root(self):
         self.create(legacy='', modern=section('Skaldr OS','mitigations=off root=UUID=wrong'))
         self.create_fstab()
-        with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+        original = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'conflict with installed Btrfs fstab'):
             lib.reconcile_limine_menu(self.root)
+        self.assertEqual(original, self.cfg.read_text())
+
+    def test_fstab_rejects_fully_populated_wrong_subvolume(self):
+        self.create(legacy='', modern=section(
+            'Skaldr OS',f'mitigations=off root=UUID={UUID} rootflags=subvol=/other'))
+        self.create_fstab()
+        original = self.cfg.read_text()
+        with self.assertRaisesRegex(RuntimeError, 'conflict with installed Btrfs fstab'):
+            lib.reconcile_limine_menu(self.root)
+        self.assertEqual(original, self.cfg.read_text())
 
     def test_fstab_does_not_accept_unknown_init_override(self):
         self.create(legacy='', modern=section('Skaldr OS','mitigations=off init=/bin/false'))

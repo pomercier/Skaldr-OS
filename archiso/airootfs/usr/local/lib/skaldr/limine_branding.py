@@ -289,6 +289,21 @@ def reconcile_limine_menu(root=Path("/")):
     if new is None:
         return "no-skaldr-group"  # Keep upstream's working fallback.
     modern_entries = _entries(sections[new])
+    # Even already-populated entries must agree with the installed filesystem.
+    # Otherwise a plausible-looking stale root= could silently boot another
+    # partition or a wrong Btrfs subvolume.
+    installed = _installed_root_arguments(root)
+    if installed is not None and modern_entries:
+        rootarg, flagarg = installed
+        for entry in modern_entries.values():
+            tokens = entry["cmdline"][0].split()
+            roots = [x for x in tokens if x.startswith("root=")]
+            flags = [x for x in tokens if x.startswith("rootflags=")]
+            if (len(roots) > 1 or len(flags) > 1 or
+                    (roots and roots[0] != rootarg) or
+                    (flags and flags[0] != flagarg)):
+                raise RuntimeError(
+                    "Skaldr Limine root arguments conflict with installed Btrfs fstab")
     fstab_repaired = False
     if not modern_entries or not all(
             len([token for token in entry["cmdline"][0].split()
