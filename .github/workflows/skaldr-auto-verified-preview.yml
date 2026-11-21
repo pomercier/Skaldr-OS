@@ -138,7 +138,8 @@ jobs:
         run: |
           set -euo pipefail
           # No duplicate preview for the same tested source SHA.
-          if gh api --paginate "repos/$REPO/releases?per_page=100"             --jq '.[] | select(.target_commitish == env.SOURCE_SHA) | .tag_name'             | grep -q .; then
+          gh api "repos/$REPO/releases?per_page=100" --jq '.[] | .target_commitish' > "$RUNNER_TEMP/skaldr-release-targets.txt"
+          if grep -Fxq "$SOURCE_SHA" "$RUNNER_TEMP/skaldr-release-targets.txt"; then
             echo "::notice::An ISO preview for this tested commit is already public."
             exit 0
           fi
