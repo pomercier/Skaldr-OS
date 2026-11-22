@@ -30,6 +30,8 @@ on:
       - 'scripts/skaldr-ci-installed-rollback.sh'
       - 'scripts/skaldr-find-btrfs-partition.py'
       - 'testcases/cachyos/dailylive/test_install_calamares'
+      # Changes to the Limine installation regression suite must be validated in a VM.
+      - 'tests/test_limine_branding.py'
   pull_request:
 
 concurrency:
