@@ -97,7 +97,7 @@ def _recover_verified_root_arguments(legacy, modern):
     matches = list(CHILD.finditer(modern))
     rebuilt = [modern[:matches[0].start()]]
     for i, match in enumerate(matches):
-        name = match.group()[2:].lstrip("+-").strip()
+        name = match.group().lstrip()[2:].lstrip("+-").strip()
         before = old[name]
         after = new[name]
         if (before["path"] != after["path"] or
@@ -222,7 +222,7 @@ def _recover_root_from_installed_fstab(root, modern):
                           "rd.break", "break=", "rootfstype=")
     equivalent_btrfs_rootflags = {flagarg, "rootflags=subvol=@"}
     for i, match in enumerate(matches):
-        name = match.group()[2:].lstrip("+-").strip()
+        name = match.group().lstrip()[2:].lstrip("+-").strip()
         tokens = entries[name]["cmdline"][0].split()
         if len(tokens) != len(set(tokens)):
             return None
