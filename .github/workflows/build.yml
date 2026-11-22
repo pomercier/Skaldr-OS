@@ -10,6 +10,8 @@ on:
     paths:
       - 'VERSION'
       - '.github/workflows/build.yml'
+      # Publication gate changes must rebuild and revalidate the exact source revision.
+      - '.github/workflows/skaldr-auto-verified-preview.yml'
       - 'assets/**'
       - 'archiso/**'
       - 'buildiso.sh'
