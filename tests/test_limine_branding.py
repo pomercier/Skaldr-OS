@@ -1,5 +1,7 @@
 from pathlib import Path
 import importlib.util
+import contextlib
+import io
 import tempfile
 import unittest
 
@@ -133,6 +135,25 @@ class BrandingTests(unittest.TestCase):
                     modern=section('Skaldr OS','mitigations=off'))
         with self.assertRaisesRegex(RuntimeError,'no safe fallback'):
             lib.reconcile_limine_menu(self.root)
+
+    def test_unparsed_limine_section_is_logged_without_mutation(self):
+        # Calamares may generate an entry format the strict parser rejects.
+        # Preserve the original menu and print its structure for CI diagnosis.
+        malformed = ('/+Skaldr OS\\n'
+                     '//linux-cachyos\\n'
+                     '    protocol: linux\\n'
+                     '    path: boot():/vmlinuz\\n'
+                     '    cmdline: quiet\\n')
+        self.create(legacy='', modern=malformed)
+        self.create_fstab()
+        before = self.cfg.read_text()
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            with self.assertRaisesRegex(RuntimeError, 'no safe fallback'):
+                lib.reconcile_limine_menu(self.root)
+        self.assertIn('Skaldr: unparsed Limine /+Skaldr OS section', output.getvalue())
+        self.assertIn('Skaldr: limine-config:     cmdline: quiet', output.getvalue())
+        self.assertEqual(self.cfg.read_text(), before)
 
     def test_missing_root_in_both_groups_fails_without_changes(self):
         self.create(legacy=section('CachyOS','quiet nowatchdog'),
