@@ -153,11 +153,11 @@ class BrandingTests(unittest.TestCase):
     def test_unparsed_limine_section_is_logged_without_mutation(self):
         # Calamares may generate an entry format the strict parser rejects.
         # Preserve the original menu and print its structure for CI diagnosis.
-        malformed = ('/+Skaldr OS\\n'
-                     '//linux-cachyos\\n'
-                     '    protocol: linux\\n'
-                     '    path: boot():/vmlinuz\\n'
-                     '    cmdline: quiet\\n')
+        malformed = ('/+Skaldr OS\n'
+                     '//linux-cachyos\n'
+                     '    protocol: linux\n'
+                     '    path: boot():/vmlinuz\n'
+                     '    cmdline: quiet\n')
         self.create(legacy='', modern=malformed)
         self.create_fstab()
         before = self.cfg.read_text()
