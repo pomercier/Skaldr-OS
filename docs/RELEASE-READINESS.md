@@ -1,9 +1,8 @@
 # Release readiness: evidence before stability
 
-Skaldr OS **v0.1.0-preview.3** is a real, published, VM-tested development preview.
+Skaldr OS **v0.1.0-preview.140** is the latest real, published, VM-tested development preview ([5/5 ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/45004943482), [independent public reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45007754535)).
 It is **not** certified on physical hardware. Its exact public ISO was independently
-reconstructed and matched SHA-256. The three links to those CI runs are pinned in
-[RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json).
+reconstructed and matched SHA-256. The existing [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json) is a historical evidence register; it must not be interpreted as proof of physical hardware testing.
 
 ## Machine-readable status
 
@@ -46,8 +45,7 @@ QEMU passed. Scrub private identifiers from public reports.
 
 **Even when every field is filled**, the script never authorizes a release.
 The existing `skaldr-release.yml` continues to block stable publication until
-a separate human review changes that explicit policy. Preview.3 and its hashes
-must not be overwritten or silently replaced.
+a separate human review changes that explicit policy. Published previews and their checksums must not be overwritten or silently replaced.
 
 A privacy-limited `skaldr-hardware-probe` command is included in newer
 development ISO sources to assist real hardware testing. It **does not** run

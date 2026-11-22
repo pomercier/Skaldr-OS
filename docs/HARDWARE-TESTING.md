@@ -1,16 +1,17 @@
 # Skaldr OS — physical hardware validation
 
 **Newest publicly released and VM-validated ISO:**
-[Skaldr OS v0.1.0-preview.3](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3),
-published November 18, 2026. It contains the exact dev.149 image described below
-and is available as seven permanent GitHub Release assets. All seven were
-independently downloaded, checked and reconstructed with matching SHA-256
-([verification run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997)).
+[Skaldr OS v0.1.0-preview.140](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.140),
+published November 22, 2026. It contains the exact dev.204 ISO from
+[commit 39500e56](https://github.com/pomercier/Skaldr-OS/commit/39500e565d7a1ff2cd5ed0887bb7d3b316e9b44a),
+with [five successful ISO/VM jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45004943482)
+and [independent public download and ISO SHA-256 reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45007754535).
+All seven release files must be downloaded together.
 Independently verify
 all three parts and the complete ISO SHA-256 with the bundled
 `reassemble-skaldr-iso.py` before writing any USB drive.
 
-**Exact development image (November 17, 2026):**
+**Archived development image (November 17, 2026):**
 [`skaldr-0.1.0-dev.149-x86_64.iso`](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284698/artifacts/14364619884)
 from exact Skaldr commit `1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f`.
 This CI artifact passed [154/154 source checks](https://github.com/pomercier/Skaldr-OS/actions/runs/44164284682)
@@ -36,13 +37,13 @@ The older preview.2 assets were independently reconstructed on
 [run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008);
 the newer **preview.3** public assets passed the same independent reconstruction
 on [run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997).
-The latter is the current reference for hands-on testing.
+The current reference for hands-on testing is preview.140, not preview.3.
 
 ## Before installing
 
 - [ ] Use a spare computer or disposable test SSD, **not the only system drive**.
 - [ ] Verify independent data backups and keep a bootable rescue medium.
-- [ ] Download the permanent [v0.1.0-preview.3 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3), **all seven files**: the three `dev.149` ISO parts, `SHA256SUMS`, `SHA256SUMS.parts`, `ASSEMBLE.txt` and `reassemble-skaldr-iso.py`.
+- [ ] Download the permanent [v0.1.0-preview.140 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.140), **all seven files**: the three `dev.204` ISO parts, `SHA256SUMS`, `SHA256SUMS.parts`, `ASSEMBLE.txt` and `reassemble-skaldr-iso.py`.
 - [ ] Keep the seven files together, reconstruct and verify:
   
 ```sh
@@ -50,11 +51,9 @@ python3 reassemble-skaldr-iso.py reassemble --directory .
 sha256sum -c SHA256SUMS
 ```
 
-- [ ] Confirm exact full ISO SHA-256:
-  `e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9`
-  (4,194,566,144 bytes). **Never flash a split `.partNNN` file.**
+- [ ] Verify the complete ISO against the `SHA256SUMS` file from preview.140. **Never flash a split `.partNNN` file.**
 - [ ] Consult the [machine-readable release evidence and stable blockers](RELEASE-READINESS.md). A passing VM job is not proof of physical compatibility.
-- [ ] Never mix assets from preview.1, preview.2 and preview.3.
+- [ ] Never mix assets from different preview versions.
 
 - [ ] Record CPU, RAM, GPU model/vendor, storage, firmware UEFI/BIOS mode and
       Secure Boot state before testing.
@@ -79,8 +78,7 @@ sha256sum -c SHA256SUMS
 
 **For upcoming development builds** containing the tool, use `skaldr-hardware-probe`
 or `skaldr-hardware-probe --write ~/skaldr-hardware.json` on the actual system.
-The existing **preview.3 does not contain this new tool**; the first later
-fully validated ISO that includes the commit may be used instead. The probe is
+The archived preview.3 does not contain this tool. Verify it is present in the installed system before attempting to run it. The probe is
 read-only, does not need root privileges, uploads nothing and writes new reports
 with private file permissions. It records broad GPU vendor families, boot mode,
 RAM, session and exact Skaldr revision while deliberately omitting identifying
