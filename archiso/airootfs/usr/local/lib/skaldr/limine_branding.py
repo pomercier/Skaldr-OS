@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 
 ROOT = re.compile(r"(?m)^/(?!/)[^\r\n]+$")
-CHILD = re.compile(r"(?m)^//(?!/)[^\r\n]+$")
+CHILD = re.compile(r"(?m)^[ \t]*//(?!/)[^\r\n]+$")
 FIELD = re.compile(r"(?m)^[ \t]*([a-z_]+):[ \t]*([^\r\n]*)$")
 THEME = {
     "interface_branding": "SKALDR OS  |  PERFORMANCE BY INTENTION",
@@ -26,7 +26,7 @@ def _entries(group):
         return None
     result = {}
     for i, match in enumerate(matches):
-        name = match.group()[2:].lstrip("+-").strip()
+        name = match.group().lstrip()[2:].lstrip("+-").strip()
         block = group[match.end():matches[i + 1].start() if i + 1 < len(matches) else len(group)]
         fields = {}
         for field in FIELD.finditer(block):
