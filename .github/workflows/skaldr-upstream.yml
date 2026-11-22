@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: skaldr-upstream-master
@@ -45,6 +46,7 @@ jobs:
           git branch -r
 
       - name: Merge upstream changes safely
+        id: merge
         shell: bash
         env:
           UPSTREAM_BRANCH: ${{ steps.upstream.outputs.branch }}
@@ -54,6 +56,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git merge-base --is-ancestor "cachyos/$UPSTREAM_BRANCH" HEAD; then
             echo "Already up to date with upstream."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if ! git merge --no-edit --no-ff \
@@ -79,4 +82,17 @@ jobs:
             bash -n "$file"
           done
           git push origin HEAD:master
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "Upstream changes merged and pushed to master."
+
+      - name: Explicitly validate the merged commit despite GITHUB_TOKEN push suppression
+        if: steps.merge.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ steps.merge.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          bash scripts/skaldr-dispatch-upstream-validation.sh "$SOURCE_SHA"

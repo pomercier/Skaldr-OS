@@ -19,7 +19,8 @@ jobs:
   gate-and-dispatch:
     if: >-
       github.repository == 'pomercier/Skaldr-OS' &&
-      github.event.workflow_run.event == 'push' &&
+      (github.event.workflow_run.event == 'push' ||
+       github.event.workflow_run.event == 'workflow_dispatch') &&
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
@@ -80,6 +81,8 @@ jobs:
                     'Testing (bios / live)', 'Verify full-size ISO preview reconstruction'}
           assert run['conclusion']=='success' and run['status']=='completed'
           assert run['head_sha']==os.environ['SOURCE_SHA']
+          assert run['event'] in ('push', 'workflow_dispatch')
+          assert run['head_branch']=='master'
           assert expected.issubset({job['name'] for job in jobs if job['conclusion']=='success'})
           assert all(job['conclusion']=='success' for job in jobs)
           print('Verified 5/5 real ISO construction, installation and reconstruction jobs.')

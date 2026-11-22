@@ -34,6 +34,7 @@ jobs:
                         scripts/skaldr-make-wallpaper.sh \
                         scripts/skaldr-stage-artcraft.sh \
                         scripts/skaldr-discover-upstream.sh \
+                        scripts/skaldr-dispatch-upstream-validation.sh \
                         archiso/airootfs/usr/local/bin/skaldr-live-installer \
                         archiso/airootfs/usr/local/bin/skaldr-theme \
                         util-iso.sh \
