@@ -351,6 +351,14 @@ def reconcile_limine_menu(root=Path("/")):
                         print("Skaldr: Limine " + label + " cmdlines: " +
                               repr([entry["cmdline"][0]
                                     for entry in entries.values()]), flush=True)
+                    elif label in ("/+Skaldr OS", "/+CachyOS"):
+                        # Capture the actual generated entry structure when
+                        # the strict parser cannot recognize it. The CI serial
+                        # log must contain enough evidence to fix the parser.
+                        print("Skaldr: unparsed Limine " + label +
+                              " section (first 120 lines):", flush=True)
+                        for line in block.splitlines()[:120]:
+                            print("Skaldr: limine-config: " + line, flush=True)
                 raise RuntimeError("Skaldr Limine entries lack exactly one root= parameter; "
                                    "no safe fallback menu with consistent roots")
             header = _update_global(header, "default_entry", "CachyOS/" + fallback)
