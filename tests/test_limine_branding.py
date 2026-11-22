@@ -136,6 +136,20 @@ class BrandingTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'no safe fallback'):
             lib.reconcile_limine_menu(self.root)
 
+    def test_real_indented_limine_entry_tool_sections_reconcile(self):
+        # Real Calamares serial evidence: limine-entry-tool indents //kernel
+        # under /+Skaldr OS and uses indented path/module_path/cmdline.
+        modern = section('Skaldr OS', 'quiet nowatchdog rw mitigations=off')
+        modern = modern.replace('//linux-cachyos', '  //linux-cachyos')
+        self.create(legacy='', modern=modern)
+        self.create_fstab()
+        self.assertEqual(lib.reconcile_limine_menu(self.root), 'already-skaldr')
+        updated = self.cfg.read_text()
+        self.assertEqual(updated.count('root=UUID=' + UUID), 2)
+        self.assertIn('  //linux-cachyos', updated)
+        self.assertIn('default_entry: Skaldr OS/linux-cachyos', updated)
+        self.assertEqual(lib.reconcile_limine_menu(self.root), 'already-skaldr')
+
     def test_unparsed_limine_section_is_logged_without_mutation(self):
         # Calamares may generate an entry format the strict parser rejects.
         # Preserve the original menu and print its structure for CI diagnosis.
