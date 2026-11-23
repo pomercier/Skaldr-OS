@@ -50,6 +50,22 @@ function test_ci_cpu_model() {
     [[ "$model" == "Haswell-v4" ]] || qt_test_fail "CPU validation: expected Haswell-v4 (x86-64-v3 ABI), received $model"
 }
 
+function test_post_boot_bios() {
+    # The legacy BIOS install starts from the Syslinux live ISO and must
+    # remain BIOS-only after the installed disk takes over.
+    local pid_file="${QUICKEMU_VM_DIR}/cachyos-dailylive/cachyos-dailylive.pid"
+    [[ -s "$pid_file" ]] || qt_test_fail "Legacy BIOS QEMU process missing"
+    local pid
+    pid="$(cat "$pid_file")"
+    [[ -r "/proc/$pid/cmdline" ]] || qt_test_fail "Missing legacy QEMU command"
+    if grep -aEiq 'OVMF|edk2.*pflash' "/proc/$pid/cmdline"; then
+        qt_test_fail "Requested legacy BIOS install launched with UEFI firmware"
+    fi
+    qt_echo "Boot actual Syslinux live ISO through legacy BIOS"
+    qt_wait_for_seconds 5
+    qt_send_key_combo "ret"
+}
+
 function test_post_boot_grub() {
     qt_wait_for_seconds 5
     qt_wait_for_text "$FUNCNAME" "GNU GRUB" 3 5
@@ -236,6 +252,10 @@ function test_installed_system_cold_boot() {
     [[ -r "/proc/$qemu_pid/cmdline" ]] || qt_test_fail "Second-boot QEMU process missing"
     if grep -aFq '.iso' "/proc/$qemu_pid/cmdline"; then
         qt_test_fail "Second boot still has live installer ISO attached"
+    fi
+    if [[ "${TEST_FIRMWARE:-uefi}" == "bios" ]] &&
+       grep -aEiq 'OVMF|edk2.*pflash' "/proc/$qemu_pid/cmdline"; then
+        qt_test_fail "Legacy installed system unexpectedly rebooted under UEFI"
     fi
 
     # The installed greeter is visible, but OCR can miss its low-contrast
@@ -470,7 +490,11 @@ function test_install_calamares() {
     test_input_validation
     test_setup
     test_ci_cpu_model
-    test_post_boot_grub
+    if [[ "${TEST_FIRMWARE:-uefi}" == "bios" ]]; then
+        test_post_boot_bios
+    else
+        test_post_boot_grub
+    fi
     test_launch_calamares
     test_calamares_welcome
     test_calamares_location

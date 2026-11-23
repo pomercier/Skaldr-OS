@@ -43,6 +43,7 @@ on:
       - 'scripts/skaldr-ci-installed-rollback.sh'
       - 'scripts/skaldr-find-btrfs-partition.py'
       - 'testcases/cachyos/dailylive/test_install_calamares'
+      - 'tests/test_bios_installed_matrix.py'
       # Changes to the Limine installation regression suite must be validated in a VM.
       - 'tests/test_limine_branding.py'
       - 'tests/test_release_assets.py'
@@ -215,10 +216,17 @@ jobs:
         include:
           - bootloader: grub
             filesystem: ext4
+            firmware: uefi
           - bootloader: limine
             filesystem: btrfs
+            firmware: uefi
           - bootloader: bios
             filesystem: live
+            firmware: bios
+          # An actual legacy BIOS installation, not just a Syslinux live boot.
+          - bootloader: grub-bios
+            filesystem: ext4
+            firmware: bios
     steps:
       - name: Clone CachyOS-Live-ISO
         id: clone
@@ -286,10 +294,12 @@ jobs:
           ) &
           serial_pid=$!
           trap 'kill "$serial_pid" 2>/dev/null || :; mkdir -p results/ci; cp "$log_file" results/ci/installer-serial.log || :' EXIT
-          if [ "${{ matrix.bootloader }}" = "bios" ]; then
-            # Quickemu defaults to UEFI. Override only this matrix job;
-            # GRUB/ext4 and Limine/Btrfs installation checks remain UEFI.
+          if [ "${{ matrix.firmware }}" = "bios" ]; then
+            # Legacy firmware is required by both the live smoke test and
+            # the new real GRUB/ext4 BIOS installation test.
             printf '\nboot="legacy"\n' >> machines/cachyos-dailylive.conf
+          fi
+          if [ "${{ matrix.bootloader }}" = "bios" ]; then
             ./quicktest/quicktest test_live_bios cachyos dailylive
           else
             ./quicktest/quicktest test_install_calamares cachyos dailylive
@@ -325,8 +335,9 @@ jobs:
           QT_TESTCASES_DIR: "./testcases"
           QUICKEMU_DISPLAY: "none"
           QUICKEMU_VM_DIR: "./machines"
-          TEST_BOOTLOADER: "${{ matrix.bootloader }}"
+          TEST_BOOTLOADER: "${{ matrix.bootloader == 'grub-bios' && 'grub' || matrix.bootloader }}"
           TEST_FILESYSTEM: "${{ matrix.filesystem }}"
+          TEST_FIRMWARE: "${{ matrix.firmware }}"
 
       - name: Index Quicktest recordings and sample visual frames
         if: always()
