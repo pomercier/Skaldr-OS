@@ -27,6 +27,10 @@ python3 scripts/skaldr-release-readiness.py --require-stable-evidence
 ```
 
 The final command intentionally fails while required tests have no evidence.
+The readiness report validates the recorded release-candidate SHA-256, source
+revision, ISO name and evidence URL as **offline metadata only**. It explicitly
+marks `release_candidate_is_stable` as `false`. This is not a fresh
+re-download or proof of physical hardware testing.
 The [readiness workflow](../.github/workflows/skaldr-readiness.yml) publishes
 the same *offline* assessment as a small GitHub Actions artifact and in its run
 summary; the larger Desktop ISO build is not required. A valid link or recorded

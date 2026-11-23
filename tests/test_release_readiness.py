@@ -20,6 +20,29 @@ class ReadinessTests(unittest.TestCase):
         self.assertIn("nvidia_physical", report["stable_blockers"])
         self.assertIn("release_mode_iso", report["stable_blockers"])
 
+    def test_verified_candidate_metadata_does_not_certify_stable(self):
+        report = EVALUATE(EVIDENCE)
+        self.assertTrue(report["recorded_release_candidate_metadata_valid"])
+        self.assertEqual(report["release_candidate_metadata_errors"], [])
+        self.assertFalse(report["release_candidate_is_stable"])
+        self.assertFalse(report["stable_evidence_complete"])
+
+    def test_invalid_candidate_provenance_fails_closed(self):
+        data = copy.deepcopy(EVIDENCE)
+        data["release_candidate"]["source_sha"] = "unknown"
+        report = EVALUATE(data)
+        self.assertFalse(report["recorded_release_candidate_metadata_valid"])
+        self.assertIn("Invalid release candidate source_sha", report["release_candidate_metadata_errors"])
+
+    def test_candidate_cannot_use_development_iso_hash(self):
+        data = copy.deepcopy(EVIDENCE)
+        data["release_candidate"]["iso_sha256"] = data["preview"]["iso_sha256"]
+        report = EVALUATE(data)
+        self.assertIn(
+            "Release candidate must not reuse development ISO checksum",
+            report["release_candidate_metadata_errors"],
+        )
+
     def test_missing_proof_is_not_a_pass(self):
         data = copy.deepcopy(EVIDENCE)
         data["stable"]["nvidia_physical"]["status"] = "pass"

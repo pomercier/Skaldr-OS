@@ -33,6 +33,7 @@ jobs:
               '## Skaldr OS release readiness (recorded evidence)',
               f"Preview: {report['preview_tag']}",
               f"Stable evidence complete: {report['stable_evidence_complete']}",
+              f"Release candidate metadata valid (NOT stable): {report['recorded_release_candidate_metadata_valid']}",
               f"Outstanding checks: {len(report['stable_blockers'])}",
               '',
               'This is NOT a physical test or permission to publish stable.'
