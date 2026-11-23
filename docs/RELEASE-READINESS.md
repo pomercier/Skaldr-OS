@@ -1,8 +1,8 @@
 # Release readiness: evidence before stability
 
-Skaldr OS **v0.1.0-preview.140** is the latest real, published, VM-tested development preview ([5/5 ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/45004943482), [independent public reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45007754535)).
+Skaldr OS **v0.1.0-preview.142** is the latest real, published, VM-tested development preview ([5/5 ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/45095760918), [independent public reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45099745890)).
 It is **not** certified on physical hardware. Its exact public ISO was independently
-reconstructed and matched SHA-256. The existing [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json) is a historical evidence register; it must not be interpreted as proof of physical hardware testing.
+reconstructed and matched SHA-256. The [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json) preview record now identifies the exact November 23 tested ISO, its SHA-256, and its source, VM and public-download CI evidence. The stable section deliberately remains untested and must not be interpreted as proof of physical hardware testing.
 
 ## Machine-readable status
 
@@ -20,7 +20,7 @@ the same *offline* assessment as a small GitHub Actions artifact and in its run
 summary; the larger Desktop ISO build is not required. A valid link or recorded
 `pass` is not independently re-tested by this script.
 
-## Promotion gate for v0.1.0 stable
+## Promotion gate for v1.0.0 stable
 
 Before considering any stable tag, **perform and review** every required test:
 
