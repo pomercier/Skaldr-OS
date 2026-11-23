@@ -1,0 +1,28 @@
+# Release-mode qualification runs the SAME real Calamares/VM and checksum
+# matrix as the development ISO, but it never publishes a stable release.
+name: Skaldr release-mode ISO qualification
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/skaldr-release-candidate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: skaldr-release-mode-qualification
+  cancel-in-progress: false
+
+jobs:
+  real_release_mode_iso:
+    name: Build and qualify release-mode image without publication
+    uses: ./.github/workflows/build.yml
+    with:
+      release_mode: true
+    permissions:
+      contents: read
+      actions: read

@@ -1,6 +1,19 @@
 name: Desktop ISO
 on:
+  workflow_call:
+    inputs:
+      release_mode:
+        description: 'Qualify a release-mode ISO without publishing a stable release'
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
+    inputs:
+      release_mode:
+        description: 'Qualify a release-mode ISO without publishing a stable release'
+        type: boolean
+        required: false
+        default: false
   push:
     branches: [master]
     # Rebuild the multi-GB ISO ONLY when its sources, branding, build tools
@@ -119,7 +132,39 @@ jobs:
       - name: Build ISO (${{ steps.date.outputs.builddate }})
         id: build
         run: |
-          sudo -H -E -u builder env SKALDR_CALAMARES_REPO="$GITHUB_WORKSPACE/.skaldr-local" ./buildiso.sh
+          if [[ "${{ inputs.release_mode }}" == "true" ]]; then
+            version="$(tr -d '\r\n' < VERSION)"
+            [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+              echo "::error::Invalid release-mode version"; exit 1;
+            }
+            echo "Building a TEST-ONLY release-mode ISO; stable publication is NOT authorized."
+            sudo -H -E -u builder env SKALDR_CALAMARES_REPO="$GITHUB_WORKSPACE/.skaldr-local" SKALDR_RELEASE_VERSION="$version" ./buildiso.sh
+          else
+            sudo -H -E -u builder env SKALDR_CALAMARES_REPO="$GITHUB_WORKSPACE/.skaldr-local" ./buildiso.sh
+          fi
+
+      - name: Verify test-only release-mode ISO identity
+        if: ${{ inputs.release_mode == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          test -s "out/desktop/skaldr-${version}-x86_64.iso"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          version = Path("VERSION").read_text(encoding="utf-8").strip()
+          expected_iso = Path("out/desktop") / f"skaldr-{version}-x86_64.iso"
+          metadata_path = Path("build/archiso/airootfs/usr/share/skaldr/build.json")
+          metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+          assert expected_iso.is_file() and expected_iso.stat().st_size > 0
+          assert metadata["development"] is False, "A release-mode image must not carry a dev marker"
+          assert metadata["version"] == metadata["iso_version"] == version
+          assert metadata["git_revision"] == os.environ["GITHUB_SHA"]
+          print("Release-mode identity, source revision and ISO name verified.")
+          PY
 
       - name: Generate SHA256 checksums and source provenance
         shell: bash
@@ -144,7 +189,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: skaldr-os-x86_64-${{ steps.date.outputs.builddate }}
+          name: skaldr-os-${{ inputs.release_mode && 'release-candidate' || 'x86_64' }}-${{ steps.date.outputs.builddate }}
           path: out/desktop/*
           # The ISO is already SquashFS-compressed. Avoid expensive ZIP
           # recompression of a multi-gigabyte build on every CI run.
@@ -313,7 +358,7 @@ jobs:
       - name: Download this run's exact ISO and original checksum
         uses: actions/download-artifact@v4
         with:
-          name: skaldr-os-x86_64-${{ needs.build.outputs.builddate }}
+          name: skaldr-os-${{ inputs.release_mode && 'release-candidate' || 'x86_64' }}-${{ needs.build.outputs.builddate }}
           path: ci-artifacts
 
       - name: Verify, split, and reconstruct the actual multi-gigabyte ISO

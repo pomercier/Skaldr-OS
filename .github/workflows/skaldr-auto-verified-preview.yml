@@ -79,6 +79,13 @@ jobs:
           jobs=json.loads((root/'skaldr-jobs.json').read_text())['jobs']
           expected={'Build', 'Testing (grub / ext4)', 'Testing (limine / btrfs)',
                     'Testing (bios / live)', 'Verify full-size ISO preview reconstruction'}
+          # Refuse release-mode qualifications from the development preview pipeline.
+          # A manually dispatched release_mode=true Desktop ISO must never become
+          # a development preview or bypass the separate stable-release gate.
+          inputs = run.get('inputs') or {}
+          assert str(inputs.get("release_mode", "false")).lower() != "true", (
+              "Release-mode ISO cannot be published as a development preview"
+          )
           assert run['conclusion']=='success' and run['status']=='completed'
           assert run['head_sha']==os.environ['SOURCE_SHA']
           assert run['event'] in ('push', 'workflow_dispatch')
