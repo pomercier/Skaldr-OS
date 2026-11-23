@@ -44,6 +44,7 @@ on:
       - 'scripts/skaldr-find-btrfs-partition.py'
       - 'testcases/cachyos/dailylive/test_install_calamares'
       - 'tests/test_bios_installed_matrix.py'
+      - 'tests/test_calamares_installed_rollback.py'
       # Changes to the Limine installation regression suite must be validated in a VM.
       - 'tests/test_limine_branding.py'
       - 'tests/test_release_assets.py'
