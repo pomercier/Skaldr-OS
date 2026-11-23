@@ -1,8 +1,20 @@
 # Release readiness: evidence before stability
 
-Skaldr OS **v0.1.0-preview.142** is the latest real, published, VM-tested development preview ([5/5 ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/45095760918), [independent public reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45099745890)).
+Skaldr OS **v0.1.0-preview.144** is the latest real, published, VM-tested development preview ([5/5 ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780889), [independent public reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45252577846)).
 It is **not** certified on physical hardware. Its exact public ISO was independently
 reconstructed and matched SHA-256. The [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json) preview record now identifies the exact November 23 tested ISO, its SHA-256, and its source, VM and public-download CI evidence. The stable section deliberately remains untested and must not be interpreted as proof of physical hardware testing.
+
+## Proven release-mode validation
+
+The [2026-11-23 qualification workflow](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780277)
+successfully built the non-development `skaldr-0.1.0-x86_64.iso` and passed
+its complete five-job real-VM installation and SHA-256 verification matrix.
+The source revision is `bb8939175b24f4ebf30309081603bfa08d650d5d` and the candidate ISO hash is
+`32f2bb6d02d90378bcd2250a24404b810ddc7239df00e28c0a48436e8d3b148b`.
+This is a pre-v1 release-mode **qualification**, not a `v1.0.0` stable build;
+the stable `release_mode_iso` field remains blocked pending a separately
+pinned v1 release build and appropriate physical testing. Do not interpret
+a green workflow as hardware certification.
 
 ## Machine-readable status
 

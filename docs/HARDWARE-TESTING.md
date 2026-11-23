@@ -1,11 +1,11 @@
 # Skaldr OS — physical hardware validation
 
 **Newest publicly released and VM-validated ISO:**
-[Skaldr OS v0.1.0-preview.142](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.142),
-published November 23, 2026. It contains the exact dev.207 ISO from
-[commit c774e58](https://github.com/pomercier/Skaldr-OS/commit/c774e580ccc7302164518dec0f8426d12bb14266),
-with [five successful ISO/VM jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45095760918)
-and [independent public download and ISO SHA-256 reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45099745890).
+[Skaldr OS v0.1.0-preview.144](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.144),
+published November 23, 2026. It contains the exact dev.217 ISO from
+[commit bb89391](https://github.com/pomercier/Skaldr-OS/commit/bb8939175b24f4ebf30309081603bfa08d650d5d),
+with [five successful ISO/VM jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780889)
+and [independent public download and ISO SHA-256 reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45252577846).
 All seven release files must be downloaded together.
 Independently verify
 all three parts and the complete ISO SHA-256 with the bundled
@@ -37,13 +37,23 @@ The older preview.2 assets were independently reconstructed on
 [run 43996058008](https://github.com/pomercier/Skaldr-OS/actions/runs/43996058008);
 the newer **preview.3** public assets passed the same independent reconstruction
 on [run 44389469997](https://github.com/pomercier/Skaldr-OS/actions/runs/44389469997).
-The current reference for hands-on testing is preview.142, not preview.3.
+The current reference for hands-on testing is preview.144, not preview.3.
+
+## Separate release-mode VM qualification
+
+A [release-mode ISO matrix](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780277)
+passed five CI jobs on November 23, 2026: `skaldr-0.1.0-x86_64.iso`,
+source `bb8939175b24f4ebf30309081603bfa08d650d5d`, full-image SHA-256
+`32f2bb6d02d90378bcd2250a24404b810ddc7239df00e28c0a48436e8d3b148b`.
+This is not a stable v1 image and is not a substitute for the physical
+NVIDIA/AMD/Intel, suspend/resume and recovery test matrix below. The permanent
+public download remains the verified preview.144 release.
 
 ## Before installing
 
 - [ ] Use a spare computer or disposable test SSD, **not the only system drive**.
 - [ ] Verify independent data backups and keep a bootable rescue medium.
-- [ ] Download the permanent [v0.1.0-preview.142 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.142), **all seven files**: the three `dev.207` ISO parts, `SHA256SUMS`, `SHA256SUMS.parts`, `ASSEMBLE.txt` and `reassemble-skaldr-iso.py`.
+- [ ] Download the permanent [v0.1.0-preview.144 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.144), **all seven files**: the three `dev.217` ISO parts, `SHA256SUMS`, `SHA256SUMS.parts`, `ASSEMBLE.txt` and `reassemble-skaldr-iso.py`.
 - [ ] Keep the seven files together, reconstruct and verify:
   
 ```sh
@@ -51,7 +61,7 @@ python3 reassemble-skaldr-iso.py reassemble --directory .
 sha256sum -c SHA256SUMS
 ```
 
-- [ ] Verify the complete ISO against the `SHA256SUMS` file from preview.142. **Never flash a split `.partNNN` file.**
+- [ ] Verify the complete ISO against the `SHA256SUMS` file from preview.144. **Never flash a split `.partNNN` file.**
 - [ ] Consult the [machine-readable release evidence and stable blockers](RELEASE-READINESS.md). A passing VM job is not proof of physical compatibility.
 - [ ] Never mix assets from different preview versions.
 

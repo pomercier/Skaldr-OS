@@ -1,13 +1,13 @@
 {
   "schema": "skaldr.release-evidence.v1",
   "preview": {
-    "tag": "v0.1.0-preview.142",
-    "source_sha": "c774e580ccc7302164518dec0f8426d12bb14266",
-    "iso_sha256": "befdc31a58dc1637852d03301dd08057e9f97f9a5e5cc6ac5ffc232ab6292b8c",
+    "tag": "v0.1.0-preview.144",
+    "source_sha": "bb8939175b24f4ebf30309081603bfa08d650d5d",
+    "iso_sha256": "a4c956b798b0d28e07457563bb41129fc6ad54cf2482ce246f6c28025ecbefcf",
     "evidence": {
-      "source_tests": "https://github.com/pomercier/Skaldr-OS/actions/runs/45095760898",
-      "iso_matrix": "https://github.com/pomercier/Skaldr-OS/actions/runs/45095760918",
-      "public_reassembly": "https://github.com/pomercier/Skaldr-OS/actions/runs/45099745890"
+      "source_tests": "https://github.com/pomercier/Skaldr-OS/actions/runs/45245780286",
+      "iso_matrix": "https://github.com/pomercier/Skaldr-OS/actions/runs/45245780889",
+      "public_reassembly": "https://github.com/pomercier/Skaldr-OS/actions/runs/45252577846"
     }
   },
   "stable": {
@@ -68,5 +68,13 @@
       "status": "untested",
       "evidence_url": ""
     }
+  },
+  "release_candidate": {
+    "status": "vm_validated_not_hardware_certified",
+    "source_sha": "bb8939175b24f4ebf30309081603bfa08d650d5d",
+    "image": "skaldr-0.1.0-x86_64.iso",
+    "iso_sha256": "32f2bb6d02d90378bcd2250a24404b810ddc7239df00e28c0a48436e8d3b148b",
+    "ci_evidence": "https://github.com/pomercier/Skaldr-OS/actions/runs/45245780277",
+    "scope": "non-development 0.1.0 image; real QEMU installation, cold boot, KDE, rollback, ISO reassembly; no physical hardware certification and not a stable v1.0.0 image"
   }
 }
