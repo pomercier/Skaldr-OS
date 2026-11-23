@@ -153,7 +153,12 @@ class CalamaresInstalledRollbackTests(unittest.TestCase):
     def test_workflow_depends_on_real_qemu_and_btrfs_tools(self):
         workflow = WORKFLOW.read_text()
         self.assertIn('qemu-desktop socat btrfs-progs', workflow)
-        self.assertIn('TEST_BOOTLOADER: "${{ matrix.bootloader }}"', workflow)
+        self.assertIn(
+            'TEST_BOOTLOADER: "${{ matrix.bootloader == \'grub-bios\' && \'grub\' || matrix.bootloader }}"',
+            workflow,
+        )
+        self.assertIn('TEST_FIRMWARE: "${{ matrix.firmware }}"', workflow)
+        self.assertIn("bootloader: grub-bios", workflow)
         self.assertIn('TEST_FILESYSTEM: "${{ matrix.filesystem }}"', workflow)
         self.assertIn('QT_TESTCASES_DIR: "./testcases"', workflow)
         self.assertNotIn("SKIP_ROLLBACK", workflow)
