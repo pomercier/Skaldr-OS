@@ -21,7 +21,7 @@ OPTIONAL_DOCUMENTED = ("secure_boot", "encrypted_install")
 PROOF = re.compile(r"^https://[^\s]+$")
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
 SHA64 = re.compile(r"^[0-9a-f]{64}$")
-RELEASE_CANDIDATE_ISO = re.compile(r"^skaldr-[0-9]+\\.[0-9]+\\.[0-9]+-x86_64\\.iso$")
+RELEASE_CANDIDATE_ISO = re.compile(r"^skaldr-[0-9]+\.[0-9]+\.[0-9]+-x86_64\.iso$")
 TAG = re.compile(r"^v[0-9]+\.[0-9]+\.[0-9]+-preview\.[1-9][0-9]*$")
 
 
