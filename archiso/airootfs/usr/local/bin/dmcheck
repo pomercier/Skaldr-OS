@@ -15,19 +15,22 @@
 #
 ###############################################################################
 
-declare -A display_managers=(
-    ["ly"]=" /usr/lib/systemd/system/ly@.service"
-    ["plasma-login-manager"]="/usr/lib/systemd/system/plasmalogin.service"
-    ["sddm"]="/usr/lib/systemd/system/sddm.service"
-    ["gdm"]="/usr/lib/systemd/system/gdm.service"
-    ["cosmic-greeter"]="/usr/lib/systemd/system/cosmic-greeter.service"
-    ["lxdm"]="/usr/lib/systemd/system/lxdm.service"
-    ["lightdm"]="/usr/lib/systemd/system/lightdm.service"
-    ["noctalia-greeter"]="/usr/lib/systemd/system/greetd.service"
+# Prefer the KDE Plasma login manager, then SDDM as a compatibility fallback.
+# Use a fixed priority order and configure only one display manager.
+display_managers=(
+    "plasma-login-manager:/usr/lib/systemd/system/plasmalogin.service"
+    "sddm:/usr/lib/systemd/system/sddm.service"
+    "ly:/usr/lib/systemd/system/ly@.service"
+    "gdm:/usr/lib/systemd/system/gdm.service"
+    "cosmic-greeter:/usr/lib/systemd/system/cosmic-greeter.service"
+    "lightdm:/usr/lib/systemd/system/lightdm.service"
+    "lxdm:/usr/lib/systemd/system/lxdm.service"
+    "noctalia-greeter:/usr/lib/systemd/system/greetd.service"
 )
 
-while IFS= read -rd '' package; do
-    service="${display_managers[$package]}"
+for entry in "${display_managers[@]}"; do
+    package="${entry%%:*}"
+    service="${entry#*:}"
     if pacman -Q "$package" &>/dev/null; then
         if [[ "$package" == "ly" ]]; then
             rm -f /etc/systemd/system/getty.target.wants/getty@tty2.service
@@ -35,5 +38,6 @@ while IFS= read -rd '' package; do
         else
             ln -sf "$service" /etc/systemd/system/display-manager.service
         fi
+        break
     fi
-done < <(printf '%s\0' "${!display_managers[@]}" | sort -t '.' -n -k 1 -z)
+done
