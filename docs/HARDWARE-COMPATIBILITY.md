@@ -4,10 +4,14 @@ Skaldr OS is a personal fork, and compatibility is not established until a
 configuration has completed real, repeatable tests. This page is a
 **submission template, not a certified-device list**.
 
-For early development, contributors can submit updates as **pull requests**
-adding a test report under `docs/hardware-reports/` (GitHub Issues are
-currently disabled). Avoid serial numbers, account names, MAC addresses,
-IP addresses, registration keys and complete unredacted installation logs.
+The repository intentionally keeps **one branch (`master`)** and does not
+accept development/test/release branches or pull-request-based report collection.
+Testers should prepare a local, sanitized report and provide it directly to
+the maintainer using an agreed communication channel; only the maintainer
+may review and integrate approved evidence into `master`. GitHub Issues
+are currently disabled. Do not attach serial numbers, account names, MAC
+addresses, IP addresses, registration keys, credentials or complete
+unredacted installation logs.
 
 ## Test report template
 

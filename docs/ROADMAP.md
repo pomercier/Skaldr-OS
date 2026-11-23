@@ -1,4 +1,10 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / legacy BIOS installed boot:** The new SeaBIOS + GRUB/ext4
+  Calamares installation and cold reboot case is in
+  [full ISO qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702)
+  and [release-mode qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443).
+  Do not mark complete until the jobs succeed and confirm the installed system
+  boots without the ISO or UEFI firmware.
 
 - [x] **P0 / real release-mode VM matrix:** A distinct non-development ISO,
   `skaldr-0.1.0-x86_64.iso`, passed all five tests on `bb8939175b24f4ebf30309081603bfa08d650d5d`

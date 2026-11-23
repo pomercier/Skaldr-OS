@@ -6,10 +6,14 @@ source version, ISO hash and hypervisor before evaluating the result.
 
 ## Preparation
 
-- Use the permanent [preview.3 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.3)
-  or a newer fully validated developer artifact; never mix files from releases.
-- For preview.3, the exact ISO is `skaldr-0.1.0-dev.149-x86_64.iso` with
-  SHA-256 `e29503551ba643d93e5d0137c06ba0ea22dbeb55c6fde335537bebc7f92cd4f9`.
+- Use the permanently published [preview.144 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.144)
+  with its seven matching assets; never mix parts from different releases.
+- Preview.144 contains `skaldr-0.1.0-dev.217-x86_64.iso` from exact source
+  `bb8939175b24f4ebf30309081603bfa08d650d5d`, SHA-256
+  `a4c956b798b0d28e07457563bb41129fc6ad54cf2482ce246f6c28025ecbefcf`.
+  Its [five build/installation jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780889)
+  and [public ISO reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45252577846)
+  passed. Use the bundled reassembly script before the checksum command.
 - Verify with `sha256sum -c SHA256SUMS` from the directory containing
   the complete ISO and matching checksum manifest.
 - Use a disposable VM disk (at least 40 GiB) and allocate resources adequate
@@ -32,8 +36,13 @@ source version, ISO hash and hypervisor before evaluating the result.
 | 9. GUI | Control Center opens; ArtCraft launch is verified independently | UNTESTED |
 | 10. Restart | The installed system survives a full reboot | UNTESTED |
 
-Run two **separate fresh VM installations** for the combinations already
-tested in CI: UEFI + GRUB + ext4, and UEFI + Limine + Btrfs. Check recovery
+Run at least two **separate fresh VM installations** for the combinations
+already validated in CI: UEFI + GRUB + ext4, and UEFI + Limine + Btrfs.
+The legacy BIOS live boot is a separate proven test. A newly added SeaBIOS +
+GRUB + ext4 **installed-disk cold boot** is under CI qualification; keep it
+**UNTESTED** for this ISO until the full matrix actually succeeds.
+For every test, verify the QEMU firmware and ensure the installation ISO is
+detached before restarting from the installed disk. Check recovery
 of the Btrfs installation in a disposable clone only; never test rollback
 without an independent snapshot/disk backup.
 
