@@ -7,7 +7,32 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/skaldr-release-candidate.yml'
+      - 'VERSION'
       - '.github/workflows/build.yml'
+      - '.github/workflows/skaldr-auto-verified-preview.yml'
+      - 'assets/**'
+      - 'archiso/**'
+      - 'buildiso.sh'
+      - 'ci.build.sh'
+      - 'util*.sh'
+      - 'scripts/skaldr-build-calamares.sh'
+      - 'scripts/skaldr-stage-calamares-repo.py'
+      - 'scripts/skaldr-stage-artcraft.sh'
+      - 'scripts/skaldr-make-wallpaper.sh'
+      - 'scripts/skaldr-make-boot-splash.py'
+      - 'scripts/skaldr-version.py'
+      - 'scripts/skaldr-iso-audit.py'
+      - 'scripts/skaldr-release-assets.py'
+      - 'scripts/skaldr-visual-evidence.py'
+      - 'scripts/skaldr-qmp-click.py'
+      - 'scripts/skaldr-ci-installed-rollback.sh'
+      - 'scripts/skaldr-find-btrfs-partition.py'
+      - 'testcases/cachyos/dailylive/test_install_calamares'
+      - 'testcases/cachyos/dailylive/test_live_bios'
+      - 'tests/test_bios_installed_matrix.py'
+      - 'tests/test_calamares_installed_rollback.py'
+      - 'tests/test_limine_branding.py'
+      - 'tests/test_release_assets.py'
   workflow_dispatch:
 
 permissions:

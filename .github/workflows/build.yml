@@ -23,6 +23,7 @@ on:
     paths:
       - 'VERSION'
       - '.github/workflows/build.yml'
+      - '.github/workflows/skaldr-release-candidate.yml'
       # Publication gate changes must rebuild and revalidate the exact source revision.
       - '.github/workflows/skaldr-auto-verified-preview.yml'
       - 'assets/**'
@@ -43,6 +44,7 @@ on:
       - 'scripts/skaldr-ci-installed-rollback.sh'
       - 'scripts/skaldr-find-btrfs-partition.py'
       - 'testcases/cachyos/dailylive/test_install_calamares'
+      - 'testcases/cachyos/dailylive/test_live_bios'
       - 'tests/test_bios_installed_matrix.py'
       - 'tests/test_calamares_installed_rollback.py'
       # Changes to the Limine installation regression suite must be validated in a VM.
