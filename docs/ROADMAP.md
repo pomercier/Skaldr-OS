@@ -1,8 +1,9 @@
 # Skaldr OS implementation plan
 - [x] **P0 / legacy BIOS installed boot:** [development ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702) and [release-mode ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443) completed on `38c3b8560b43aa2e450d9cb9f16ff1d908a57685`, including SeaBIOS + GRUB/ext4 Calamares installation, installed-disk cold boot, authenticated KDE login and Control Center. Physical BIOS hardware remains untested.
 - [x] **P0 / real release-mode VM matrix:** A distinct non-development ISO,
-  `skaldr-0.1.0-x86_64.iso`, passed all five tests on `b434fbb83aee635815160b6189d0b4bba585c845`
-  ([run 45245780277](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780277)).
+  `skaldr-0.1.0-x86_64.iso`, passed all six tests on `59833daa8d1922bbdd21dafee5f840ab4976973f`
+  ([run 45425424041](https://github.com/pomercier/Skaldr-OS/actions/runs/45425424041)),
+  SHA-256 `feb1790ff1768486faad5f4a30302a755975d3382148c925bb1b09bbd8e04b98`.
   This is **not** the stable v1.0.0 artifact; independent physical tests and a
   separately pinned v1 build remain required.
 - [x] **P0 / newest public preview:** `v0.1.0-preview.148` passed

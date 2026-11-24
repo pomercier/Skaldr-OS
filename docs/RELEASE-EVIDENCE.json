@@ -71,10 +71,10 @@
   },
   "release_candidate": {
     "status": "vm_validated_not_hardware_certified",
-    "source_sha": "38c3b8560b43aa2e450d9cb9f16ff1d908a57685",
+    "source_sha": "59833daa8d1922bbdd21dafee5f840ab4976973f",
     "image": "skaldr-0.1.0-x86_64.iso",
-    "iso_sha256": "73c72d946241760cb7ba408d0684df8e103cb2fe5b7a48f1768a7f27c841f8f4",
-    "ci_evidence": "https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443",
-    "scope": "6/6 real VM CI jobs: UEFI GRUB/ext4, UEFI Limine/Btrfs, BIOS GRUB/ext4 installed cold boot and KDE login, BIOS live, Btrfs rollback, ISO SHA256 reassembly. Not stable, physical hardware untested."
+    "iso_sha256": "feb1790ff1768486faad5f4a30302a755975d3382148c925bb1b09bbd8e04b98",
+    "ci_evidence": "https://github.com/pomercier/Skaldr-OS/actions/runs/45425424041",
+    "scope": "All six real CI VM jobs passed on source 59833daa: UEFI GRUB/ext4, UEFI Limine/Btrfs, installed GRUB/ext4 legacy BIOS cold boot with authenticated KDE login, live BIOS and full ISO SHA256 reassembly, plus Btrfs rollback. This is NOT stable or verified on physical hardware."
   }
 }

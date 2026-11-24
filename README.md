@@ -129,23 +129,28 @@ The reconstruction script checks the three downloaded parts against `SHA256SUMS.
 
 **Evidence:** [6/6 full ISO and VM jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45333165571) and [independent public-asset download, ISO reconstruction and SHA-256 verification](https://github.com/pomercier/Skaldr-OS/actions/runs/45342872881). Physical NVIDIA/AMD/Intel compatibility, Secure Boot and encrypted installations are not certified.
 
-## Latest six-job ISO qualification — not stable
+## Latest independently verified release-mode ISO — not stable
 
-Both the [development ISO](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702) and the
-[release-mode ISO](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443)
-passed **6/6 real VM jobs** on [source `38c3b85`](https://github.com/pomercier/Skaldr-OS/commit/38c3b8560b43aa2e450d9cb9f16ff1d908a57685):
-UEFI GRUB/ext4, UEFI Limine/Btrfs, legacy BIOS GRUB/ext4 installed cold boot
-without installer ISO or OVMF, BIOS live boot and full-size SHA-256 reassembly.
-The Limine/Btrfs installation additionally passed an offline root rollback
-followed by KDE login. These results do not certify physical hardware.
+[Release-mode qualification #3](https://github.com/pomercier/Skaldr-OS/actions/runs/45425424041)
+passed **all six VM jobs** on source
+[`59833da`](https://github.com/pomercier/Skaldr-OS/commit/59833daa8d1922bbdd21dafee5f840ab4976973f),
+including real Calamares installations and installed-system cold boots for
+UEFI GRUB/ext4, UEFI Limine/Btrfs, and legacy BIOS GRUB/ext4; the BIOS live
+boot and full-ISO reconstruction also passed. The separate Btrfs rollback
+scenario restored the installed system and KDE login.
 
-The `skaldr-0.1.0-x86_64.iso` release-mode candidate (development=false)
-has verified SHA-256 `73c72d946241760cb7ba408d0684df8e103cb2fe5b7a48f1768a7f27c841f8f4`. The separately tested
-`skaldr-0.1.0-dev.223-x86_64.iso` has SHA-256 `9993d780d6e5b365f020c5774c693c7c1bd2c87d002b55aa1d08694e1f11149b`.
-Both are **temporary GitHub Actions artifacts**, not a permanent public release.
-The [permanent public preview.148](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.148)
-remains the latest published download until a newer preview is independently
-published and verified. The stable `v1.0.0` hardware gate is still closed.
+The **test-only** non-development image is `skaldr-0.1.0-x86_64.iso`.
+Its complete SHA-256, from the workflow's archived `SHA256SUMS` manifest,
+is `feb1790ff1768486faad5f4a30302a755975d3382148c925bb1b09bbd8e04b98`. This is a temporary GitHub Actions artifact,
+**not** a public `v1.0.0` release or a physical-hardware certification.
+The [permanently available preview.148](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.148)
+remains the most recent published installation image until a newer public
+preview is verified.
+
+The next two [development](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762559)
+and [release-mode](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762588)
+builds are independent; their source is `88521c2`. They do not supersede
+the established qualification unless their own six-job matrices pass.
 
 ## Release readiness and physical test gate
 

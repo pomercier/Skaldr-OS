@@ -49,9 +49,10 @@ It is **not hardware-certified**; later development commits are not silently
 part of that published ISO. See the [release readiness evidence
 register](RELEASE-READINESS.md).
 
-A separate [five-job release-mode VM qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780277)
-passed on `bb8939175b24f4ebf30309081603bfa08d650d5d` for `skaldr-0.1.0-x86_64.iso`. That
-image is a temporary test artifact, not the stable v1.0.0 release.
+The most recent completed [six-job release-mode VM qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45425424041)
+passed on source `59833daa8d1922bbdd21dafee5f840ab4976973f` for `skaldr-0.1.0-x86_64.iso`
+with verified SHA-256 `feb1790ff1768486faad5f4a30302a755975d3382148c925bb1b09bbd8e04b98`.
+This temporary test artifact is **not** the stable v1.0.0 release.
 
 The next long-term milestone is a genuine public stable `v1.0.0`, not a relabelled preview ISO. The root `VERSION` remains `0.1.0` until a separately tested release-mode image, actual physical hardware evidence, recovery tests and explicit stable-release approval exist. The current stable publishing workflow intentionally rejects releases without these prerequisites. A new feature increments MINOR, compatible fixes increment PATCH, and breaking architectural changes can increment MAJOR.
 
