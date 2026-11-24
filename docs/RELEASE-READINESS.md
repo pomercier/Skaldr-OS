@@ -6,15 +6,20 @@ reconstructed and matched SHA-256. The [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.
 
 ## Proven release-mode validation
 
-The [2026-11-23 qualification workflow](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780277)
-successfully built the non-development `skaldr-0.1.0-x86_64.iso` and passed
-its complete five-job real-VM installation and SHA-256 verification matrix.
-The source revision is `bb8939175b24f4ebf30309081603bfa08d650d5d` and the candidate ISO hash is
-`32f2bb6d02d90378bcd2250a24404b810ddc7239df00e28c0a48436e8d3b148b`.
-This is a pre-v1 release-mode **qualification**, not a `v1.0.0` stable build;
-the stable `release_mode_iso` field remains blocked pending a separately
-pinned v1 release build and appropriate physical testing. Do not interpret
-a green workflow as hardware certification.
+Both the [development ISO](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702) and the
+[release-mode ISO](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443)
+passed **6/6 real VM jobs** on [source `38c3b85`](https://github.com/pomercier/Skaldr-OS/commit/38c3b8560b43aa2e450d9cb9f16ff1d908a57685):
+UEFI GRUB/ext4, UEFI Limine/Btrfs, legacy BIOS GRUB/ext4 installed cold boot
+without installer ISO or OVMF, BIOS live boot and full-size SHA-256 reassembly.
+The Limine/Btrfs installation additionally passed an offline root rollback
+followed by KDE login. These results do not certify physical hardware.
+
+The non-development candidate `skaldr-0.1.0-x86_64.iso` has exact
+source `38c3b8560b43aa2e450d9cb9f16ff1d908a57685` and verified SHA-256 `73c72d946241760cb7ba408d0684df8e103cb2fe5b7a48f1768a7f27c841f8f4`.
+Its successful virtual-machine qualification is recorded separately in
+`RELEASE-EVIDENCE.json`; the stable v1.0.0 `release_mode_iso` field
+intentionally remains untested until a distinct version-1 release candidate
+and the required real-hardware evidence are available.
 
 ## Machine-readable status
 

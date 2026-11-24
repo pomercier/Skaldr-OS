@@ -80,8 +80,9 @@ sha256sum -c SHA256SUMS
 - [ ] Confirm Skaldr branding on the installed Plasma Login screen and
       confirm `skaldr-control-center` opens with Overview and system details.
 - [ ] Confirm Skaldr welcome, NumLock at login/resume, network and audio.
-- [ ] Validate legacy BIOS **installation** separately; only BIOS *live boot*
-      was demonstrated by CI.
+- [ ] Validate legacy BIOS **installation on physical hardware** separately.
+      SeaBIOS + GRUB/ext4 installed boot passed the [6/6 QEMU CI matrix](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443),
+      but physical BIOS compatibility is not certified.
 - [ ] Test actual recovery boot entries without `mitigations=off` when provided.
 
 ## Privacy-limited hardware observations

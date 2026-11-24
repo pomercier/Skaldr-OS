@@ -38,9 +38,12 @@ source version, ISO hash and hypervisor before evaluating the result.
 
 Run at least two **separate fresh VM installations** for the combinations
 already validated in CI: UEFI + GRUB + ext4, and UEFI + Limine + Btrfs.
-The legacy BIOS live boot is a separate proven test. A newly added SeaBIOS +
-GRUB + ext4 **installed-disk cold boot** is under CI qualification; keep it
-**UNTESTED** for this ISO until the full matrix actually succeeds.
+A separate legacy BIOS GRUB/ext4 installed-disk cold boot now passed
+[the six-job development ISO matrix](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702)
+and [the six-job release-mode ISO matrix](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443).
+The permanent public preview.144 predates this test: keep any individual
+manual/hardware scenario UNTESTED until it has actually been performed
+on a matching ISO.
 For every test, verify the QEMU firmware and ensure the installation ISO is
 detached before restarting from the installed disk. Check recovery
 of the Btrfs installation in a disposable clone only; never test rollback
