@@ -34,6 +34,15 @@ class ReleaseModeCITests(unittest.TestCase):
         self.assertNotIn("README.md", candidate_paths)
         self.assertNotIn("docs/**", candidate_paths)
 
+    def test_dev_and_release_ci_do_not_cancel_each_other(self):
+        build = (ROOT / ".github/workflows/build.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            "group: desktop-iso-${{ inputs.release_mode && 'release-candidate' || 'development' }}-${{ github.ref }}",
+            build,
+        )
+        self.assertIn("cancel-in-progress: false", build)
+        self.assertNotIn("group: desktop-iso-${{ github.ref }}", build)
+
     def test_release_candidate_isolation(self):
         workflow = (ROOT / ".github/workflows/skaldr-release-candidate.yml").read_text(encoding="utf-8")
         self.assertIn("branches: [master]", workflow)

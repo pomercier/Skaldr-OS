@@ -53,7 +53,7 @@ on:
   pull_request:
 
 concurrency:
-  group: desktop-iso-${{ github.ref }}
+  group: desktop-iso-${{ inputs.release_mode && 'release-candidate' || 'development' }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
