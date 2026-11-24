@@ -47,6 +47,24 @@ grep -q '#branch=cachyos-staging' "$work/PKGBUILD"
 # Preserve official #branch= selection rather than using an obsolete commit
 # hash after a CachyOS force-push; source identity is checked AFTER makepkg.
 sed -i 's/^pkgrel=3$/pkgrel=3.1/' "$work/PKGBUILD"
+# Fix unbalanced Qt reset notifications in the locally rebuilt installer.
+# Only the extracted makepkg source is patched; upstream remains untouched.
+cp -- "$repo/scripts/skaldr-patch-calamares-bootloader-model.py" "$work/skaldr-patch-calamares-bootloader-model.py"
+python3 - "$work/PKGBUILD" <<'SKALDR_PREPARE_PATCH'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+lines = [line for line in text.splitlines(keepends=True)
+         if 'CALAMARES_VERSION_RC 1' in line and 'sed -i' in line]
+if len(lines) != 1:
+    raise SystemExit("Unexpected official Calamares PKGBUILD prepare(); refusing unreviewed patch")
+dollar = chr(36)
+injection = '    python3 "' + dollar + '{srcdir}/../skaldr-patch-calamares-bootloader-model.py" "' + dollar + '{srcdir}/calamares/src/modules/partition/core/BootLoaderModel.cpp"\n'
+if injection in text or text.count(lines[0]) != 1:
+    raise SystemExit("Calamares PKGBUILD prepare() already patched or changed")
+path.write_text(text.replace(lines[0], lines[0] + injection), encoding="utf-8")
+SKALDR_PREPARE_PATCH
 echo "Building official CachyOS Calamares branch $calamares_branch against current Boost"
 
 # Build the installer for portable x86-64 regardless of the GitHub runner CPU.

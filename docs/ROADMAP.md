@@ -1,4 +1,11 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / Calamares BIOS GUI segfault:** Actual eight-job CI confirmed a
+  SIGSEGV after nested and unbalanced Qt BootLoaderModel reset warnings.
+  Apply a fail-closed local source patch in the Calamares makepkg prepare()
+  hook, preserving the official upstream commit and native GUI tests.
+  Correct a separate, proven rEFInd GPT OCR false negative using two actual
+  summary-page visual cues. Neither issue is complete until all eight real
+  ISO/VM jobs pass successfully.
 - [ ] **P0 / additional installed UEFI bootloaders:** Add real VM installation
   and cold boot tests for rEFInd/ext4 and systemd-boot/ext4 in both developer
   and release-mode ISO pipelines. Public release checks now require eight

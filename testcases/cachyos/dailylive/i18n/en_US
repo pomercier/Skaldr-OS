@@ -51,7 +51,9 @@ text_calamares_users="What name do you want to use to log in?"
 
 # The GRUB summary OCR omits the "i" in "This is"; assert a reliable
 # action listed only on the actual Calamares summary instead.
-text_calamares_summary="Creating new GPT partition table"
+# Real rEFInd VM frames 0023-0032 showed correct GPT layout; OCR omitted
+# the "P" in all ten. Check two independent visible summary elements.
+text_calamares_summary="Erase disk /dev/vda"
 
 # Calamares Install
 
