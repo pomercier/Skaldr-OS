@@ -29,6 +29,7 @@ FILES = [
     "/usr/local/bin/skaldr-doctor",
     "/usr/local/bin/skaldr-report",
     "/usr/local/bin/skaldr-hardware-probe",
+    "/usr/local/bin/skaldr-physical-evidence",
     "/usr/local/bin/skaldr-gpu-diagnostics",
     "/usr/local/bin/skaldr-recovery",
     "/usr/local/bin/skaldr-update",

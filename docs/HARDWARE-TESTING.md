@@ -100,6 +100,34 @@ verification of HDR/VRR**, and should never mark a stable-release evidence
 checkbox as passed automatically. Confirm actual tests manually, then review
 the report for privacy before sharing it.
 
+## Manually attested physical-hardware evidence (newer builds)
+
+The installed `skaldr-physical-evidence` tool produces a private JSON checklist
+of **explicitly reported tests**, rather than blindly passing hardware tests.
+It does not run installers, reboot, change drivers, upload information, or
+approve a stable version. `skaldr-hardware-probe` supplies allowlisted
+read-only observations when present; arbitrary logs and identifying details
+are excluded. The generated file has mode 0600, and existing files cannot be
+overwritten.
+
+For example, **only on a real physical Skaldr installation that you personally
+tested**, the commands below record a verified cold boot and GPU acceleration:
+
+```fish
+skaldr-physical-evidence --physical-confirmation --mode installed --pass-check cold_boot --pass-check gpu_acceleration --write ~/skaldr-physical-review.json
+```
+
+Omit `--pass-check` for untested features. To explicitly document a real failure,
+use `--fail-check suspend_resume`, or `--not-applicable hdr_vrr` when a
+feature genuinely does not apply. Add an independently verified
+`--iso-sha256` when available. Review every report for privacy before
+sharing it with the maintainer. A submitted report is **self-attested**;
+independent confirmation is still needed before any v1 evidence is accepted.
+
+The current preview.148 contains the earlier observation tool but not
+necessarily this newer manual attestation command. This new command will
+be available only in an ISO compiled after its integration.
+
 ## Vendor-neutral GPU coverage
 
 | Hardware | Driver choice / consent | KDE | Video / games | Suspend / resume | HDR / VRR |

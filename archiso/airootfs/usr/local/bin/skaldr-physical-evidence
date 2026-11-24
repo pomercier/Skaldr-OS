@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+"""Manually attested, privacy-limited physical-test evidence for Skaldr OS.
+
+No hardware test is executed or marked as passed automatically. This tool
+records the operator's explicit results for independent maintainer review.
+It never uploads data, executes privileged commands or collects raw logs.
+"""
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+CHECKS = (
+    "live_desktop", "installer_completed", "cold_boot", "password_login",
+    "gpu_driver_consent", "gpu_acceleration", "network_audio", "suspend_resume",
+    "hdr_vrr", "numlock", "snapshot_rollback", "kernel_recovery",
+    "update_cycles", "performance_mode", "privacy_review",
+)
+SHA64 = re.compile(r"^[0-9a-f]{64}$")
+SHA40 = re.compile(r"^[0-9a-f]{40}$")
+PROBE_FIELDS = (
+    "architecture", "kernel", "boot_firmware", "gpu_vendor_families",
+    "ram_total_gib_approx", "session_type", "plasma_session",
+)
+GPU_FAMILIES = {"NVIDIA", "AMD", "Intel", "Other/unknown"}
+
+
+def read_probe(path="/usr/local/bin/skaldr-hardware-probe"):
+    """Invoke the existing unprivileged observer; reject unexpected data."""
+    try:
+        process = subprocess.run(
+            [path], capture_output=True, text=True, timeout=10,
+            check=False,
+        )
+        if process.returncode != 0:
+            return {}
+        result = json.loads(process.stdout)
+        return result if isinstance(result, dict) and result.get(
+            "schema") == "skaldr.hardware-observations.v1" else {}
+    except (OSError, subprocess.TimeoutExpired, ValueError):
+        return {}
+
+
+def allowlisted_observations(probe):
+    if not isinstance(probe, dict):
+        return {}
+    result = {}
+    for key in PROBE_FIELDS:
+        value = probe.get(key)
+        if key in ("architecture", "kernel", "boot_firmware", "session_type"):
+            if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_.+-]{1,64}", value):
+                result[key] = value
+        elif key == "gpu_vendor_families":
+            if isinstance(value, list):
+                result[key] = sorted(set(x for x in value
+                                         if isinstance(x, str) and x in GPU_FAMILIES))
+        elif key == "ram_total_gib_approx":
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and 0 < value < 2048:
+                result[key] = value
+        elif key == "plasma_session" and isinstance(value, bool):
+            result[key] = value
+    identity = probe.get("build_identity")
+    if isinstance(identity, dict):
+        revision = identity.get("git_revision")
+        version = identity.get("version")
+        build = {}
+        if isinstance(revision, str) and SHA40.fullmatch(revision):
+            build["git_revision"] = revision
+        if isinstance(version, str) and re.fullmatch(r"[A-Za-z0-9.+_-]{1,72}", version):
+            build["version"] = version
+        if build:
+            result["build_identity"] = build
+    return result
+
+
+def create_report(results=None, *, physical_attested=False, mode="installed",
+                  iso_sha256=None, probe=None):
+    """Create unsigned claims, NEVER a certification or automated pass."""
+    results = {} if results is None else dict(results)
+    unknown = set(results) - set(CHECKS)
+    if unknown:
+        raise ValueError("Unknown manual check: " + ", ".join(sorted(unknown)))
+    if mode not in ("live", "installed"):
+        raise ValueError("Mode must be live or installed")
+    if iso_sha256 is not None and not SHA64.fullmatch(iso_sha256):
+        raise ValueError("ISO SHA-256 must be exactly 64 lowercase hex characters")
+    for key, status in results.items():
+        if status not in ("pass", "fail", "untested", "not_applicable"):
+            raise ValueError("Invalid manual check status for " + key)
+    if any(value == "pass" for value in results.values()) and not physical_attested:
+        raise ValueError("Passing a check requires explicit physical-machine attestation")
+    return {
+        "schema": "skaldr.physical-test-attestation.v1",
+        "collected_utc": datetime.now(timezone.utc).isoformat(),
+        "test_context": mode,
+        "physical_machine": "operator_attested" if physical_attested else "unverified",
+        "iso_sha256": iso_sha256,
+        "observations": allowlisted_observations(probe),
+        "manual_checks": {key: results.get(key, "untested") for key in CHECKS},
+        "status": "self_reported_pending_independent_review",
+        "stable_release_certified": False,
+        "privacy": "No telemetry, device identifiers, account names, IPs, serials, MACs or raw logs",
+    }
+
+
+def write_private(path, contents):
+    target = Path(path).expanduser()
+    if target.is_symlink():
+        raise ValueError("Refusing a symlink report path")
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(contents)
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--physical-confirmation", action="store_true",
+                        help="Attest that testing actually happened on physical hardware")
+    parser.add_argument("--mode", choices=("live", "installed"), default="installed")
+    parser.add_argument("--iso-sha256", metavar="SHA256",
+                        help="Verified ISO checksum, not automatically inferred")
+    parser.add_argument("--pass-check", action="append", choices=CHECKS, default=[])
+    parser.add_argument("--fail-check", action="append", choices=CHECKS, default=[])
+    parser.add_argument("--not-applicable", action="append", choices=CHECKS, default=[])
+    parser.add_argument("--write", metavar="NEW_JSON_FILE",
+                        help="Write a private, new file; existing files cannot be overwritten")
+    args = parser.parse_args(argv)
+    results = {}
+    for status, keys in (
+        ("pass", args.pass_check),
+        ("fail", args.fail_check),
+        ("not_applicable", args.not_applicable),
+    ):
+        for key in keys:
+            if key in results:
+                parser.error("A manual check has conflicting or duplicate statuses: " + key)
+            results[key] = status
+    try:
+        report = create_report(
+            results, physical_attested=args.physical_confirmation,
+            mode=args.mode, iso_sha256=args.iso_sha256,
+            probe=read_probe(),
+        )
+        data = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+        if args.write:
+            write_private(args.write, data)
+            print("Private, unverified physical test report created; review before sharing.")
+        else:
+            print(data, end="")
+        return 0
+    except (OSError, ValueError) as exc:
+        parser.error(str(exc))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

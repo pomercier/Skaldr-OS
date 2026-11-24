@@ -13,6 +13,14 @@ are currently disabled. Do not attach serial numbers, account names, MAC
 addresses, IP addresses, registration keys, credentials or complete
 unredacted installation logs.
 
+## Optional private machine-readable test report
+
+On builds containing `skaldr-physical-evidence`, testers can prepare a
+private manual evidence report. All checks default to **untested** and a
+`pass` can be recorded only with explicit physical-machine confirmation.
+Its reports remain self-attested and never certify a stable release.
+See [the physical testing instructions](HARDWARE-TESTING.md).
+
 ## Test report template
 
 ```text
