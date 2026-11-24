@@ -6,6 +6,11 @@ on:
   workflow_run:
     workflows: ["Desktop ISO"]
     types: [completed]
+  # Reconsider only after changes to this gate, not arbitrary commits.
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/skaldr-auto-verified-preview.yml'
 
 permissions:
   contents: read
@@ -19,10 +24,12 @@ jobs:
   gate-and-dispatch:
     if: >-
       github.repository == 'pomercier/Skaldr-OS' &&
-      (github.event.workflow_run.event == 'push' ||
-       github.event.workflow_run.event == 'workflow_dispatch') &&
-      github.event.workflow_run.head_branch == 'master' &&
-      github.event.workflow_run.conclusion == 'success'
+      ((github.event_name == 'workflow_run' &&
+        (github.event.workflow_run.event == 'push' ||
+         github.event.workflow_run.event == 'workflow_dispatch') &&
+        github.event.workflow_run.head_branch == 'master' &&
+        github.event.workflow_run.conclusion == 'success') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/master'))
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
@@ -36,6 +43,155 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
+
+      - name: Select last successful master ISO for gate-only push
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate="$(gh api "repos/$REPO/actions/workflows/build.yml/runs?branch=master&status=success&per_page=30" \
+            --jq '[.workflow_runs[] | select(.status == "completed" and .conclusion == "success" and .event == "push" and .head_branch == "master")][0] | [.id, .head_sha] | @tsv')"
+          IFS=        id: source_gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git cat-file -e "$SOURCE_SHA^{commit}" ||
+             ! git merge-base --is-ancestor "$SOURCE_SHA" HEAD; then
+            echo "::error::Tested source SHA is not reachable from master."
+            exit 1
+          fi
+          # Documentation and release-automation changes do not affect the
+          # tested ISO. Block untested installers, packages and build tools.
+          while IFS= read -r changed; do
+            case "$changed" in
+              README.md|docs/**|.github/workflows/skaldr-auto-verified-preview.yml|.github/workflows/skaldr-release.yml)
+                ;;
+              *)
+                echo "::notice::Skip stale build; untested source change: $changed"
+                echo "eligible=false" >> "$GITHUB_OUTPUT"
+                exit 0
+                ;;
+            esac
+          done < <(git diff --name-only "$SOURCE_SHA" HEAD)
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+          echo "Trusted tested ISO source: $SOURCE_SHA"
+
+      - name: Require all six successful jobs of the exact full-size ISO
+        if: steps.source_gate.outputs.eligible == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/actions/runs/$RUN_ID" > "$RUNNER_TEMP/skaldr-run.json"
+          gh api "repos/$REPO/actions/runs/$RUN_ID/jobs?per_page=100" > "$RUNNER_TEMP/skaldr-jobs.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          run=json.loads((root/'skaldr-run.json').read_text())
+          jobs=json.loads((root/'skaldr-jobs.json').read_text())['jobs']
+          expected={'Build', 'Testing (grub / ext4)', 'Testing (limine / btrfs)',
+                    'Testing (bios / live)', 'Testing (grub-bios / ext4)',
+                    'Verify full-size ISO preview reconstruction'}
+          # Refuse release-mode qualifications from the development preview pipeline.
+          # A manually dispatched release_mode=true Desktop ISO must never become
+          # a development preview or bypass the separate stable-release gate.
+          inputs = run.get('inputs') or {}
+          assert str(inputs.get("release_mode", "false")).lower() != "true", (
+              "Release-mode ISO cannot be published as a development preview"
+          )
+          assert run['conclusion']=='success' and run['status']=='completed'
+          assert run['head_sha']==os.environ['SOURCE_SHA']
+          assert run['event'] in ('push', 'workflow_dispatch')
+          assert run['head_branch']=='master'
+          assert expected.issubset({job['name'] for job in jobs if job['conclusion']=='success'})
+          assert all(job['conclusion']=='success' for job in jobs)
+          print('Verified 6/6 real ISO construction, installation and reconstruction jobs.')
+          PY
+          source_run="$(gh run list --repo "$REPO" --workflow skaldr-checks.yml             --commit "$SOURCE_SHA" --status success --json databaseId             --jq '.[0].databaseId // empty')"
+          test -n "$source_run" || {
+            echo "::error::No passing regression tests for exact ISO source."
+            exit 1
+          }
+          echo "Source regression checks: $source_run"
+
+      - name: Verify real Calamares and cold-boot VM log evidence
+        if: steps.source_gate.outputs.eligible == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for flavor in grub-ext4 limine-btrfs grub-bios-ext4; do
+            mkdir -p "$RUNNER_TEMP/$flavor"
+            gh run download "$RUN_ID" --repo "$REPO"               --pattern "skaldr-os-test-results-*-$flavor"               --dir "$RUNNER_TEMP/$flavor"
+          done
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          base=Path(os.environ['RUNNER_TEMP'])
+          for flavor in ('grub-ext4', 'limine-btrfs', 'grub-bios-ext4'):
+              files=list((base/flavor).rglob('installer-serial.log'))
+              logs=list((base/flavor).rglob('quicktest.log'))
+              assert len(files)==1 and len(logs)==1, (flavor,'missing VM evidence')
+              serial=files[0].read_text(errors='replace')
+              quick=logs[0].read_text(errors='replace')
+              required_serial=(
+                  'Skaldr target packages and system preferences installed',
+                  'Skaldr login wallpaper configured.',
+              )
+              required_vm=(
+                  'Cold boot the newly installed system, without the live ISO',
+                  'Launch installed Skaldr Control Center in KDE Plasma',
+              )
+              for msg in required_serial:
+                  assert msg in serial, (flavor, 'missing installer evidence', msg)
+              for msg in required_vm:
+                  assert msg in quick, (flavor, 'missing VM evidence', msg)
+              assert 'Starting job "chwd"' not in serial, (flavor,'virtual chwd was not bypassed')
+              if flavor=='limine-btrfs':
+                  assert 'Skaldr: Limine menu reconciliation:' in serial
+              if flavor=='grub-bios-ext4':
+                  assert 'Boot actual Syslinux live ISO through legacy BIOS' in quick
+                  assert 'Log into the installed Plasma session with the test account' in quick
+              # Quicktest can record a negative OCR probe for
+              # "Installation Failed" during an otherwise successful install.
+              # The actual completion marker, cold boot and KDE assertions
+              # above are the authoritative evidence.
+              print('VERIFIED:',flavor,'install, cold boot, KDE GUI and target packages')
+          PY
+
+      - name: Request a unique public preview from the proven ISO
+        if: steps.source_gate.outputs.eligible == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No duplicate preview for the same tested source SHA.
+          gh api "repos/$REPO/releases?per_page=100" --jq '.[] | .target_commitish' > "$RUNNER_TEMP/skaldr-release-targets.txt"
+          if grep -Fxq "$SOURCE_SHA" "$RUNNER_TEMP/skaldr-release-targets.txt"; then
+            echo "::notice::An ISO preview for this tested commit is already public."
+            exit 0
+          fi
+          version="$(git show "$SOURCE_SHA:VERSION" | tr -d '\r\n')"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Invalid version in exact tested source."
+            exit 1
+          }
+          # Build run numbers are monotonic, unique and immutable.
+          # They cannot race for the same tag when two runs finish together.
+          run_number="$(gh api "repos/$REPO/actions/runs/$RUN_ID" --jq '.run_number')"
+          tag="v${version}-preview.${run_number}"
+          if gh release view "$tag" --repo "$REPO" >/dev/null 2>&1; then
+            echo "::notice::Release $tag already exists."
+            exit 0
+          fi
+          gh workflow run skaldr-release.yml --repo "$REPO" --ref master             --field version="$tag"             --field stable=false             --field source_sha="$SOURCE_SHA"
+          echo "Requested verified public ISO release $tag from run $RUN_ID"
+\t' read -r selected_run selected_sha <<< "$candidate"
+          [[ "$selected_run" =~ ^[0-9]+$ && "$selected_sha" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::No completed, successful master Desktop ISO to re-check."
+            exit 1
+          }
+          echo "RUN_ID=$selected_run" >> "$GITHUB_ENV"
+          echo "SOURCE_SHA=$selected_sha" >> "$GITHUB_ENV"
+          echo "Rechecking tested ISO $selected_run from $selected_sha"
 
       - name: Reject untested ISO changes since the source build
         id: source_gate
