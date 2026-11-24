@@ -41,6 +41,7 @@ The successive, publicly distributed and VM-validated development previews are:
 | [v0.1.0-preview.142](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.142) | `dev.207` | [5/5 ISO/VM tests](https://github.com/pomercier/Skaldr-OS/actions/runs/45095760918) and [public SHA-256 reassembly](https://github.com/pomercier/Skaldr-OS/actions/runs/45099745890) |
 | [v0.1.0-preview.144](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.144) | `dev.217` | [5/5 ISO/VM tests](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780889) and [independently reconstructed public ISO](https://github.com/pomercier/Skaldr-OS/actions/runs/45252577846) |
 | [v0.1.0-preview.148](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.148) | `dev.226` | [6/6 real VM jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45333165571), including BIOS install, and [independent public ISO reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45342872881) |
+| [v0.1.0-preview.151](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.151) | `dev.231` | [6/6 ISO and installed-VM jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762559), [independent public reassembly](https://github.com/pomercier/Skaldr-OS/actions/runs/45469323148) |
 
 The preview.3 release was published on November 18, 2026 from exact source
 `1b4c3d0c4be1b828edbfd3e202e97a13f0ddb89f` (SHA-256
@@ -49,9 +50,9 @@ It is **not hardware-certified**; later development commits are not silently
 part of that published ISO. See the [release readiness evidence
 register](RELEASE-READINESS.md).
 
-The most recent completed [six-job release-mode VM qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45425424041)
-passed on source `59833daa8d1922bbdd21dafee5f840ab4976973f` for `skaldr-0.1.0-x86_64.iso`
-with verified SHA-256 `feb1790ff1768486faad5f4a30302a755975d3382148c925bb1b09bbd8e04b98`.
+The most recent completed [six-job release-mode VM qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762588)
+passed on exact source `88521c22c9e1d9cf5e4d5c79fb09413eca8f85a7` for `skaldr-0.1.0-x86_64.iso`
+with verified SHA-256 `da2138bee1693b82e1656c2fffb8eb8811f45ae1498f1d4e05898c830b675d64`.
 This temporary test artifact is **not** the stable v1.0.0 release.
 
 The next long-term milestone is a genuine public stable `v1.0.0`, not a relabelled preview ISO. The root `VERSION` remains `0.1.0` until a separately tested release-mode image, actual physical hardware evidence, recovery tests and explicit stable-release approval exist. The current stable publishing workflow intentionally rejects releases without these prerequisites. A new feature increments MINOR, compatible fixes increment PATCH, and breaking architectural changes can increment MAJOR.

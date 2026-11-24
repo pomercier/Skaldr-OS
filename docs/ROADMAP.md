@@ -1,16 +1,16 @@
 # Skaldr OS implementation plan
 - [x] **P0 / legacy BIOS installed boot:** [development ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702) and [release-mode ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443) completed on `38c3b8560b43aa2e450d9cb9f16ff1d908a57685`, including SeaBIOS + GRUB/ext4 Calamares installation, installed-disk cold boot, authenticated KDE login and Control Center. Physical BIOS hardware remains untested.
 - [x] **P0 / real release-mode VM matrix:** A distinct non-development ISO,
-  `skaldr-0.1.0-x86_64.iso`, passed all six tests on `59833daa8d1922bbdd21dafee5f840ab4976973f`
-  ([run 45425424041](https://github.com/pomercier/Skaldr-OS/actions/runs/45425424041)),
-  SHA-256 `feb1790ff1768486faad5f4a30302a755975d3382148c925bb1b09bbd8e04b98`.
+  `skaldr-0.1.0-x86_64.iso`, passed all six tests on `88521c22c9e1d9cf5e4d5c79fb09413eca8f85a7`
+  ([run 45462762588](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762588)),
+  SHA-256 `da2138bee1693b82e1656c2fffb8eb8811f45ae1498f1d4e05898c830b675d64`.
   This is **not** the stable v1.0.0 artifact; independent physical tests and a
   separately pinned v1 build remain required.
-- [x] **P0 / newest public preview:** `v0.1.0-preview.148` passed
-  [6/6 real ISO/VM checks](https://github.com/pomercier/Skaldr-OS/actions/runs/45333165571)
-  and [independent public asset reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45342872881).
+- [x] **P0 / newest public preview:** `v0.1.0-preview.151` passed
+  [6/6 real ISO/VM checks](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762559)
+  and [independent public asset reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45469323148).
   Its published ISO SHA-256 is
-  `6718427ea9db6f22d1a06b834f6234e0f5d1dcb069c1b78e9ee0204005820252`.
+  `c00e1ca5dbccc2137bcfd24bb49d6174394e5919616218b135b475b8d1bd2c5e`.
 - [x] **P0 / automated VM installation and boot:** The exact published `v0.1.0-preview.142` ISO passed all five CI jobs on 2026-11-23 ([run 45095760918](https://github.com/pomercier/Skaldr-OS/actions/runs/45095760918)): BIOS live boot, actual Calamares installations with GRUB/ext4 and Limine/Btrfs, cold boots without the live ISO, installed KDE Control Center, Btrfs snapshot rollback, and split ISO reconstruction. This closes the automated VM blocker; **physical installation, recovery and hardware coverage remain unverified**, and the historical manual VM failures are retained as regression context.
 - [x] Add an offline, machine-readable stable-release evidence gate and corresponding CI report. Stable publication remains explicitly disabled until physical tests, release-mode build and human review.
 - [x] Integrate a read-only, privacy-limited hardware observation command and isolated tests into the next development ISO (source checks passed; full new ISO validation pending).

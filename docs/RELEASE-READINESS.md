@@ -1,23 +1,20 @@
 # Release readiness: evidence before stability
 
-Skaldr OS **v0.1.0-preview.148** is the latest real, published, VM-tested development preview ([6/6 ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/45333165571), [independent public reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45342872881)).
+Skaldr OS **v0.1.0-preview.151** is the latest real, published, VM-tested development preview ([6/6 ISO validation](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762559), [independent public reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45469323148)).
 It is **not** certified on physical hardware. Its exact public ISO was independently
 reconstructed and matched SHA-256. The [RELEASE-EVIDENCE.json](RELEASE-EVIDENCE.json) preview record now identifies the exact November 24 tested ISO, its SHA-256, and its source, VM and public-download CI evidence. The stable section deliberately remains untested and must not be interpreted as proof of physical hardware testing.
 
 ## Proven release-mode validation
 
-The latest completed [release-mode ISO qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45425424041)
-passed **all six CI VM jobs** for the image
-`skaldr-0.1.0-x86_64.iso` from exact source `59833daa8d1922bbdd21dafee5f840ab4976973f`.
-The verified complete-image SHA-256 recorded in its archived
-`SHA256SUMS` is `feb1790ff1768486faad5f4a30302a755975d3382148c925bb1b09bbd8e04b98`.
-
-This confirms VM Calamares installation, cold boot, KDE login, offline Btrfs
-rollback and full-image reconstruction across UEFI GRUB/ext4, UEFI
-Limine/Btrfs and legacy BIOS GRUB/ext4. It does **not** certify any physical
-NVIDIA/AMD/Intel system or authorize stable `v1.0.0`. A separate version-1
-image and independent hardware evidence are still required. The stable
-`release_mode_iso` field intentionally stays **untested**.
+The [latest exact-source release-mode qualification](https://github.com/pomercier/Skaldr-OS/actions/runs/45462762588)
+passed **six out of six VM jobs** on commit `88521c22c9e1d9cf5e4d5c79fb09413eca8f85a7`.
+The non-development ISO `skaldr-0.1.0-x86_64.iso` has verified
+SHA-256 `da2138bee1693b82e1656c2fffb8eb8811f45ae1498f1d4e05898c830b675d64`, recorded in the workflow's `SHA256SUMS`
+manifest. This validates VM-based Calamares installation, cold boot, KDE,
+legacy BIOS and Btrfs recovery, but does **not** establish real-hardware
+compatibility or authorize stable `v1.0.0`. The stable `release_mode_iso`
+field deliberately remains untested pending a separately pinned v1 image
+and independent physical hardware evidence.
 
 ## Machine-readable status
 
