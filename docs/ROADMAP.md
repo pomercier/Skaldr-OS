@@ -1,4 +1,10 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / additional installed UEFI bootloaders:** Add real VM installation
+  and cold boot tests for rEFInd/ext4 and systemd-boot/ext4 in both developer
+  and release-mode ISO pipelines. Public release checks now require eight
+  successful jobs, including authenticated KDE and installer evidence.
+  Treat both as unverified until the new matrix passes. Existing preview.151
+  remains the last verified public ISO.
 - [x] **P0 / legacy BIOS installed boot:** [development ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702) and [release-mode ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443) completed on `38c3b8560b43aa2e450d9cb9f16ff1d908a57685`, including SeaBIOS + GRUB/ext4 Calamares installation, installed-disk cold boot, authenticated KDE login and Control Center. Physical BIOS hardware remains untested.
 - [x] **P0 / real release-mode VM matrix:** A distinct non-development ISO,
   `skaldr-0.1.0-x86_64.iso`, passed all six tests on `88521c22c9e1d9cf5e4d5c79fb09413eca8f85a7`

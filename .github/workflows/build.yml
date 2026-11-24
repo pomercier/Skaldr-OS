@@ -46,6 +46,7 @@ on:
       - 'testcases/cachyos/dailylive/test_install_calamares'
       - 'testcases/cachyos/dailylive/test_live_bios'
       - 'tests/test_bios_installed_matrix.py'
+      - 'tests/test_additional_bootloaders.py'
       - 'tests/test_calamares_installed_rollback.py'
       # Changes to the Limine installation regression suite must be validated in a VM.
       - 'tests/test_limine_branding.py'
@@ -222,6 +223,13 @@ jobs:
             firmware: uefi
           - bootloader: limine
             filesystem: btrfs
+            firmware: uefi
+          # Additional UEFI choices: require real installation and cold boot.
+          - bootloader: refind
+            filesystem: ext4
+            firmware: uefi
+          - bootloader: systemd-boot
+            filesystem: ext4
             firmware: uefi
           - bootloader: bios
             filesystem: live

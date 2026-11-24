@@ -85,7 +85,7 @@ jobs:
           echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "Trusted tested ISO source: $SOURCE_SHA"
 
-      - name: Require all six successful jobs of the exact full-size ISO
+      - name: Require all eight successful jobs of the exact full-size ISO
         if: steps.source_gate.outputs.eligible == 'true'
         shell: bash
         run: |
@@ -99,6 +99,7 @@ jobs:
           run=json.loads((root/'skaldr-run.json').read_text())
           jobs=json.loads((root/'skaldr-jobs.json').read_text())['jobs']
           expected={'Build', 'Testing (grub / ext4)', 'Testing (limine / btrfs)',
+                    'Testing (refind / ext4)', 'Testing (systemd-boot / ext4)',
                     'Testing (bios / live)', 'Testing (grub-bios / ext4)',
                     'Verify full-size ISO preview reconstruction'}
           # Refuse release-mode qualifications from the development preview pipeline.
@@ -114,7 +115,7 @@ jobs:
           assert run['head_branch']=='master'
           assert expected.issubset({job['name'] for job in jobs if job['conclusion']=='success'})
           assert all(job['conclusion']=='success' for job in jobs)
-          print('Verified 6/6 real ISO construction, installation and reconstruction jobs.')
+          print('Verified 8/8 real ISO construction, installation and reconstruction jobs.')
           PY
           source_run="$(gh run list --repo "$REPO" --workflow skaldr-checks.yml             --commit "$SOURCE_SHA" --status success --json databaseId             --jq '.[0].databaseId // empty')"
           test -n "$source_run" || {
@@ -128,7 +129,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for flavor in grub-ext4 limine-btrfs grub-bios-ext4; do
+          for flavor in grub-ext4 limine-btrfs grub-bios-ext4 refind-ext4 systemd-boot-ext4; do
             mkdir -p "$RUNNER_TEMP/$flavor"
             gh run download "$RUN_ID" --repo "$REPO"               --pattern "skaldr-os-test-results-*-$flavor"               --dir "$RUNNER_TEMP/$flavor"
           done
@@ -136,7 +137,7 @@ jobs:
           import os
           from pathlib import Path
           base=Path(os.environ['RUNNER_TEMP'])
-          for flavor in ('grub-ext4', 'limine-btrfs', 'grub-bios-ext4'):
+          for flavor in ('grub-ext4', 'limine-btrfs', 'grub-bios-ext4', 'refind-ext4', 'systemd-boot-ext4'):
               files=list((base/flavor).rglob('installer-serial.log'))
               logs=list((base/flavor).rglob('quicktest.log'))
               assert len(files)==1 and len(logs)==1, (flavor,'missing VM evidence')

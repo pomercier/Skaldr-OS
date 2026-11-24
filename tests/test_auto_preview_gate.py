@@ -26,10 +26,11 @@ class AutoPreviewGateTests(unittest.TestCase):
         source = WORKFLOW.read_text()
         for text in ("Testing (grub / ext4)", "Testing (limine / btrfs)",
                      "Testing (bios / live)", "Testing (grub-bios / ext4)",
+                     "Testing (refind / ext4)", "Testing (systemd-boot / ext4)",
                      "Verify full-size ISO preview reconstruction"):
             self.assertIn(text, source)
-        self.assertIn("Verified 6/6 real ISO", source)
-        self.assertIn("for flavor in grub-ext4 limine-btrfs grub-bios-ext4", source)
+        self.assertIn("Verified 8/8 real ISO", source)
+        self.assertIn("for flavor in grub-ext4 limine-btrfs grub-bios-ext4 refind-ext4 systemd-boot-ext4", source)
         self.assertIn("Boot actual Syslinux live ISO through legacy BIOS", source)
         self.assertIn("Log into the installed Plasma session with the test account", source)
         self.assertIn("Cold boot the newly installed system, without the live ISO", source)
