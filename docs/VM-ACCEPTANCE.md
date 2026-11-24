@@ -6,13 +6,13 @@ source version, ISO hash and hypervisor before evaluating the result.
 
 ## Preparation
 
-- Use the permanently published [preview.144 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.144)
+- Use the permanently published [preview.148 release](https://github.com/pomercier/Skaldr-OS/releases/tag/v0.1.0-preview.148)
   with its seven matching assets; never mix parts from different releases.
-- Preview.144 contains `skaldr-0.1.0-dev.217-x86_64.iso` from exact source
-  `bb8939175b24f4ebf30309081603bfa08d650d5d`, SHA-256
-  `a4c956b798b0d28e07457563bb41129fc6ad54cf2482ce246f6c28025ecbefcf`.
-  Its [five build/installation jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780889)
-  and [public ISO reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45252577846)
+- Preview.144 contains `skaldr-0.1.0-dev.226-x86_64.iso` from exact source
+  `b434fbb83aee635815160b6189d0b4bba585c845`, SHA-256
+  `6718427ea9db6f22d1a06b834f6234e0f5d1dcb069c1b78e9ee0204005820252`.
+  Its [six build/installation jobs](https://github.com/pomercier/Skaldr-OS/actions/runs/45333165571)
+  and [public ISO reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45342872881)
   passed. Use the bundled reassembly script before the checksum command.
 - Verify with `sha256sum -c SHA256SUMS` from the directory containing
   the complete ISO and matching checksum manifest.
@@ -41,7 +41,7 @@ already validated in CI: UEFI + GRUB + ext4, and UEFI + Limine + Btrfs.
 A separate legacy BIOS GRUB/ext4 installed-disk cold boot now passed
 [the six-job development ISO matrix](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702)
 and [the six-job release-mode ISO matrix](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443).
-The permanent public preview.144 predates this test: keep any individual
+The permanent public preview.148 predates this test: keep any individual
 manual/hardware scenario UNTESTED until it has actually been performed
 on a matching ISO.
 For every test, verify the QEMU firmware and ensure the installation ISO is

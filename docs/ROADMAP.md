@@ -1,15 +1,15 @@
 # Skaldr OS implementation plan
 - [x] **P0 / legacy BIOS installed boot:** [development ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079702) and [release-mode ISO 6/6](https://github.com/pomercier/Skaldr-OS/actions/runs/45263079443) completed on `38c3b8560b43aa2e450d9cb9f16ff1d908a57685`, including SeaBIOS + GRUB/ext4 Calamares installation, installed-disk cold boot, authenticated KDE login and Control Center. Physical BIOS hardware remains untested.
 - [x] **P0 / real release-mode VM matrix:** A distinct non-development ISO,
-  `skaldr-0.1.0-x86_64.iso`, passed all five tests on `bb8939175b24f4ebf30309081603bfa08d650d5d`
+  `skaldr-0.1.0-x86_64.iso`, passed all five tests on `b434fbb83aee635815160b6189d0b4bba585c845`
   ([run 45245780277](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780277)).
   This is **not** the stable v1.0.0 artifact; independent physical tests and a
   separately pinned v1 build remain required.
-- [x] **P0 / newest public preview:** `v0.1.0-preview.144` passed
-  [5/5 real ISO/VM checks](https://github.com/pomercier/Skaldr-OS/actions/runs/45245780889)
-  and [independent public asset reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45252577846).
+- [x] **P0 / newest public preview:** `v0.1.0-preview.148` passed
+  [6/6 real ISO/VM checks](https://github.com/pomercier/Skaldr-OS/actions/runs/45333165571)
+  and [independent public asset reconstruction](https://github.com/pomercier/Skaldr-OS/actions/runs/45342872881).
   Its published ISO SHA-256 is
-  `a4c956b798b0d28e07457563bb41129fc6ad54cf2482ce246f6c28025ecbefcf`.
+  `6718427ea9db6f22d1a06b834f6234e0f5d1dcb069c1b78e9ee0204005820252`.
 - [x] **P0 / automated VM installation and boot:** The exact published `v0.1.0-preview.142` ISO passed all five CI jobs on 2026-11-23 ([run 45095760918](https://github.com/pomercier/Skaldr-OS/actions/runs/45095760918)): BIOS live boot, actual Calamares installations with GRUB/ext4 and Limine/Btrfs, cold boots without the live ISO, installed KDE Control Center, Btrfs snapshot rollback, and split ISO reconstruction. This closes the automated VM blocker; **physical installation, recovery and hardware coverage remain unverified**, and the historical manual VM failures are retained as regression context.
 - [x] Add an offline, machine-readable stable-release evidence gate and corresponding CI report. Stable publication remains explicitly disabled until physical tests, release-mode build and human review.
 - [x] Integrate a read-only, privacy-limited hardware observation command and isolated tests into the next development ISO (source checks passed; full new ISO validation pending).
