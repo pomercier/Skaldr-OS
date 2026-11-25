@@ -169,8 +169,16 @@ def ensure_refind_uefi_fallback(root=Path("/"), *, refind_installed=None,
     if esp.is_symlink() or not esp.is_dir() or not esp.resolve().is_relative_to(root.resolve()):
         raise RuntimeError("rEFInd fallback: /boot ESP is missing or unsafe")
     if filesystem is None:
+        # Calamares runs this hook in a chroot: /proc/self/mountinfo can
+        # retain the host's /tmp/calamares-root-*/boot mountpoint. findmnt
+        # --mountpoint /boot therefore misses a valid, separately mounted
+        # ESP. --target resolves the actual containing mount by device.
+        # Require a different device from / as well, so the root filesystem
+        # can never masquerade as the ESP.
+        if os.stat(esp).st_dev == os.stat(root).st_dev:
+            raise RuntimeError("rEFInd fallback: /boot is not an exact mounted FAT ESP (same device as root)")
         checked = subprocess.run(
-            ["findmnt", "-rnM", str(esp), "-o", "FSTYPE"],
+            ["findmnt", "-rnT", str(esp), "-o", "FSTYPE"],
             capture_output=True, text=True, timeout=10, check=False
         )
         filesystem = checked.stdout.strip() if checked.returncode == 0 else None

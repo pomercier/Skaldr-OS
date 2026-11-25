@@ -71,6 +71,15 @@ class RefindEFIFallbackTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "symlinked"):
                 FIX(root, refind_installed=True, uefi=True, filesystem="vfat")
 
+    def test_chroot_esp_detection_requires_separate_device_and_target_lookup(self):
+        code = POST.read_text(encoding="utf-8")
+        # --mountpoint matches host namespace paths and causes false failures
+        # inside Calamares chroot; --target resolves the filesystem at /boot.
+        self.assertIn('["findmnt", "-rnT", str(esp), "-o", "FSTYPE"]', code)
+        self.assertNotIn('["findmnt", "-rnM", str(esp), "-o", "FSTYPE"]', code)
+        self.assertIn("os.stat(esp).st_dev == os.stat(root).st_dev", code)
+        self.assertIn("not an exact mounted FAT ESP", code)
+
     def test_real_install_and_release_gates_stay_enabled(self):
         self.assertIn("ensure_refind_uefi_fallback()",
                       POST.read_text(encoding="utf-8"))
