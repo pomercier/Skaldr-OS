@@ -72,9 +72,12 @@ class RefindEFIFallbackTests(unittest.TestCase):
                 FIX(root, refind_installed=True, uefi=True, filesystem="vfat")
 
     def test_chroot_esp_detection_requires_separate_device_and_target_lookup(self):
-        code = POST.read_text(encoding="utf-8")
-        # --mountpoint matches host namespace paths and causes false failures
-        # inside Calamares chroot; --target resolves the filesystem at /boot.
+        post = POST.read_text(encoding="utf-8")
+        # Limine legitimately has its own independent mount test. Inspect
+        # the rEFInd function only, not every other bootloader's code.
+        code = post.split("def ensure_refind_uefi_fallback(", 1)[1].split(
+            "def main():", 1
+        )[0]
         self.assertIn('["findmnt", "-rnT", str(esp), "-o", "FSTYPE"]', code)
         self.assertNotIn('["findmnt", "-rnM", str(esp), "-o", "FSTYPE"]', code)
         self.assertIn("os.stat(esp).st_dev == os.stat(root).st_dev", code)

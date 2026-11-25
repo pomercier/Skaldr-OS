@@ -19,6 +19,9 @@ class ExtraBootloaders(unittest.TestCase):
         case = (ROOT / "testcases/cachyos/dailylive/test_install_calamares").read_text()
         self.assertIn("Click BIOS Calamares Next on the verified partition page", case)
         self.assertIn("BIOS partition Next QMP click failed", case)
+        self.assertIn('if qt_search_screenshot "$FUNCNAME" "$text_calamares_partitions"; then', case)
+        self.assertIn("BIOS partition page still active; press Return on focused Next", case)
+        self.assertIn('qt_send_key_combo "ret"', case)
 
     def test_quicktest_actual_install_and_cold_boot(self):
         script = ROOT / "testcases/cachyos/dailylive/test_install_calamares"
