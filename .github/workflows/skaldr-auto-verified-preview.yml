@@ -156,6 +156,16 @@ jobs:
               for msg in required_vm:
                   assert msg in quick, (flavor, 'missing VM evidence', msg)
               assert 'Starting job "chwd"' not in serial, (flavor,'virtual chwd was not bypassed')
+              # A green install must have mounted the filesystem requested
+              # by its CI matrix, not only displayed a different GUI choice.
+              fs_type='btrfs' if flavor.endswith('-btrfs') else 'ext4'
+              assert 'Current filesystem: '+fs_type in serial, (flavor,'filesystem selection mismatch')
+              assert 'mount", "-t", "'+fs_type+'"' in serial, (flavor,'installed root mount mismatch')
+              if flavor=='refind-ext4':
+                  assert any(marker in serial for marker in (
+                      'Skaldr: rEFInd UEFI fallback installed',
+                      'Skaldr: matching rEFInd UEFI fallback verified',
+                  )), (flavor,'installed rEFInd fallback not verified')
               if flavor=='limine-btrfs':
                   assert 'Skaldr: Limine menu reconciliation:' in serial
               if flavor=='grub-bios-ext4':
