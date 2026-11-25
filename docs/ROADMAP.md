@@ -1,4 +1,11 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / rEFInd EFI boot and BIOS partition navigation:** Archived
+  VM screenshots confirm successful rEFInd installation followed by an OVMF
+  no-bootable-device failure, and an enabled BIOS partition Next control
+  that keyboard navigation did not activate. Require a verified UEFI
+  fallback on the actual mounted FAT ESP (never overwrite another loader);
+  use local QMP to click the real BIOS Next button. Both cases remain
+  UNVERIFIED until the complete eight-job VM matrix succeeds.
 - [ ] **P0 / Calamares BIOS GUI segfault:** Actual eight-job CI confirmed a
   SIGSEGV after nested and unbalanced Qt BootLoaderModel reset warnings.
   Apply a fail-closed local source patch in the Calamares makepkg prepare()

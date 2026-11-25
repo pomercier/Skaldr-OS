@@ -141,6 +141,75 @@ def verify_limine_uefi_esp(root=Path("/"), *, limine_installed=None,
           "config, Linux menu and EFI binary present)", flush=True)
     return True
 
+
+def ensure_refind_uefi_fallback(root=Path("/"), *, refind_installed=None,
+                               uefi=None, filesystem=None):
+    """Provide a verified rEFInd removable fallback when OVMF loses NVRAM.
+
+    Write only to the exact mounted FAT ESP and only when rEFInd is selected.
+    Never overwrite a differing EFI loader or use an untrusted binary.
+    """
+    import hashlib
+
+    root = Path(root)
+    if refind_installed is None:
+        refind_installed = subprocess.run(
+            ["pacman", "-Qq", "refind"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            check=False
+        ).returncode == 0
+    if not refind_installed:
+        return False
+    if uefi is None:
+        uefi = (root / "sys/firmware/efi").is_dir()
+    if not uefi:
+        return False
+
+    esp = root / "boot"
+    if esp.is_symlink() or not esp.is_dir() or not esp.resolve().is_relative_to(root.resolve()):
+        raise RuntimeError("rEFInd fallback: /boot ESP is missing or unsafe")
+    if filesystem is None:
+        checked = subprocess.run(
+            ["findmnt", "-rnM", str(esp), "-o", "FSTYPE"],
+            capture_output=True, text=True, timeout=10, check=False
+        )
+        filesystem = checked.stdout.strip() if checked.returncode == 0 else None
+    if filesystem != "vfat":
+        raise RuntimeError("rEFInd fallback: /boot is not an exact mounted FAT ESP")
+
+    source = esp / "EFI/refind/refind_x64.efi"
+    target_dir = esp / "EFI/BOOT"
+    target = target_dir / "BOOTX64.EFI"
+    if source.is_symlink() or not source.is_file():
+        raise RuntimeError("rEFInd fallback: expected EFI binary missing")
+    with source.open("rb") as stream:
+        if stream.read(2) != b"MZ":
+            raise RuntimeError("rEFInd fallback: source is not a PE/EFI binary")
+    if source.stat().st_size < 4096:
+        raise RuntimeError("rEFInd fallback: source EFI binary unexpectedly small")
+
+    def checksum(file):
+        with file.open("rb") as stream:
+            return hashlib.file_digest(stream, "sha256").digest()
+
+    if target_dir.is_symlink():
+        raise RuntimeError("rEFInd fallback: refusing symlinked EFI/BOOT directory")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    if target.is_symlink():
+        raise RuntimeError("rEFInd fallback: refusing symlinked EFI loader")
+    if target.exists():
+        if not target.is_file() or checksum(target) != checksum(source):
+            raise RuntimeError("rEFInd fallback: different bootloader already owns EFI/BOOT")
+        print("Skaldr: matching rEFInd UEFI fallback verified", flush=True)
+        return True
+
+    with source.open("rb") as incoming, target.open("xb") as outgoing:
+        shutil.copyfileobj(incoming, outgoing)
+    if checksum(target) != checksum(source):
+        raise RuntimeError("rEFInd fallback: EFI copy checksum mismatch")
+    print("Skaldr: rEFInd UEFI fallback installed on mounted FAT ESP", flush=True)
+    return True
+
 def main():
     pkg = Path("/usr/share/skaldr/packages.txt")
     if not pkg.exists():
@@ -156,6 +225,7 @@ def main():
     configure_installed_users()
     configure_installed_login_wallpaper()
     verify_limine_uefi_esp()
+    ensure_refind_uefi_fallback()
     print("Skaldr target packages and system preferences installed")
 
 if __name__ == "__main__":

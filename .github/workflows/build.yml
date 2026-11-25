@@ -50,6 +50,7 @@ on:
       - 'testcases/cachyos/dailylive/test_live_bios'
       - 'tests/test_bios_installed_matrix.py'
       - 'tests/test_additional_bootloaders.py'
+      - 'tests/test_refind_efi_fallback.py'
       - 'tests/test_calamares_installed_rollback.py'
       # Changes to the Limine installation regression suite must be validated in a VM.
       - 'tests/test_limine_branding.py'

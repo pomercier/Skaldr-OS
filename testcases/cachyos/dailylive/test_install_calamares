@@ -178,7 +178,22 @@ function test_calamares_partitions() {
     qt_send_key_combo "shift-tab"
     qt_send_key_combo "shift-tab"
     qt_screenshot_ppm "$FUNCNAME"
-    qt_send_key_combo "spc"
+    if [[ "${TEST_FIRMWARE:-uefi}" == "bios" ]]; then
+        # The BIOS Next button is enabled; six Shift-Tabs did not focus it.
+        # Click that real GUI control with QMP, retaining all page checks.
+        local snapshot width height
+        snapshot="$(find "$QT_RESULTS" -type f -name 'screenshot_*.ppm' | sort | tail -n 1)"
+        [[ -f "$snapshot" ]] || qt_test_fail "BIOS partition screenshot missing"
+        width="$(identify -format '%w' "$snapshot")"
+        height="$(identify -format '%h' "$snapshot")"
+        qt_echo "Click BIOS Calamares Next on the verified partition page"
+        python3 scripts/skaldr-qmp-click.py \
+          --x "$((width * 785 / 1000))" --y "$((height * 898 / 1000))" \
+          --width "$width" --height "$height" ||
+            qt_test_fail "BIOS partition Next QMP click failed"
+    else
+        qt_send_key_combo "spc"
+    fi
 }
 
 function test_calamares_packages() {
