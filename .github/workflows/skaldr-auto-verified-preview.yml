@@ -22,6 +22,7 @@ concurrency:
 jobs:
   gate-and-dispatch:
     if: >-
+      vars.SKALDR_ALLOW_PREVIEW_PUBLICATION == 'true' &&
       github.repository == 'pomercier/Skaldr-OS' &&
       ((github.event_name == 'workflow_run' &&
         (github.event.workflow_run.event == 'push' ||
