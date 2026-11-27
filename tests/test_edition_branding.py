@@ -169,7 +169,7 @@ branding: cachyos
         source = PREPARE.read_text()
         self.assertIn("brand_bootloader_chooser", source)
         quicktest = (REPO / "testcases/cachyos/dailylive/test_install_calamares").read_text()
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "Illustrative preview" 8 3',
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "Appearance varies by configuration" 8 3',
                       quicktest)
         assets = REPO / "archiso/airootfs/usr/share/skaldr/installer/bootloaders"
         for name in ("grub", "refind", "systemd-boot", "limine"):
