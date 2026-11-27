@@ -22,6 +22,23 @@ class ExtraBootloaders(unittest.TestCase):
         self.assertIn('qt_wait_for_text "$FUNCNAME" "$text_calamares_packages"', case)
         self.assertIn("test_installed_system_cold_boot", case)
 
+    def test_ocr_tracks_actual_boot_and_installer_evidence(self):
+        quicktest = (ROOT / "testcases/cachyos/dailylive/test_install_calamares").read_text()
+        # The 2026-11-27 GRUB menu was read as "GMU GRUB".
+        # The BIOS preview footer was read as "II IUStratIVE prEVIEW".
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "GRUB" 3 5', quicktest)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "GNU GRUB" 3 5', quicktest)
+        self.assertIn(
+            'qt_wait_for_text "$FUNCNAME" "Appearance varies by configuration" 8 3',
+            quicktest,
+        )
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Illustrative preview" 8 3', quicktest)
+        for required in ("test_calamares_bootloader", "test_calamares_partitions",
+                         "test_calamares_install", "test_installed_system_cold_boot",
+                         "test_installed_plasma_first_login",
+                         "test_installed_native_control_center"):
+            self.assertIn(required, quicktest)
+
     def test_quicktest_actual_install_and_cold_boot(self):
         script = ROOT / "testcases/cachyos/dailylive/test_install_calamares"
         text = script.read_text()

@@ -68,7 +68,12 @@ function test_post_boot_bios() {
 
 function test_post_boot_grub() {
     qt_wait_for_seconds 5
-    qt_wait_for_text "$FUNCNAME" "GNU GRUB" 3 5
+    # OCR from the actual 2026-11-27 UEFI VM screenshot reads
+    # "GMU GRUB version 2:2.16" instead of "GNU GRUB"; the distinctive
+    # GRUB token remains intact. Verify the real menu, then boot it.
+    # A separately verified installer, disk-only reboot and KDE login are
+    # still mandatory: this is NOT a substitute for installation evidence.
+    qt_wait_for_text "$FUNCNAME" "GRUB" 3 5
     qt_screenshot_ppm "$FUNCNAME"
     qt_send_key "return"
 }
@@ -152,7 +157,10 @@ function test_calamares_bootloader() {
     # Unlike the inherited CachyOS .jxl screenshot, every Skaldr preview
     # includes this distinct footer. Require it in the real Calamares QEMU
     # screenshot, not merely in the source tree.
-    qt_wait_for_text "$FUNCNAME" "Illustrative preview" 8 3
+    # Actual BIOS CI screenshots render the full preview correctly, but
+    # OCR reports "II IUStratIVE prEVIEW". The adjacent independent
+    # footer text is read reliably across the archived frames.
+    qt_wait_for_text "$FUNCNAME" "Appearance varies by configuration" 8 3
     qt_send_key_combo "spc"
 }
 

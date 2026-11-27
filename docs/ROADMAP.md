@@ -1,4 +1,12 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / real GUI OCR stability in the eight-job matrix:** On
+  2026-11-27 both development and release-mode installations failed
+  early because the visual OCR read "GMU GRUB" instead of "GNU GRUB",
+  and "II IUStratIVE prEVIEW" instead of "Illustrative preview",
+  despite genuine photographed menus. Use the separately verified
+  "GRUB" menu token and the adjacent "Appearance varies by configuration"
+  footer, retaining real partition, install, disk-only boot and KDE
+  acceptance. These changes are NOT qualified until all eight CI jobs pass.
 - [ ] **P0 / restore proven BIOS model and verify chroot ESP:** The expanded
   eight-job matrix on 2026-11-26 failed BIOS partition navigation with
   "No items in BootLoaderModel". The previous six-job matrix succeeded
