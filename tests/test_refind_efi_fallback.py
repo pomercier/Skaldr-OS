@@ -71,23 +71,41 @@ class RefindEFIFallbackTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "symlinked"):
                 FIX(root, refind_installed=True, uefi=True, filesystem="vfat")
 
-    def test_chroot_esp_detection_requires_separate_device_and_target_lookup(self):
+    def test_chroot_esp_detection_uses_real_fat_statfs_and_distinct_device(self):
         post = POST.read_text(encoding="utf-8")
-        # Limine legitimately has its own independent mount test. Inspect
-        # the rEFInd function only, not every other bootloader's code.
-        code = post.split("def ensure_refind_uefi_fallback(", 1)[1].split(
+        self.assertIn('["findmnt", "-rnT", str(esp), "-o", "FSTYPE"]', post)
+        self.assertIn('["stat", "-f", "-c", "%T", str(esp)]', post)
+        self.assertIn('("msdos", "vfat")', post)
+        source = post.split("def ensure_refind_uefi_fallback(", 1)[1].split(
             "def main():", 1
         )[0]
-        self.assertIn('["findmnt", "-rnT", str(esp), "-o", "FSTYPE"]', code)
-        self.assertNotIn('["findmnt", "-rnM", str(esp), "-o", "FSTYPE"]', code)
-        self.assertIn("os.stat(esp).st_dev == os.stat(root).st_dev", code)
-        self.assertIn("not an exact mounted FAT ESP", code)
+        self.assertIn("os.stat(esp).st_dev == os.stat(root).st_dev", source)
+        self.assertIn("filesystem = _refind_esp_filesystem(esp)", source)
+        self.assertIn("not an exact mounted FAT ESP", source)
+
+    def test_fat_probe_falls_back_when_chroot_mountinfo_is_incomplete(self):
+        from subprocess import CompletedProcess
+        from unittest.mock import patch
+        module = runpy.run_path(str(POST), run_name="skaldr_refind_test")
+        probe = module["_refind_esp_filesystem"]
+        with patch.dict(probe.__globals__, {}):
+            with patch.object(module["subprocess"], "run", side_effect=[
+                CompletedProcess([], 1, stdout=""),
+                CompletedProcess([], 0, stdout="msdos\\n"),
+            ]) as mocked:
+                self.assertEqual(probe(Path("/boot")), "vfat")
+                self.assertEqual(mocked.call_count, 2)
+        with patch.object(module["subprocess"], "run", side_effect=[
+            CompletedProcess([], 1, stdout=""),
+            CompletedProcess([], 0, stdout="ext2/ext3"),
+        ]):
+            self.assertIsNone(probe(Path("/boot")))
 
     def test_real_install_and_release_gates_stay_enabled(self):
         self.assertIn("ensure_refind_uefi_fallback()",
                       POST.read_text(encoding="utf-8"))
         case = (ROOT / "testcases/cachyos/dailylive/test_install_calamares").read_text()
-        self.assertIn("BIOS partition Next QMP click failed", case)
+        self.assertIn("Restore the exact keyboard Next action", case)
         self.assertIn("test_installed_system_cold_boot", case)
         self.assertIn("test_installed_native_control_center", case)
         for workflow in (".github/workflows/build.yml",

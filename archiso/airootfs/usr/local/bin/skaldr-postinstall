@@ -142,6 +142,28 @@ def verify_limine_uefi_esp(root=Path("/"), *, limine_installed=None,
     return True
 
 
+def _refind_esp_filesystem(esp):
+    """Identify FAT even when Calamares chroot lacks a usable mount table.
+
+    findmnt --target is preferred, but mountinfo can be incomplete inside
+    the isolated installation environment. GNU statfs queries the *actual*
+    filesystem backing /boot without requiring /proc or mountinfo.
+    """
+    mounted = subprocess.run(
+        ["findmnt", "-rnT", str(esp), "-o", "FSTYPE"],
+        capture_output=True, text=True, timeout=10, check=False
+    )
+    if mounted.returncode == 0 and mounted.stdout.strip() == "vfat":
+        return "vfat"
+    checked = subprocess.run(
+        ["stat", "-f", "-c", "%T", str(esp)],
+        capture_output=True, text=True, timeout=10, check=False
+    )
+    if checked.returncode == 0 and checked.stdout.strip() in ("msdos", "vfat"):
+        return "vfat"
+    return None
+
+
 def ensure_refind_uefi_fallback(root=Path("/"), *, refind_installed=None,
                                uefi=None, filesystem=None):
     """Provide a verified rEFInd removable fallback when OVMF loses NVRAM.
@@ -169,19 +191,13 @@ def ensure_refind_uefi_fallback(root=Path("/"), *, refind_installed=None,
     if esp.is_symlink() or not esp.is_dir() or not esp.resolve().is_relative_to(root.resolve()):
         raise RuntimeError("rEFInd fallback: /boot ESP is missing or unsafe")
     if filesystem is None:
-        # Calamares runs this hook in a chroot: /proc/self/mountinfo can
-        # retain the host's /tmp/calamares-root-*/boot mountpoint. findmnt
-        # --mountpoint /boot therefore misses a valid, separately mounted
-        # ESP. --target resolves the actual containing mount by device.
-        # Require a different device from / as well, so the root filesystem
-        # can never masquerade as the ESP.
+        # A mounted ESP must have a distinct device from the installed
+        # root. In a Calamares chroot, findmnt can fail because /proc
+        # mountinfo does not reflect chroot-relative mountpoints. statfs
+        # identifies the actual FAT filesystem without using that table.
         if os.stat(esp).st_dev == os.stat(root).st_dev:
             raise RuntimeError("rEFInd fallback: /boot is not an exact mounted FAT ESP (same device as root)")
-        checked = subprocess.run(
-            ["findmnt", "-rnT", str(esp), "-o", "FSTYPE"],
-            capture_output=True, text=True, timeout=10, check=False
-        )
-        filesystem = checked.stdout.strip() if checked.returncode == 0 else None
+        filesystem = _refind_esp_filesystem(esp)
     if filesystem != "vfat":
         raise RuntimeError("rEFInd fallback: /boot is not an exact mounted FAT ESP")
 

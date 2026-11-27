@@ -1,4 +1,13 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / restore proven BIOS model and verify chroot ESP:** The expanded
+  eight-job matrix on 2026-11-26 failed BIOS partition navigation with
+  "No items in BootLoaderModel". The previous six-job matrix succeeded
+  using official unpatched Calamares; quarantine the experimental nested
+  Qt reset patch in the production build and restore proven keyboard
+  navigation. For rEFInd, confirmed /boot was a separately mounted vfat
+  ESP in Calamares serial logs; probe actual FAT with statfs when mountinfo
+  in the install chroot cannot resolve findmnt. Both corrections remain
+  UNVERIFIED until all eight real VM jobs pass, including disk-only boot.
 - [ ] **P0 / rEFInd EFI boot and BIOS partition navigation:** Archived
   VM screenshots confirm successful rEFInd installation followed by an OVMF
   no-bootable-device failure, and an enabled BIOS partition Next control

@@ -43,12 +43,13 @@ class CalamaresResetTests(unittest.TestCase):
                                capture_output=True, text=True, check=False)
             self.assertNotEqual(b.returncode, 0)
 
-    def test_makepkg_hook_stays_reviewed_and_shell_valid(self):
+    def test_rebuild_quarantines_unverified_qt_reset_patch(self):
         script = ROOT / "scripts/skaldr-build-calamares.sh"
         content = script.read_text()
-        self.assertIn("SKALDR_PREPARE_PATCH", content)
-        self.assertIn("Unexpected official Calamares PKGBUILD prepare()", content)
-        self.assertIn("skaldr-patch-calamares-bootloader-model.py", content)
+        self.assertIn("QUARANTINED", content)
+        self.assertNotIn("SKALDR_PREPARE_PATCH", content)
+        self.assertNotIn('"$work/skaldr-patch-calamares-bootloader-model.py"', content)
+        self.assertIn("actual_revision", content)
         proc = subprocess.run(["bash", "-n", str(script)],
                               capture_output=True, text=True, check=False)
         self.assertEqual(proc.returncode, 0, proc.stderr)
