@@ -57,7 +57,11 @@ class CalamaresResetTests(unittest.TestCase):
     def test_real_vm_ocr_cues_and_disk_only_cold_boot_still_required(self):
         i18n = (ROOT / "testcases/cachyos/dailylive/i18n/en_US").read_text()
         case = (ROOT / "testcases/cachyos/dailylive/test_install_calamares").read_text()
-        self.assertIn('text_calamares_summary="Erase disk /dev/vda"', i18n)
+        self.assertIn(
+            'text_calamares_summary="This is an overview of what will happen"',
+            i18n,
+        )
+        self.assertNotIn('text_calamares_summary="Erase disk /dev/vda"', i18n)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "Create new" 5 3', case)
         self.assertIn("test_installed_system_cold_boot", case)
         self.assertIn("test_installed_native_control_center", case)

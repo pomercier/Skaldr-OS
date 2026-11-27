@@ -49,11 +49,11 @@ text_calamares_users="What name do you want to use to log in?"
 
 # Calamares Summary
 
-# The GRUB summary OCR omits the "i" in "This is"; assert a reliable
-# action listed only on the actual Calamares summary instead.
-# Real rEFInd VM frames 0023-0032 showed correct GPT layout; OCR omitted
-# the "P" in all ten. Check two independent visible summary elements.
-text_calamares_summary="Erase disk /dev/vda"
+# 2026-11-27 actual GRUB, BIOS, systemd-boot, Limine summary screenshots
+# consistently OCR "/dev/vda" as "/devi/vda". Never use the device path
+# as an OCR gate. Check the summary-only explanatory heading and a
+# separately visible planned partition creation in the real GUI.
+text_calamares_summary="This is an overview of what will happen"
 
 # Calamares Install
 

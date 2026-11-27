@@ -219,7 +219,8 @@ function test_calamares_users() {
 
 function test_calamares_summary() {
     qt_wait_for_text "$FUNCNAME" "$text_calamares_summary" 10 5
-    # Second independent summary-only cue seen on all ten real rEFInd frames.
+    # An independent actual partition-creation action must be listed on
+    # this same Calamares summary page. Do not bypass the installer.
     qt_wait_for_text "$FUNCNAME" "Create new" 5 3
     qt_send_key_combo "spc"
     qt_screenshot_ppm "$FUNCNAME"

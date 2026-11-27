@@ -1,4 +1,13 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / summary OCR and installed-VM qualification:** On the
+  2026-11-27 eight-job development and release matrices, the five real
+  installer scenarios reached Calamares Summary but failed a brittle OCR
+  assertion for "/dev/vda", consistently read as "/devi/vda" in archived
+  screenshots. Require the photographed summary explanatory heading and
+  the independently visible "Create new" partition action instead.
+  Preserve filesystem mount proof, installation, disk-only cold boot,
+  authenticated KDE login and eight-job fail-closed gates. No ISO is
+  certified until the matrix actually completes successfully.
 - [ ] **P0 / real GUI OCR stability in the eight-job matrix:** On
   2026-11-27 both development and release-mode installations failed
   early because the visual OCR read "GMU GRUB" instead of "GNU GRUB",
