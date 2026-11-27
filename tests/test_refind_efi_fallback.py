@@ -91,7 +91,7 @@ class RefindEFIFallbackTests(unittest.TestCase):
         with patch.dict(probe.__globals__, {}):
             with patch.object(module["subprocess"], "run", side_effect=[
                 CompletedProcess([], 1, stdout=""),
-                CompletedProcess([], 0, stdout="msdos\\n"),
+                CompletedProcess([], 0, stdout="msdos\n"),
             ]) as mocked:
                 self.assertEqual(probe(Path("/boot")), "vfat")
                 self.assertEqual(mocked.call_count, 2)
