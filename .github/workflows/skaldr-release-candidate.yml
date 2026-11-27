@@ -36,6 +36,7 @@ on:
       - 'tests/test_additional_bootloaders.py'
       - 'tests/test_refind_efi_fallback.py'
       - 'tests/test_calamares_installed_rollback.py'
+      - 'tests/test_edition_branding.py'
       - 'tests/test_limine_branding.py'
       - 'tests/test_release_assets.py'
   workflow_dispatch:
