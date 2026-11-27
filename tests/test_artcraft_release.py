@@ -65,10 +65,31 @@ class ArtCraftReleaseTests(unittest.TestCase):
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "Bundled AppImage"', quicktest)
         self.assertIn('qt_send_string_return "skaldr-artcraft"', quicktest)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "ARTCRAFT"', quicktest)
-        self.assertIn('qt_wait_for_text "$FUNCNAME" "AniCraft"', quicktest)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "2D vector animation"', quicktest)
+        self.assertNotIn('qt_wait_for_text "$FUNCNAME" "AniCraft"', quicktest)
         self.assertIn('qt_wait_for_text "$FUNCNAME" "AVAILABLE TO INSTALL"', quicktest)
         self.assertNotIn('qt_wait_for_text "$FUNCNAME" "PhotoCraft"', quicktest)
         self.assertIn("PASS: installed ArtCraft AppImage SHA-256 and native catalog GUI", quicktest)
+
+    def test_visual_catalog_evidence_survives_stylized_title_ocr(self):
+        # Actual archived ArtCraft screenshot_0055: "AnIiCraft" is an OCR
+        # error, but the same populated installed GUI displays these
+        # independent, reproducibly recognized catalog markers.
+        from_text = (
+            "ARTCRAFT CRAFT APP SUITE\n"
+            "AnIiCraft BY ARTCRAFT\n"
+            "2D vector animation\n"
+            "AVAILABLE TO INSTALL\n"
+            "Download size: 18 MB\n"
+        )
+        self.assertNotIn("AniCraft", from_text)
+        for marker in ("ARTCRAFT", "2D vector animation", "AVAILABLE TO INSTALL"):
+            self.assertIn(marker, from_text)
+        case = (ROOT / "testcases/cachyos/dailylive/test_install_calamares").read_text()
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "2D vector animation" 10 5', case)
+        self.assertIn('qt_wait_for_text "$FUNCNAME" "AVAILABLE TO INSTALL" 10 5', case)
+        self.assertLess(case.index("executable verified"),
+                        case.index('qt_wait_for_text "$FUNCNAME" "2D vector animation" 10 5'))
 
     def test_artcraft_retest_reuses_previous_iso_and_no_calamares_build(self):
         workflow = (ROOT / ".github/workflows/skaldr-artcraft-retest.yml").read_text()

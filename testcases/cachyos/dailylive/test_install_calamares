@@ -365,14 +365,14 @@ function test_installed_artcraft_launcher() {
     qt_send_key_combo "alt-f2"
     qt_wait_for_seconds 2
     qt_send_string_return "skaldr-artcraft"
-    # Real QEMU screenshots (run 44132973459) prove the checksum-verified
-    # native ArtCraft launcher is running and its catalog is populated.
-    # PhotoCraft is below the first alphabetical grid, so that old assertion
-    # generated a false failure despite a working graphical interface.
-    # Assert three independent native-GUI cues present in actual screenshots
-    # 0060 and 0074 that the checksum diagnostic alone cannot produce.
+    # Actual installed-disk GRUB (UEFI + BIOS) screens in run 46063658364
+    # show a native ArtCraft catalog and genuine "AniCraft" card.
+    # Tesseract misreads the stylized title as "AnIiCraft" across screenshots
+    # 0053-0063. Its independent card descriptor "2D vector animation" is
+    # legible along with "ARTCRAFT" and the install availability badge.
+    # This must still follow the real guest SHA-256 diagnostic and GUI launch.
     qt_wait_for_text "$FUNCNAME" "ARTCRAFT" 12 5
-    qt_wait_for_text "$FUNCNAME" "AniCraft" 10 5
+    qt_wait_for_text "$FUNCNAME" "2D vector animation" 10 5
     qt_wait_for_text "$FUNCNAME" "AVAILABLE TO INSTALL" 10 5
     qt_screenshot_ppm "$FUNCNAME"
     qt_echo "PASS: installed ArtCraft AppImage SHA-256 and native catalog GUI"

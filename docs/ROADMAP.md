@@ -1,4 +1,14 @@
 # Skaldr OS implementation plan
+- [ ] **P0 / installed ArtCraft catalog acceptance on GRUB:** The
+  2026-11-27 development and release-mode matrices passed 6/8 CI jobs,
+  including installed UEFI rEFInd/ext4, Limine/Btrfs and systemd-boot/ext4,
+  while both UEFI GRUB and BIOS GRUB installed successfully but stopped
+  at OCR for the stylized AniCraft title ("AnIiCraft" on authentic
+  screenshots 0053-0063). The installed verified AppImage opens a real
+  catalog and displays a stable "2D vector animation" subtitle and
+  "AVAILABLE TO INSTALL" label. Assert these independent visual cues
+  after exact SHA-256 and real GUI launch; retain boot, KDE and every
+  other eight-job test. This fix is NOT yet VM-certified.
 - [ ] **P0 / summary OCR and installed-VM qualification:** On the
   2026-11-27 eight-job development and release matrices, the five real
   installer scenarios reached Calamares Summary but failed a brittle OCR
